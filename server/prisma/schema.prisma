@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+// Enums
+enum Role {
+  MANAGER
+  EMPLOYEE
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+}
+
+enum PaymentMethod {
+  NONE
+  CASH
+  CREDIT
+  CBE
+  COOP
+  AWASH
+  EBIRR
+}
+
+// Users table
+model Users {
+  id                     String            @id @default(uuid())
+  FirstName              String
+  LastName               String
+  username               String            @unique
+  password               String
+  role                   Role
+  status                 Status            @default(ACTIVE)
+  member                 Members?
+  credits                SupplierCredits[] @relation("CreatedBy")
+  medicines              Medicines[]       @relation("CreatedBy")
+  customerCredits        CustomerCredit[]  @relation("CreatedBy")
+  updatedCustomerCredits CustomerCredit[]  @relation("UpdatedBy")
+  updatedSupplierCredits SupplierCredits[] @relation("UpdatedBy")
+  createdSales           Sales[]           @relation("CreatedBy")    // Matches "CreatedBy" in Sales
+  updatedSales           Sales[]           @relation("UpdatedSales") // Matches "UpdatedSales" in Sales
+}
+
+// Members table
+model Members {
+  id           String    @id @default(uuid())
+  user_id      String    @unique
+  FirstName    String
+  LastName     String
+  phone        String?
+  position     String
+  address      String?
+  certificate  String?
+  Photo        String?
+  gender       Gender?
+  dob          DateTime?
+  salary       Float
+  joining_date DateTime
+  status       Status    @default(ACTIVE)
+  role         Role
+  biography    String?
+  user         Users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+// Suppliers table
+model Suppliers {
+  id                 String            @id @default(uuid())
+  supplier_name      String
+  contact_info       String
+  payment_info_cbe   String?
+  payment_info_coop  String?
+  payment_info_boa   String?
+  payment_info_awash String?
+  payment_info_ebirr String?
+  location           String
+  email              String?
+  SupplierCredits    SupplierCredits[]
+  Medicines          Medicines[]
+}
+
+// Categories Table
+model Categories {
+  id        String      @id @default(uuid())
+  name      String
+  Medicines Medicines[]
+}
+
+// DosageForms Table
+model DosageForms {
+  id        String      @id @default(uuid())
+  name      String
+  Medicines Medicines[]
+  Sales     Sales[]
+  Returns   Returns[]
+}
+
+// Medicines Table
+model Medicines {
+  id                    String        @id @default(uuid())
+  medicine_name         String
+  brand_name            String?
+  batch_number          String?
+  category_id           String
+  dosage_form_id        String
+  medicine_weight       Float?
+  quantity              Int
+  supplier_id           String
+  invoice_number        String        @unique
+  unit_price            Float
+  sell_price            Float?
+  total_price           Float
+  expire_date           DateTime
+  required_prescription Boolean
+  payment_method        PaymentMethod @default(NONE)
+  Payment_file          String?
+  details               String?
+  createdById           String
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  category              Categories    @relation(fields: [category_id], references: [id])
+  dosage_form           DosageForms   @relation(fields: [dosage_form_id], references: [id])
+  supplier              Suppliers     @relation(fields: [supplier_id], references: [id])
+  createdBy             Users         @relation("CreatedBy", fields: [createdById], references: [id])
+  Sales                 Sales[]
+  Returns               Returns[]
+}
+
+// Sales Table
+model Sales {
+  id                   String        @id @default(uuid())
+  product_name         String?
+  product_batch_number String?
+  quantity             Int
+  price                Float
+  total_amount         Float
+  payment_method       PaymentMethod @default(NONE)
+  prescription         Boolean
+  dosage_form_id       String
+  customer_id          String?
+  sealed_date          DateTime
+  medicine_id          String
+  created_by           String
+  updated_by           String?
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+  dosage_form          DosageForms   @relation(fields: [dosage_form_id], references: [id])
+  customer             Customers?    @relation(fields: [customer_id], references: [id])
+  medicine             Medicines     @relation(fields: [medicine_id], references: [id])
+  createdBy            Users         @relation("CreatedBy", fields: [created_by], references: [id])
+  updatedBy            Users?        @relation("UpdatedSales", fields: [updated_by], references: [id])
+}
+
+// Expenses Table
+model Expenses {
+  id              String         @id @default(uuid())
+  date            DateTime
+  reason          String
+  payment_method  PaymentMethod?
+  receipt         String?
+  amount          Float
+  description     String?
+  additional_info String?
+}
+
+// Returns Table
+model Returns {
+  id                   String      @id @default(uuid())
+  product_name         String
+  product_batch_number String
+  dosage_form_id       String
+  return_date          DateTime
+  reason_for_return    String
+  quantity             Int
+  medicine_id          String
+  dosage_form          DosageForms   @relation(fields: [dosage_form_id], references: [id])
+  medicine             Medicines   @relation(fields: [medicine_id], references: [id])
+}
+
+// Customers Table
+model Customers {
+  id             String           @id @default(uuid())
+  name           String
+  phone          String
+  address        String
+  status         Status           @default(ACTIVE)
+  Sales          Sales[]
+  CustomerCredit CustomerCredit[]
+}
+
+// SupplierCredits Table
+model SupplierCredits {
+  id                  String         @id @default(uuid())
+  supplier_id         String
+  credit_amount       Float
+  medicine_name       String?
+  paid_amount         Float          @default(0)
+  unpaid_amount       Float          @default(0)
+  total_unpaid_amount Float          @default(0)
+  total_paid_amount   Float          @default(0)
+  description         String?
+  payment_method      PaymentMethod?
+  payment_status      PaymentStatus  @default(UNPAID)
+  credit_date         DateTime
+  payment_file        String?
+  created_by          String
+  updated_by          String?
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+  supplier            Suppliers      @relation(fields: [supplier_id], references: [id])
+  createdBy           Users          @relation("CreatedBy", fields: [created_by], references: [id])
+  updatedBy           Users?         @relation("UpdatedBy", fields: [updated_by], references: [id])
+}
+
+// CustomerCredit Table
+model CustomerCredit {
+  id                  String        @id @default(uuid())
+  customer_id         String
+  credit_amount       Float
+  paid_amount         Float         @default(0)
+  unpaid_amount       Float         @default(0)
+  total_unpaid_amount Float         @default(0)
+  total_paid_amount   Float         @default(0)
+  medicine_name       String?
+  payment_method      PaymentMethod @default(NONE)
+  description         String?
+  status              PaymentStatus @default(UNPAID)
+  credit_date         DateTime
+  payment_file        String?
+  updated_at          DateTime      @updatedAt
+  created_by          String
+  updated_by          String?
+  customer            Customers     @relation(fields: [customer_id], references: [id])
+  createdBy           Users         @relation("CreatedBy", fields: [created_by], references: [id])
+  updatedBy           Users?        @relation("UpdatedBy", fields: [updated_by], references: [id])
+}
+
+// Objectives Table
+model Objectives {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  time_period String
+  progress    Float
+  KeyResults  KeyResults[]
+}
+
+// KeyResults Table
+model KeyResults {
+  id           String     @id @default(uuid())
+  objective_id String
+  title        String
+  description  String
+  weight       Float
+  deadline     DateTime
+  progress     Float
+  objective    Objectives @relation(fields: [objective_id], references: [id])
+}
+
