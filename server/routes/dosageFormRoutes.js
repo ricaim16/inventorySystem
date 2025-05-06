@@ -13,13 +13,13 @@ router.get(
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   dosageFormController.addDosageForm
 );
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   dosageFormController.editDosageForm
 );
 router.delete(

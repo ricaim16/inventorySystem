@@ -55,11 +55,28 @@ export const createMember = async (data) => {
     }
 
     const formData = new FormData();
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== null && value !== undefined && value !== "") {
-        formData.append(key, value);
+    const fieldsToInclude = [
+      "user_id",
+      "FirstName",
+      "LastName",
+      "phone",
+      "role",
+      "position",
+      "address",
+      "gender",
+      "dob",
+      "salary",
+      "joining_date",
+      "status",
+      "biography",
+    ];
+
+    for (const key of fieldsToInclude) {
+      if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
+        formData.append(key, data[key]);
       }
     }
+
     if (data.photoFile) formData.append("photo", data.photoFile);
     if (data.certificateFile)
       formData.append("certificate", data.certificateFile);
@@ -69,11 +86,6 @@ export const createMember = async (data) => {
       formDataEntries[key] = value instanceof File ? value.name : value;
     }
     console.log("FormData being sent:", formDataEntries);
-    console.log("Axios request config:", {
-      url: "/members",
-      method: "POST",
-      headers: { "Content-Type": "multipart/form-data" },
-    });
 
     const response = await axiosInstance.post("/members", formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -112,11 +124,27 @@ export const createMember = async (data) => {
 export const updateMember = async (id, data) => {
   try {
     const formData = new FormData();
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== null && value !== undefined) {
-        formData.append(key, value);
+    const fieldsToInclude = [
+      "FirstName",
+      "LastName",
+      "phone",
+      "role",
+      "position",
+      "address",
+      "gender",
+      "dob",
+      "salary",
+      "joining_date",
+      "status",
+      "biography",
+    ];
+
+    for (const key of fieldsToInclude) {
+      if (data[key] !== null && data[key] !== undefined) {
+        formData.append(key, data[key]);
       }
     }
+
     if (data.photoFile) formData.append("photo", data.photoFile);
     if (data.certificateFile)
       formData.append("certificate", data.certificateFile);
@@ -133,11 +161,22 @@ export const updateMember = async (id, data) => {
 export const updateSelfMember = async (data) => {
   try {
     const formData = new FormData();
-    for (const [key, value] of Object.entries(data)) {
-      if (value !== null && value !== undefined) {
-        formData.append(key, value);
+    const fieldsToInclude = [
+      "FirstName",
+      "LastName",
+      "phone",
+      "address",
+      "gender",
+      "dob",
+      "biography",
+    ];
+
+    for (const key of fieldsToInclude) {
+      if (data[key] !== null && data[key] !== undefined) {
+        formData.append(key, data[key]);
       }
     }
+
     if (data.photoFile) formData.append("photo", data.photoFile);
     if (data.certificateFile)
       formData.append("certificate", data.certificateFile);

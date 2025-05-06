@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getAllCategories, deleteCategory } from "../../../api/categoryApi";
+import { useAuth } from "../../../context/AuthContext";
 import { useTheme } from "../../../context/ThemeContext";
 import {
   ChevronLeftIcon,
@@ -20,6 +21,7 @@ const CategoryList = ({ showToast }) => {
   const [categoryIdToDelete, setCategoryIdToDelete] = useState(null);
   const itemsPerPage = 10;
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchCategories();
@@ -38,12 +40,13 @@ const CategoryList = ({ showToast }) => {
     }
   };
 
-  const handleView = (category) => {
+  const handleEdit = (category) => {
     setSelectedCategory(category);
     setIsFormOpen(true);
   };
 
   const handleDelete = async (id) => {
+    if (user?.role !== "MANAGER") return; // Safety check, though backend enforces this
     try {
       await deleteCategory(id);
       if (typeof showToast === "function") {
@@ -52,7 +55,7 @@ const CategoryList = ({ showToast }) => {
       fetchCategories();
     } catch (err) {
       const errorMessage =
-        err.response?.status === 500
+        err.response?.status === 409
           ? "This category cannot be deleted because it is associated with one or more medicines."
           : "Failed to delete category";
       setError(errorMessage);
@@ -65,6 +68,7 @@ const CategoryList = ({ showToast }) => {
   };
 
   const openDeleteModal = (id) => {
+    if (user?.role !== "MANAGER") return; // Prevent modal for non-managers
     setCategoryIdToDelete(id);
     setShowDeleteModal(true);
   };
@@ -252,25 +256,27 @@ const CategoryList = ({ showToast }) => {
                       }`}
                     >
                       <button
-                        onClick={() => handleView(cat)}
+                        onClick={() => handleEdit(cat)}
                         className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base bg-[#5DB5B5] hover:bg-[#4A8F8F] mr-2`}
                         title="Edit"
                         aria-label={`Edit category ${cat.name}`}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => openDeleteModal(cat.id)}
-                        className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base ${
-                          theme === "dark"
-                            ? "bg-red-700 hover:bg-red-600"
-                            : "bg-red-500 hover:bg-red-600"
-                        }`}
-                        title="Delete"
-                        aria-label={`Delete category ${cat.name}`}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      {user?.role === "MANAGER" && (
+                        <button
+                          onClick={() => openDeleteModal(cat.id)}
+                          className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base ${
+                            theme === "dark"
+                              ? "bg-red-700 hover:bg-red-600"
+                              : "bg-red-500 hover:bg-red-600"
+                          }`}
+                          title="Delete"
+                          aria-label={`Delete category ${cat.name}`}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -322,8 +328,7 @@ const CategoryList = ({ showToast }) => {
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {user?.role === "MANAGER" && showDeleteModal && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <div
             className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${

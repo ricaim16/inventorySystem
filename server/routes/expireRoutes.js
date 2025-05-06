@@ -22,8 +22,9 @@ router.get(
 router.get(
   "/report",
   authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  roleMiddleware(["MANAGER"]), // Restricted to MANAGER only
   expireController.generateExpirationReport
 );
+
 
 export default router;

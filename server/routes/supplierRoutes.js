@@ -1,4 +1,3 @@
-// routers/supplierRoutes.js
 import express from "express";
 import { supplierController } from "../controllers/supplierController.js";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.js";
@@ -13,7 +12,7 @@ const __dirname = path.dirname(
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../uploads");
+    const uploadPath = path.join(__dirname, "../Uploads");
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -42,62 +41,62 @@ router.use(authMiddleware);
 // Supplier Routes
 router.get(
   "/",
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Both can view all suppliers
   supplierController.getAllSuppliers
 );
 router.get(
   "/:id",
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Both can view a specific supplier
   supplierController.getSupplierById
 );
 router.post(
   "/",
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Both can add suppliers
   supplierController.addSupplier
 );
 router.put(
   "/:id",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Both can edit suppliers
   supplierController.editSupplier
 );
 router.delete(
   "/:id",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER"]), // Only MANAGER can delete suppliers
   supplierController.deleteSupplier
 );
 
 // Supplier Credit Routes
 router.get(
   "/credits",
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Both can view all credits
   supplierController.getAllSupplierCredits
 );
 router.get(
   "/:supplier_id/credits",
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Both can view credits for a supplier
   supplierController.getSupplierCredits
 );
 router.get(
   "/credits/report",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER"]), // Only MANAGER can view credit report
   supplierController.generateCreditReport
 );
 router.post(
   "/credits",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), 
   logRawRequest,
   upload,
   supplierController.addSupplierCredit
 );
 router.put(
   "/credits/:id",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Both can edit credits
   upload,
   supplierController.editSupplierCredit
 );
 router.delete(
   "/credits/:id",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER" ,"EMPLOYEE"]), // Only MANAGER can delete credits
   supplierController.deleteSupplierCredit
 );
 

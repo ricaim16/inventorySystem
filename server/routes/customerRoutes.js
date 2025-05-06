@@ -83,20 +83,20 @@ router.get(
 );
 router.post(
   "/credits",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   logRawRequest,
   upload,
   customerController.addCustomerCredit
 );
 router.put(
   "/credits/:id",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   upload,
   customerController.editCustomerCredit
 );
 router.delete(
   "/credits/:id",
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   customerController.deleteCustomerCredit
 );
 

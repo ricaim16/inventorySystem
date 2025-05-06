@@ -10,11 +10,13 @@ import ReturnList from "./ReturnList";
 import ReturnReport from "./ReturnReport";
 import ReturnForm from "./ReturnForm";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 
 const Return = ({ showToast }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (location.pathname === "/returns") {
@@ -57,27 +59,31 @@ const Return = ({ showToast }) => {
         >
           Returns List
         </Link>
-        <Link
-          to="/returns/report"
-          className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
-            location.pathname === "/returns/report"
-              ? "bg-[#10B981] text-white"
-              : theme === "dark"
-              ? "bg-gray-700 text-gray-300 hover:bg-[#10B981] hover:text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
-          }`}
-        >
-          Returns Report
-        </Link>
+        {user?.role === "MANAGER" && (
+          <Link
+            to="/returns/report"
+            className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
+              location.pathname === "/returns/report"
+                ? "bg-[#10B981] text-white"
+                : theme === "dark"
+                ? "bg-gray-700 text-gray-300 hover:bg-[#10B981] hover:text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
+            }`}
+          >
+            Returns Report
+          </Link>
+        )}
       </div>
 
       <Routes>
         <Route path="/" element={<ReturnList showToast={showToast} />} />
         <Route path="/list" element={<ReturnList showToast={showToast} />} />
-        <Route
-          path="/report"
-          element={<ReturnReport showToast={showToast} />}
-        />
+        {user?.role === "MANAGER" && (
+          <Route
+            path="/report"
+            element={<ReturnReport showToast={showToast} />}
+          />
+        )}
         <Route path="/form" element={<ReturnForm showToast={showToast} />} />
       </Routes>
     </div>

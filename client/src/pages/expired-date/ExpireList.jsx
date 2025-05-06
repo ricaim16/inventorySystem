@@ -41,8 +41,7 @@ const ExpireList = () => {
 
   const getStatus = (daysRemaining) => {
     const days = typeof daysRemaining === "string" ? -1 : daysRemaining;
-    if (days === -1) return "Expired";
-    if (days <= 90) return "Expiring Soon";
+    if (days <= 0) return "Expired";
     return "Valid";
   };
 
@@ -129,31 +128,37 @@ const ExpireList = () => {
     }),
   ];
 
-  const filteredMedicines = expiredMedicines.filter((med) => {
-    const matchesSearch = [
-      med.medicine_name,
-      med.batch_number,
-      formatEAT(med.expire_date),
-    ]
-      .filter(Boolean)
-      .some((field) =>
-        field.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const filteredMedicines = expiredMedicines
+    .filter((med) => {
+      const daysRemaining = getDaysRemaining(med.expire_date);
+      const days = typeof daysRemaining === "string" ? -1 : daysRemaining;
+      return days <= 0; // Only include medicines that are expired (0 or negative days)
+    })
+    .filter((med) => {
+      const matchesSearch = [
+        med.medicine_name,
+        med.batch_number,
+        formatEAT(med.expire_date),
+      ]
+        .filter(Boolean)
+        .some((field) =>
+          field.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
-    const expireDate = new Date(med.expire_date);
-    if (filterType === "Monthly" && filterMonth && filterYear) {
-      return (
-        expireDate.getMonth() === parseInt(filterMonth) &&
-        expireDate.getFullYear() === parseInt(filterYear)
-      );
-    }
-    if (filterType === "Yearly" && filterYear) {
-      return expireDate.getFullYear() === parseInt(filterYear);
-    }
-    return true;
-  });
+      const expireDate = new Date(med.expire_date);
+      if (filterType === "Monthly" && filterMonth && filterYear) {
+        return (
+          expireDate.getMonth() === parseInt(filterMonth) &&
+          expireDate.getFullYear() === parseInt(filterYear)
+        );
+      }
+      if (filterType === "Yearly" && filterYear) {
+        return expireDate.getFullYear() === parseInt(filterYear);
+      }
+      return true;
+    });
 
   const totalPages = Math.ceil(filteredMedicines.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -766,7 +771,7 @@ const ExpireList = () => {
                 theme === "dark" ? "text-gray-300" : "text-gray-700"
               }`}
             >
-              No expired medicines found.
+              No medicine is expired.
             </p>
           )}
 

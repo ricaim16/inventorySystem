@@ -143,8 +143,8 @@ const EmployeeManagement = () => {
             onClick={handleAddEmployee}
             className={`py-2 px-4 rounded-md text-sm sm:text-base font-medium transition-colors duration-200 ${
               theme === "dark"
-                ? "bg-gray-700 text-gray-300 hover:bg-[#10B981] hover:text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
+                ? "bg-[#10B981] text-gray-300 hover:bg-[#10B981] hover:text-white"
+                : "bg-[#10B981] text-gray-700 hover:bg-[#10B981] hover:text-white"
             }`}
           >
             Add Employee

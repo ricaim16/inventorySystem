@@ -13,13 +13,13 @@ router.get(
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   categoryController.addCategory
 );
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   categoryController.editCategory
 );
 router.delete(

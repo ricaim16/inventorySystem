@@ -11,11 +11,14 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteUser(id); // Removed leaveDate parameter
+      await deleteUser(id);
       showToast("User deleted successfully!");
       onUserUpdated({ id, action: "delete" });
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to delete user");
+      setError(
+        err.response?.data?.error ||
+          "Failed to delete user. This user may have associated records."
+      );
     }
     setShowDeleteModal(false);
   };
@@ -203,8 +206,8 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
           <div
             className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${
               theme === "dark"
-                ? "bg-[#e1cb94] text-gray-800"
-                : "bg-[#e1cb94] text-gray-800"
+                ? "bg-[#f4f4f4] text-gray-800"
+                : "bg-[#f4f4f4] text-gray-800"
             }`}
           >
             <div className="flex flex-col items-center">
@@ -237,3 +240,4 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
 };
 
 export default UserList;
+

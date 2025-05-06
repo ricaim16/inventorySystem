@@ -171,7 +171,7 @@ export const createMember = async (req, res, next) => {
       ? path.relative(__dirname, photoFile.path).replace(/\\/g, "/")
       : null;
     const certificatePath = certificateFile
-      ? path.relative(__dirname, photoFile.path).replace(/\\/g, "/")
+      ? path.relative(__dirname, certificateFile.path).replace(/\\/g, "/")
       : null;
 
     console.log("Creating member data");

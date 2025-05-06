@@ -16,9 +16,11 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   returnsController.editReturn
 );
+
+
 router.delete(
   "/:id",
   authMiddleware,

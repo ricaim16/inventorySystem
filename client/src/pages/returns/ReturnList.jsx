@@ -3,7 +3,8 @@ import returnsApi from "../../api/returnsApi";
 import ReturnForm from "./ReturnForm";
 import { useTheme } from "../../context/ThemeContext";
 import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { HiExclamationCircle, HiEye, HiTrash } from "react-icons/hi";
+import { HiPencil, HiTrash, HiExclamationCircle } from "react-icons/hi";
+import { useAuth } from "../../context/AuthContext";
 
 const ReturnList = ({ showToast }) => {
   const [returns, setReturns] = useState([]);
@@ -16,6 +17,7 @@ const ReturnList = ({ showToast }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [returnIdToDelete, setReturnIdToDelete] = useState(null);
   const { theme } = useTheme();
+  const { user } = useAuth();
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -52,13 +54,33 @@ const ReturnList = ({ showToast }) => {
   };
 
   const handleEdit = (returnItem) => {
+    console.log("Editing return:", returnItem);
     setSelectedReturn(returnItem);
     setShowForm(true);
   };
 
-  const openDeleteModal = (id) => {
+  const handleDelete = (id) => {
     setReturnIdToDelete(id);
     setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await returnsApi.deleteReturn(returnIdToDelete);
+      setReturns(
+        returns.filter((returnItem) => returnItem.id !== returnIdToDelete)
+      );
+      showToast("Return deleted successfully!");
+      setError(null);
+      fetchReturns();
+      window.dispatchEvent(new Event("returnsUpdated"));
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Failed to delete return: " + err.message
+      );
+    }
+    setShowDeleteModal(false);
+    setReturnIdToDelete(null);
   };
 
   const closeDeleteModal = () => {
@@ -66,22 +88,10 @@ const ReturnList = ({ showToast }) => {
     setReturnIdToDelete(null);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await returnsApi.deleteReturn(id);
-      setReturns(returns.filter((r) => r.id !== id));
-      showToast("Return deleted successfully!");
-      setError(null);
-    } catch (err) {
-      setError(err.message || "Error deleting return");
-    }
-    setShowDeleteModal(false);
-    setReturnIdToDelete(null);
-  };
-
   const handleSave = () => {
     setShowForm(false);
     fetchReturns();
+    window.dispatchEvent(new Event("returnsUpdated"));
   };
 
   const handleCancel = () => {
@@ -144,6 +154,12 @@ const ReturnList = ({ showToast }) => {
 
     return pages;
   };
+
+  const actionButtonClass = `p-1 sm:p-2 rounded-md transition-colors duration-200 ${
+    theme === "dark"
+      ? "text-gray-200 hover:bg-gray-700"
+      : "text-gray-900 hover:bg-gray-200"
+  }`;
 
   return (
     <div
@@ -444,28 +460,24 @@ const ReturnList = ({ showToast }) => {
                           >
                             <button
                               onClick={() => handleEdit(returnItem)}
-                              className={`p-2 rounded-md transition-colors duration-200 ${
-                                theme === "dark"
-                                  ? "text-gray-200 hover:bg-gray-700"
-                                  : "text-gray-900 hover:bg-gray-200"
-                              }`}
+                              className={actionButtonClass}
                               title="Edit"
                               aria-label={`Edit return ${returnItem.id}`}
                             >
-                              <HiEye size={18} />
+                              <HiPencil size={18} />
                             </button>
-                            <button
-                              onClick={() => openDeleteModal(returnItem.id)}
-                              className={`p-2 rounded-md transition-colors duration-200 ${
-                                theme === "dark"
-                                  ? "text-gray-200 hover:bg-gray-700"
-                                  : "text-gray-900 hover:bg-gray-200"
-                              }`}
-                              title="Delete"
-                              aria-label={`Delete return ${returnItem.id}`}
-                            >
-                              <HiTrash size={18} />
-                            </button>
+                            {["MANAGER", "EMPLOYEE"].includes(
+                              user?.role?.toUpperCase()
+                            ) && (
+                              <button
+                                onClick={() => handleDelete(returnItem.id)}
+                                className={actionButtonClass}
+                                title="Delete"
+                                aria-label={`Delete return ${returnItem.id}`}
+                              >
+                                <HiTrash size={18} />
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );
@@ -474,45 +486,47 @@ const ReturnList = ({ showToast }) => {
                 </table>
               </div>
 
-              <div className="mt-6 flex flex-wrap justify-center items-center gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`p-2 rounded-md transition-colors duration-200 ${
-                    theme === "dark"
-                      ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
-                      : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <FiChevronLeft size={20} />
-                </button>
-                {getPageNumbers().map((page, index) => (
+              {totalPages > 0 && (
+                <div className="mt-6 flex flex-wrap justify-center items-center gap-2">
                   <button
-                    key={index}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm sm:text-base transition-colors duration-200 ${
-                      currentPage === page
-                        ? "bg-teal-600 text-white"
-                        : theme === "dark"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`p-2 rounded-md transition-colors duration-200 min-w-[40px] min-h-[40px] ${
+                      theme === "dark"
                         ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
                         : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
-                    }`}
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    {page}
+                    <FiChevronLeft size={20} />
                   </button>
-                ))}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`p-2 rounded-md transition-colors duration-200 ${
-                    theme === "dark"
-                      ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
-                      : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <FiChevronRight size={20} />
-                </button>
-              </div>
+                  {getPageNumbers().map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm md:text-base transition-colors duration-200 min-w-[40px] min-h-[40px] ${
+                        currentPage === page
+                          ? "bg-teal-600 text-white"
+                          : theme === "dark"
+                          ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
+                          : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`p-2 rounded-md transition-colors duration-200 min-w-[40px] min-h-[40px] ${
+                      theme === "dark"
+                        ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
+                        : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <FiChevronRight size={20} />
+                  </button>
+                </div>
+              )}
             </>
           )}
         </>
@@ -543,8 +557,9 @@ const ReturnList = ({ showToast }) => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
                 <button
-                  onClick={() => handleDelete(returnIdToDelete)}
+                  onClick={confirmDelete}
                   className={`py-2 px-6 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 text-sm sm:text-base font-semibold w-full sm:w-auto`}
+                  aria-label="Confirm delete return"
                 >
                   Yes, I'm sure
                 </button>
@@ -555,6 +570,7 @@ const ReturnList = ({ showToast }) => {
                       ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
                       : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
                   }`}
+                  aria-label="Cancel delete return"
                 >
                   No, cancel
                 </button>

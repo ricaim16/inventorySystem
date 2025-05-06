@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import returnsApi from "../../api/returnsApi";
 import { getAllMedicines } from "../../api/medicineApi";
 import { getAllDosageForms } from "../../api/dosageApi";
+import { getAllSales, editSale } from "../../api/salesApi";
 import { useTheme } from "../../context/ThemeContext";
 
 const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
   const [formData, setFormData] = useState({
+    sale_id: "",
     medicine_id: "",
     dosage_form_id: "",
     quantity: "",
@@ -14,6 +16,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
     product_name: "",
     product_batch_number: "",
   });
+  const [sales, setSales] = useState([]);
   const [medicines, setMedicines] = useState([]);
   const [dosageForms, setDosageForms] = useState([]);
   const [errors, setErrors] = useState({});
@@ -25,9 +28,10 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
   useEffect(() => {
     if (returnData) {
       setFormData({
+        sale_id: returnData.sale_id?.toString() || "",
         medicine_id: returnData.medicine_id || "",
         dosage_form_id: returnData.dosage_form_id || "",
-        quantity: returnData.quantity || "",
+        quantity: returnData.quantity?.toString() || "",
         reason_for_return: returnData.reason_for_return || "",
         product_name: returnData.product_name || "",
         product_batch_number: returnData.product_batch_number || "",
@@ -38,6 +42,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
 
   useEffect(() => {
     const requiredFields = [
+      "sale_id",
       "medicine_id",
       "dosage_form_id",
       "quantity",
@@ -54,15 +59,66 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
 
   const fetchDropdownData = async () => {
     try {
-      const [medRes, doseRes] = await Promise.all([
+      const [salesRes, medRes, doseRes] = await Promise.all([
+        getAllSales(),
         getAllMedicines(),
         getAllDosageForms(),
       ]);
+      console.log("Fetched sales:", salesRes);
+      setSales(salesRes.filter((sale) => sale.quantity > 0));
       setMedicines(medRes);
       setDosageForms(doseRes);
     } catch (err) {
       setErrors({ generic: "Failed to load dropdown data: " + err.message });
     }
+  };
+
+  const handleSaleChange = (e) => {
+    const saleId = e.target.value;
+    console.log("Selected sale_id:", saleId);
+    if (saleId === "") {
+      setFormData({
+        sale_id: "",
+        medicine_id: "",
+        dosage_form_id: "",
+        quantity: "",
+        reason_for_return: "",
+        product_name: "",
+        product_batch_number: "",
+      });
+      setErrors({
+        sale_id: null,
+        medicine_id: null,
+        dosage_form_id: null,
+        quantity: null,
+        reason_for_return: null,
+        product_name: null,
+        product_batch_number: null,
+      });
+    } else {
+      const selectedSale = sales.find((sale) => sale.id.toString() === saleId);
+      if (selectedSale) {
+        setFormData({
+          sale_id: saleId,
+          medicine_id: selectedSale.medicine_id?.toString() || "",
+          dosage_form_id: selectedSale.dosage_form_id?.toString() || "",
+          quantity: "",
+          reason_for_return: "",
+          product_name: selectedSale.product_name || "",
+          product_batch_number: selectedSale.product_batch_number || "",
+        });
+        setErrors({
+          sale_id: null,
+          medicine_id: null,
+          dosage_form_id: null,
+          quantity: null,
+          reason_for_return: null,
+          product_name: null,
+          product_batch_number: null,
+        });
+      }
+    }
+    console.log("Updated formData:", formData);
   };
 
   const handleChange = (e) => {
@@ -73,6 +129,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
 
   const validateForm = () => {
     const newErrors = {};
+    if (!formData.sale_id) newErrors.sale_id = "Sale is required";
     if (!formData.medicine_id) newErrors.medicine_id = "Medicine is required";
     if (!formData.dosage_form_id)
       newErrors.dosage_form_id = "Dosage form is required";
@@ -86,6 +143,17 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
       newErrors.quantity = "Quantity must be a valid number";
     if (formData.quantity && parseInt(formData.quantity) <= 0)
       newErrors.quantity = "Quantity must be greater than 0";
+
+    const selectedSale = sales.find(
+      (sale) => sale.id.toString() === formData.sale_id
+    );
+    if (
+      selectedSale &&
+      formData.quantity &&
+      parseInt(formData.quantity) > selectedSale.quantity
+    ) {
+      newErrors.quantity = `Return quantity cannot exceed sale quantity (${selectedSale.quantity})`;
+    }
 
     return newErrors;
   };
@@ -103,24 +171,51 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
     }
 
     try {
+      const selectedSale = sales.find(
+        (sale) => sale.id.toString() === formData.sale_id
+      );
+      const parsedQuantity = parseInt(formData.quantity);
+      const newSaleQuantity = selectedSale.quantity - parsedQuantity;
+
       const payload = {
+        sale_id: formData.sale_id,
         medicine_id: formData.medicine_id,
         dosage_form_id: formData.dosage_form_id,
-        quantity: parseInt(formData.quantity),
+        quantity: parsedQuantity,
         reason_for_return: formData.reason_for_return,
         product_name: formData.product_name || null,
         product_batch_number: formData.product_batch_number,
       };
+
       if (returnData?.id) {
+        // Update existing return
+        const existingReturn = await returnsApi.getReturnById(returnData.id);
+        const quantityDifference = parsedQuantity - existingReturn.quantity;
         await returnsApi.updateReturn(returnData.id, payload);
+        if (quantityDifference !== 0) {
+          await editSale(selectedSale.id, {
+            ...selectedSale,
+            quantity: newSaleQuantity,
+          });
+        }
         showToast("Return updated successfully!");
       } else {
+        // Add new return
         await returnsApi.addReturn(payload);
+        await editSale(selectedSale.id, {
+          ...selectedSale,
+          quantity: newSaleQuantity,
+        });
         showToast("Return added successfully!");
       }
+
       if (typeof onSave === "function") {
         onSave();
       }
+      // Dispatch event to update SalesList
+      console.log("Dispatching returnsUpdated event");
+      const event = new Event("returnsUpdated");
+      window.dispatchEvent(event);
       navigate("/returns/list");
     } catch (err) {
       setErrors({
@@ -135,6 +230,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
 
   const handleCancel = () => {
     setFormData({
+      sale_id: "",
       medicine_id: "",
       dosage_form_id: "",
       quantity: "",
@@ -230,9 +326,9 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
             } !important;
           }
 
-          .returns-form input:disabled,
-          .returns-form select:disabled,
-          .returns-form textarea:disabled {
+          .returns-form input[readonly],
+          .returns-form select[readonly],
+          .returns-form textarea[readonly] {
             background-color: ${
               theme === "dark" ? "#4B5563" : "#D1D5DB"
             } !important;
@@ -279,6 +375,39 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
+              Sale <span className="text-[#EF4444]">*</span>
+            </label>
+            <select
+              name="sale_id"
+              value={formData.sale_id}
+              onChange={handleSaleChange}
+              className={`w-full p-2 border ${
+                theme === "dark" ? "border-gray-500" : "border-black"
+              } rounded focus:outline-none hover:border-gray-400 ${
+                errors.sale_id ? "border-[#5DB5B5]" : ""
+              }`}
+              required
+              disabled={isSubmitting}
+            >
+              <option value="">Select Sale</option>
+              {sales.map((sale) => (
+                <option key={sale.id} value={sale.id.toString()}>
+                  {sale.medicine?.medicine_name || "Unknown"} (Dosage:{" "}
+                  {sale.dosage_form?.name || "N/A"}, Batch:{" "}
+                  {sale.product_batch_number || "N/A"}, Qty: {sale.quantity})
+                </option>
+              ))}
+            </select>
+            {errors.sale_id && (
+              <p className="text-[#5DB5B5] text-sm mt-1">{errors.sale_id}</p>
+            )}
+          </div>
+          <div>
+            <label
+              className={`block text-sm font-medium ${
+                theme === "dark" ? "text-white" : "text-gray-600"
+              } mb-1`}
+            >
               Medicine <span className="text-[#EF4444]">*</span>
             </label>
             <select
@@ -291,11 +420,11 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
                 errors.medicine_id ? "border-[#5DB5B5]" : ""
               }`}
               required
-              disabled={isSubmitting}
+              readOnly
             >
               <option value="">Select Medicine</option>
               {medicines.map((med) => (
-                <option key={med.id} value={med.id}>
+                <option key={med.id} value={med.id.toString()}>
                   {med.medicine_name}
                 </option>
               ))}
@@ -324,11 +453,11 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
                 errors.dosage_form_id ? "border-[#5DB5B5]" : ""
               }`}
               required
-              disabled={isSubmitting}
+              readOnly
             >
               <option value="">Select Dosage Form</option>
               {dosageForms.map((df) => (
-                <option key={df.id} value={df.id}>
+                <option key={df.id} value={df.id.toString()}>
                   {df.name}
                 </option>
               ))}
@@ -411,7 +540,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
               } rounded focus:outline-none hover:border-gray-400 ${
                 errors.product_name ? "border-[#5DB5B5]" : ""
               }`}
-              disabled={isSubmitting}
+              readOnly
               placeholder="Enter product name"
             />
             {errors.product_name && (
@@ -439,7 +568,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
                 errors.product_batch_number ? "border-[#5DB5B5]" : ""
               }`}
               required
-              disabled={isSubmitting}
+              readOnly
               placeholder="Enter batch number"
             />
             {errors.product_batch_number && (

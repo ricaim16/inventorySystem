@@ -209,22 +209,24 @@ const Sidebar = () => {
                         <ListBulletIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
                         Medicine List
                       </NavLink>
-                      <NavLink
-                        to="/inventory/medicine/report"
-                        className={({ isActive }) =>
-                          `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
-                            isActive
-                              ? "bg-[#1e5f7a] text-white"
-                              : theme === "dark"
-                              ? "text-gray-400 hover:bg-gray-800"
-                              : "text-gray-200 hover:bg-[#1e5f7a]"
-                          }`
-                        }
-                        onClick={() => setIsSidebarOpen(false)}
-                      >
-                        <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
-                        Medicine Report
-                      </NavLink>
+                      {isManager && (
+                        <NavLink
+                          to="/inventory/medicine/report"
+                          className={({ isActive }) =>
+                            `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
+                              isActive
+                                ? "bg-[#1e5f7a] text-white"
+                                : theme === "dark"
+                                ? "text-gray-400 hover:bg-gray-800"
+                                : "text-gray-200 hover:bg-[#1e5f7a]"
+                            }`
+                          }
+                          onClick={() => setIsSidebarOpen(false)}
+                        >
+                          <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
+                          Medicine Report
+                        </NavLink>
+                      )}
                     </div>
                   )}
                 </div>
@@ -258,7 +260,7 @@ const Sidebar = () => {
                   onClick={() => setIsSidebarOpen(false)}
                 >
                   <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
-                  Dosage
+                  Dosage Form
                 </NavLink>
               </div>
             )}
@@ -340,22 +342,24 @@ const Sidebar = () => {
                   <ListBulletIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
                   Expire List
                 </NavLink>
-                <NavLink
-                  to="/expired-date/report"
-                  className={({ isActive }) =>
-                    `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
-                      isActive
-                        ? "bg-[#1e5f7a] text-white"
-                        : theme === "dark"
-                        ? "text-gray-400 hover:bg-gray-800"
-                        : "text-gray-200 hover:bg-[#1e5f7a]"
-                    }`
-                  }
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
-                  Expire Report
-                </NavLink>
+                {isManager && (
+                  <NavLink
+                    to="/expired-date/report"
+                    className={({ isActive }) =>
+                      `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
+                        isActive
+                          ? "bg-[#1e5f7a] text-white"
+                          : theme === "dark"
+                          ? "text-gray-400 hover:bg-gray-800"
+                          : "text-gray-200 hover:bg-[#1e5f7a]"
+                      }`
+                    }
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
+                    Expire Report
+                  </NavLink>
+                )}
               </div>
             )}
           </div>
@@ -424,22 +428,24 @@ const Sidebar = () => {
                   <ListBulletIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
                   Sales List
                 </NavLink>
-                <NavLink
-                  to="/sales/report"
-                  className={({ isActive }) =>
-                    `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
-                      isActive
-                        ? "bg-[#1e5f7a] text-white"
-                        : theme === "dark"
-                        ? "text-gray-400 hover:bg-gray-800"
-                        : "text-gray-200 hover:bg-[#1e5f7a]"
-                    }`
-                  }
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
-                  Sales Report
-                </NavLink>
+                {isManager && (
+                  <NavLink
+                    to="/sales/report"
+                    className={({ isActive }) =>
+                      `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
+                        isActive
+                          ? "bg-[#1e5f7a] text-white"
+                          : theme === "dark"
+                          ? "text-gray-400 hover:bg-gray-800"
+                          : "text-gray-200 hover:bg-[#1e5f7a]"
+                      }`
+                    }
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
+                    Sales Report
+                  </NavLink>
+                )}
               </div>
             )}
           </div>
@@ -662,22 +668,24 @@ const Sidebar = () => {
                   <ListBulletIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
                   Supplier List
                 </NavLink>
-                <NavLink
-                  to="/supplier/report"
-                  className={({ isActive }) =>
-                    `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
-                      isActive
-                        ? "bg-[#1e5f7a] text-white"
-                        : theme === "dark"
-                        ? "text-gray-400 hover:bg-gray-800"
-                        : "text-gray-200 hover:bg-[#1e5f7a]"
-                    }`
-                  }
-                  onClick={() => setIsSidebarOpen(false)}
-                >
-                  <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
-                  Supplier Report
-                </NavLink>
+                {isManager && (
+                  <NavLink
+                    to="/supplier/report"
+                    className={({ isActive }) =>
+                      `block px-3 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-sans transition-all duration-200 truncate ${
+                        isActive
+                          ? "bg-[#1e5f7a] text-white"
+                          : theme === "dark"
+                          ? "text-gray-400 hover:bg-gray-800"
+                          : "text-gray-200 hover:bg-[#1e5f7a]"
+                      }`
+                    }
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    <DocumentChartBarIcon className="w-4 sm:w-5 h-4 sm:h-5 mr-2 inline" />
+                    Supplier Report
+                  </NavLink>
+                )}
               </div>
             )}
           </div>

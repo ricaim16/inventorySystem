@@ -123,9 +123,9 @@ const ExpireReport = () => {
   const getStatus = (expireDate) => {
     const days = getDaysUntilExpiry(expireDate);
     const expiringSoonDays = getExpiringSoonDays();
-    if (days < 0) return "Expired";
-    if (days <= expiringSoonDays) return "Expiring Soon";
-    return "Valid";
+    if (days <= 0) return "Expired"; // Aligns with ExpireList: expired if date is on or before today
+    if (days <= expiringSoonDays) return "Expiring Soon"; // Aligns with ExpireAlert: expiring soon if within the selected period (e.g., 90 days)
+    return "Valid"; // Beyond the selected period
   };
 
   const fetchReport = async () => {
@@ -141,10 +141,11 @@ const ExpireReport = () => {
 
       const expiringSoonDays = getExpiringSoonDays();
 
+      // For the "Expiring within X Days" section, we still exclude expired medicines
       const filteredExpiringSoon = (data.expiringSoonMedicines || []).filter(
         (med) => {
           const daysUntilExpiry = getDaysUntilExpiry(med.expire_date);
-          return daysUntilExpiry <= expiringSoonDays && daysUntilExpiry >= 0;
+          return daysUntilExpiry <= expiringSoonDays && daysUntilExpiry > 0; // Exclude already expired for this section
         }
       );
 
@@ -315,7 +316,8 @@ const ExpireReport = () => {
   };
 
   // Pagination for report list
-  const allMedicines = [...expiredMedicines, ...filteredExpiringSoonMedicines];
+  // Include both expired and expiring soon medicines in the "Medicines List"
+  const allMedicines = [...expiredMedicines, ...expiringSoonMedicines]; // Use expiringSoonMedicines directly to include all medicines
   const filteredMedicines = reportFilters.category
     ? allMedicines.filter(
         (med) => med.category?.name === reportFilters.category

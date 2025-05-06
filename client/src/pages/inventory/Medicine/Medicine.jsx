@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import { useTheme } from "../../../context/ThemeContext"; // Import ThemeContext
+import { useTheme } from "../../../context/ThemeContext";
 import MedicineForm from "./MedicineForm";
 import MedicineList from "./MedicineList";
 import MedicineReport from "./MedicineReport";
@@ -14,7 +14,7 @@ const Medicine = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useAuth();
-  const { theme } = useTheme(); // Access the current theme
+  const { theme } = useTheme();
   const location = useLocation();
 
   const formatEAT = (date) => {
@@ -149,20 +149,18 @@ const Medicine = () => {
 
         {/* Navigation Links */}
         <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 mb-4 sm:mb-6">
-          {user?.role === "MANAGER" && (
-            <Link
-              to="/inventory/medicine/add"
-              className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
-                location.pathname === "/inventory/medicine/add"
-                  ? "bg-[#10B981] text-white"
-                  : theme === "dark"
-                  ? "bg-gray-700 text-gray-300 hover:bg-[#10B981] hover:text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
-              }`}
-            >
-              Add Medicine
-            </Link>
-          )}
+          <Link
+            to="/inventory/medicine/add"
+            className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
+              location.pathname === "/inventory/medicine/add"
+                ? "bg-[#10B981] text-white"
+                : theme === "dark"
+                ? "bg-gray-700 text-gray-300 hover:bg-[#10B981] hover:text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
+            }`}
+          >
+            Add Medicine
+          </Link>
           <Link
             to="/inventory/medicine/list"
             className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
@@ -175,39 +173,41 @@ const Medicine = () => {
           >
             Medicine List
           </Link>
-          <Link
-            to="/inventory/medicine/report"
-            className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
-              location.pathname === "/inventory/medicine/report"
-                ? "bg-[#10B981] text-white"
-                : theme === "dark"
-                ? "bg-gray-700 text-gray-300 hover:bg-[#10B981] hover:text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
-            }`}
-          >
-            Medicine Report
-          </Link>
+          {user?.role === "MANAGER" && (
+            <Link
+              to="/inventory/medicine/report"
+              className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
+                location.pathname === "/inventory/medicine/report"
+                  ? "bg-[#10B981] text-white"
+                  : theme === "dark"
+                  ? "bg-gray-700 text-gray-300 hover:bg-[#10B981] hover:text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
+              }`}
+            >
+              Medicine Report
+            </Link>
+          )}
         </div>
 
         {/* Routes */}
         <Routes>
-          {user?.role === "MANAGER" && (
-            <Route
-              path="add"
-              element={
-                <MedicineForm
-                  medicine={selectedMedicine}
-                  onSave={handleSave}
-                  onCancel={() => setIsFormOpen(false)}
-                />
-              }
-            />
-          )}
+          <Route
+            path="add"
+            element={
+              <MedicineForm
+                medicine={selectedMedicine}
+                onSave={handleSave}
+                onCancel={() => setIsFormOpen(false)}
+              />
+            }
+          />
           <Route
             path="list"
             element={<MedicineList onSelectMedicine={handleView} />}
           />
-          <Route path="report" element={<MedicineReport />} />
+          {user?.role === "MANAGER" && (
+            <Route path="report" element={<MedicineReport />} />
+          )}
         </Routes>
 
         {/* View Medicine Modal */}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getAllDosageForms, deleteDosageForm } from "../../../api/dosageApi";
+import { useAuth } from "../../../context/AuthContext";
 import { useTheme } from "../../../context/ThemeContext";
 import {
   ChevronLeftIcon,
@@ -20,6 +21,7 @@ const DosageList = ({ showToast }) => {
   const [dosageIdToDelete, setDosageIdToDelete] = useState(null);
   const itemsPerPage = 10;
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchDosageForms();
@@ -44,6 +46,7 @@ const DosageList = ({ showToast }) => {
   };
 
   const handleDelete = async (id) => {
+    if (user?.role !== "MANAGER") return; // Safety check, though backend enforces this
     try {
       await deleteDosageForm(id);
       if (typeof showToast === "function") {
@@ -52,7 +55,7 @@ const DosageList = ({ showToast }) => {
       fetchDosageForms();
     } catch (err) {
       const errorMessage =
-        err.response?.status === 500
+        err.response?.status === 409
           ? "This dosage form cannot be deleted because it is associated with one or more medicines."
           : "Failed to delete dosage form";
       setError(errorMessage);
@@ -65,6 +68,7 @@ const DosageList = ({ showToast }) => {
   };
 
   const openDeleteModal = (id) => {
+    if (user?.role !== "MANAGER") return; // Prevent modal for non-managers
     setDosageIdToDelete(id);
     setShowDeleteModal(true);
   };
@@ -259,18 +263,20 @@ const DosageList = ({ showToast }) => {
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => openDeleteModal(dos.id)}
-                        className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base ${
-                          theme === "dark"
-                            ? "bg-red-700 hover:bg-red-600"
-                            : "bg-red-500 hover:bg-red-600"
-                        }`}
-                        title="Delete"
-                        aria-label={`Delete dosage form ${dos.name}`}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      {user?.role === "MANAGER" && (
+                        <button
+                          onClick={() => openDeleteModal(dos.id)}
+                          className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base ${
+                            theme === "dark"
+                              ? "bg-red-700 hover:bg-red-600"
+                              : "bg-red-500 hover:bg-red-600"
+                          }`}
+                          title="Delete"
+                          aria-label={`Delete dosage form ${dos.name}`}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -322,8 +328,7 @@ const DosageList = ({ showToast }) => {
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {user?.role === "MANAGER" && showDeleteModal && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <div
             className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${

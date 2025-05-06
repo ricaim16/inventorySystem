@@ -28,7 +28,6 @@ const UserManagement = ({ showToast }) => {
     try {
       const data = await getAllUsers();
       setUsers(data.users);
-      // Removed: showToast("Users fetched successfully!");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to fetch users");
     }
@@ -93,7 +92,7 @@ const UserManagement = ({ showToast }) => {
             onClick={() => setIsFormOpen(true)}
             className={`py-2 px-4 text-lg rounded-md transition duration-300 font-bold ${
               theme === "dark"
-                ? "bg-gray-700 text-white hover:bg-gray-600"
+                ? "bg-[#10B981] text-white hover:bg-gray-600"
                 : "bg-[#10B981] text-gray-800 hover:bg-opacity-80"
             }`}
           >

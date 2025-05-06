@@ -26,7 +26,7 @@ router.post("/", roleMiddleware(["MANAGER", "EMPLOYEE"]), (req, res) => {
   salesController.addSale(req, res);
 });
 
-router.put("/:id", roleMiddleware(["MANAGER"]), (req, res) => {
+router.put("/:id", roleMiddleware(["MANAGER", "EMPLOYEE"]), (req, res) => {
   console.log(`PUT /api/sales/${req.params.id} hit`, req.body);
   salesController.editSale(req, res);
 });

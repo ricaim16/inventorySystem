@@ -247,7 +247,7 @@ export const updateUser = async (req, res, next) => {
   }
 };
 
-// Delete User (Manager only, prevent self-deletion)
+
 export const deleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -267,13 +267,19 @@ export const deleteUser = async (req, res, next) => {
         .json({ error: "Manager cannot delete themselves" });
     }
 
+    // Delete related medicines first to avoid foreign key constraint violation
+    await prisma.medicines.deleteMany({
+      where: { createdById: id },
+    });
+
+    // Then delete the user
     await prisma.users.delete({ where: { id } });
-    console.log(`Deleted User with ID: ${id}`); // Fixed: log -> console.log
+    console.log(`Deleted User with ID: ${id}`);
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.log(
       `Error in deleteUser for ID ${req.params.id}: ${error.message}`
-    ); // Fixed: log -> console.log
+    );
     next(error);
   }
 };

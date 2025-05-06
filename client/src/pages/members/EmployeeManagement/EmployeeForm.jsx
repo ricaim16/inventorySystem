@@ -252,27 +252,11 @@ const EmployeeForm = ({
         certificateFile,
       };
 
-      console.log("Submitting data to createMember:", submissionData);
+      console.log("Submitting data:", submissionData);
 
       let response;
       if (initialData && !isViewMode) {
-        // For update, use FormData to handle files
-        const updateData = new FormData();
-        for (const key in formData) {
-          if (formData[key] !== null && formData[key] !== undefined) {
-            updateData.append(key, formData[key]);
-          }
-        }
-        if (photoFile) updateData.append("photo", photoFile);
-        if (certificateFile) updateData.append("certificate", certificateFile);
-
-        const formDataEntries = {};
-        for (const [key, value] of updateData.entries()) {
-          formDataEntries[key] = value instanceof File ? value.name : value;
-        }
-        console.log("Submitting FormData for update:", formDataEntries);
-
-        response = await updateMember(initialData.id, updateData);
+        response = await updateMember(initialData.id, submissionData);
         showToast("Employee updated successfully!");
       } else {
         response = await createMember(submissionData);
@@ -293,7 +277,7 @@ const EmployeeForm = ({
       setErrors({
         general: err.message.includes("Missing required fields")
           ? err.message
-          : "Failed to save employee",
+          : err.message || "Failed to save employee",
       });
     } finally {
       setIsSubmitting(false);
@@ -482,7 +466,7 @@ const EmployeeForm = ({
             </label>
             {isViewMode ? (
               <p
-                className={`w from-gray-300 p-2 text-sm ${
+                className={`w-full p-2 text-sm ${
                   theme === "dark" ? "text-gray-300" : "text-gray-800"
                 }`}
               >

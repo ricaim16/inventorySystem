@@ -190,7 +190,7 @@ const CustomerList = ({ showToast }) => {
                 : "bg-white border-gray-300 text-gray-600 placeholder-gray-500"
             }`}
           />
-          adza{" "}
+          {" "}
           <MagnifyingGlassIcon
             className={`absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
               theme === "dark" ? "text-gray-400" : "text-gray-500"

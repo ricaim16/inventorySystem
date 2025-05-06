@@ -54,24 +54,20 @@ const ExpireAlert = ({ onSelectMedicine }) => {
     const expiry = new Date(expireDate);
     const timeDiff = expiry - now;
     const days = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-    return days < 0 ? `Expired (${Math.abs(days)} days ago)` : days;
+    return days;
   };
 
   const getStatus = (daysRemaining) => {
-    const days = typeof daysRemaining === "string" ? -1 : daysRemaining;
-    if (days === -1) return "Expired";
-    if (days <= 90) return "Expiring Soon";
-    return "Valid";
+    if (daysRemaining <= 90) return "Expiring Soon";
+    return "Expiring in 3-6 Months";
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Valid":
+      case "Expiring in 3-6 Months":
         return "#065f46"; // Dark green
       case "Expiring Soon":
         return "#b45309"; // Dark yellow
-      case "Expired":
-        return "#b91c1c"; // Red
       default:
         return theme === "dark" ? "#D1D5DB" : "#4B5563";
     }
@@ -79,7 +75,7 @@ const ExpireAlert = ({ onSelectMedicine }) => {
 
   const getRowBackground = (status) => {
     switch (status) {
-      case "Valid":
+      case "Expiring in 3-6 Months":
         return theme === "dark"
           ? "bg-green-800/50 border-gray-600 hover:bg-green-700/50"
           : "bg-green-100/50 border-gray-300 hover:bg-green-200/50";
@@ -87,10 +83,6 @@ const ExpireAlert = ({ onSelectMedicine }) => {
         return theme === "dark"
           ? "bg-yellow-800/50 border-gray-600 hover:bg-yellow-700/50"
           : "bg-yellow-100/50 border-gray-300 hover:bg-yellow-200/50";
-      case "Expired":
-        return theme === "dark"
-          ? "bg-red-800/50 border-gray-600 hover:bg-red-700/50"
-          : "bg-red-100/50 border-gray-300 hover:bg-red-200/50";
       default:
         return theme === "dark"
           ? "bg-gray-800 border-gray-600 hover:bg-gray-700"
@@ -125,22 +117,20 @@ const ExpireAlert = ({ onSelectMedicine }) => {
         );
         data = await getAllMedicines();
         console.log("Data from /api/medicines:", data);
-      }
-      const now = getCurrentEAT();
-      const expiring = data.filter((med) => {
-        const expiry = new Date(med.expire_date);
-        const monthsDiff = (expiry - now) / (1000 * 60 * 60 * 24 * 30);
-        console.log(
-          `Medicine: ${med.medicine_name}, Expire Date: ${med.expire_date}, Months Left: ${monthsDiff}`
+        const now = getCurrentEAT();
+        const sixMonthsFromNow = new Date(
+          now.getTime() + 180 * 24 * 60 * 60 * 1000
         );
-        return monthsDiff <= 6;
-      });
-      console.log("Filtered Expiring Medicines:", expiring);
-      setExpiringMedicines(expiring);
+        data = data.filter((med) => {
+          const expiry = new Date(med.expire_date);
+          return expiry > now && expiry <= sixMonthsFromNow;
+        });
+      }
+      setExpiringMedicines(data);
     } catch (err) {
       setError(
         err.response?.status === 404
-          ? "Expiration alerts endpoint not found on server. Please check the backend."
+          ? "Expiration alerts endpoint not found. Please check the backend."
           : `Failed to fetch expiration alerts: ${
               err.response?.data?.error?.message || err.message
             }`
@@ -291,7 +281,6 @@ const ExpireAlert = ({ onSelectMedicine }) => {
             Medicine Details
           </h3>
           <div className="space-y-8">
-            {/* General Information */}
             <div className="border-b-2 border-gray-300 pb-6">
               <h4
                 className={`text-base sm:text-lg md:text-xl font-semibold mb-4`}
@@ -399,7 +388,6 @@ const ExpireAlert = ({ onSelectMedicine }) => {
               </div>
             </div>
 
-            {/* Pricing and Expiry */}
             <div className="border-b-2 border-gray-300 pb-6">
               <h4
                 className={`text-base sm:text-lg md:text-xl font-semibold mb-4`}
@@ -507,7 +495,6 @@ const ExpireAlert = ({ onSelectMedicine }) => {
               </div>
             </div>
 
-            {/* Additional Details */}
             <div className="pb-6">
               <h4
                 className={`text-base sm:text-lg md:text-xl font-semibold mb-4`}

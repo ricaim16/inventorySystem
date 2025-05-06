@@ -167,18 +167,20 @@ const Expire = () => {
         >
           Expired Medicines
         </Link>
-        <Link
-          to="/expired-date/report"
-          className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
-            location.pathname === "/Expired-date/report"
-              ? "bg-[#10B981] text-white"
-              : theme === "dark"
-              ? "bg-gray-800 text-gray-300 hover:bg-[#10B981] hover:text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
-          }`}
-        >
-          Expiration Report
-        </Link>
+        {user?.role === "MANAGER" && (
+          <Link
+            to="/expired-date/report"
+            className={`py-2 px-4 rounded text-center text-sm sm:text-base ${
+              location.pathname === "/expired-date/report"
+                ? "bg-[#10B981] text-white"
+                : theme === "dark"
+                ? "bg-gray-800 text-gray-300 hover:bg-[#10B981] hover:text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-[#10B981] hover:text-white"
+            }`}
+          >
+            Expiration Report
+          </Link>
+        )}
       </div>
 
       {/* Routes */}
@@ -192,7 +194,9 @@ const Expire = () => {
             path="list"
             element={<ExpireList onSelectMedicine={handleView} />}
           />
-          <Route path="report" element={<ExpireReport />} />
+          {user?.role === "MANAGER" && (
+            <Route path="report" element={<ExpireReport />} />
+          )}
         </Routes>
       </div>
 

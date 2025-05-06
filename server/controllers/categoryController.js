@@ -54,6 +54,16 @@ export const categoryController = {
   deleteCategory: async (req, res) => {
     const { id } = req.params;
     try {
+      const category = await prisma.categories.findUnique({
+        where: { id },
+        include: { Medicines: { select: { id: true } } },
+      });
+      if (category?.Medicines.length > 0) {
+        return res.status(409).json({
+          message:
+            "Cannot delete category because it is associated with one or more medicines",
+        });
+      }
       await prisma.categories.delete({ where: { id } });
       res.json({ message: "Category deleted successfully" });
     } catch (error) {

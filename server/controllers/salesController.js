@@ -199,6 +199,7 @@ export const salesController = {
       product_name,
       product_batch_number,
       payment_method,
+      sealed_date, // Optional: only update if provided
     } = req.body;
 
     console.log(`Starting editSale for ID ${id}`, {
@@ -263,7 +264,7 @@ export const salesController = {
       const parsedQuantity = quantity
         ? parseInt(quantity)
         : existingSale.quantity;
-      if (quantity && (isNaN(parsedQuantity) || parsedQuantity <= 0)) {
+      if (quantity && (isNaN(parsedQuantity) || parsedQuantity < 0)) {
         console.log(`Invalid quantity: ${quantity}`);
         return res.status(400).json({ message: "Invalid quantity" });
       }
@@ -307,7 +308,9 @@ export const salesController = {
             dosage_form_id: dosage_form_id ?? existingSale.dosage_form_id,
             customer_id: customer_id ?? existingSale.customer_id,
             medicine_id: medicine_id ?? existingSale.medicine_id,
-            sealed_date: currentETTime,
+            sealed_date: sealed_date
+              ? getEthiopianTime(sealed_date)
+              : existingSale.sealed_date,
             updated_at: currentETTime,
             updated_by: req.user.id,
           },
@@ -319,15 +322,19 @@ export const salesController = {
             updatedBy: { select: { username: true } },
           },
         }),
-        prisma.medicines.update({
-          where: { id: medicineIdToUse },
-          data: {
-            quantity:
-              quantityDifference >= 0
-                ? { decrement: quantityDifference }
-                : { increment: -quantityDifference },
-          },
-        }),
+        ...(quantityDifference !== 0
+          ? [
+              prisma.medicines.update({
+                where: { id: medicineIdToUse },
+                data: {
+                  quantity:
+                    quantityDifference >= 0
+                      ? { decrement: quantityDifference }
+                      : { increment: -quantityDifference },
+                },
+              }),
+            ]
+          : []),
       ]);
 
       console.log(`Updated sale ${id} successfully:`, updatedSale);
