@@ -558,24 +558,7 @@ const SupplierReport = ({ showToast }) => {
       {report && credits.length > 0 && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <div
-              className={`p-4 rounded-lg shadow ${
-                theme === "dark" ? "bg-orange-900" : "bg-orange-200"
-              }`}
-              style={{
-                backgroundColor: theme === "dark" ? "#DD6B20" : "#FBD38D",
-              }}
-            >
-              <div className="flex items-center mb-2">
-                <span className="text-blue-500 mr-3 text-xl">⏰</span>
-                <h3 className="text-base sm:text-lg font-semibold">
-                  Credit Count
-                </h3>
-              </div>
-              <p className="text-xl sm:text-2xl font-bold">
-                {report.summary.creditCount || 0}
-              </p>
-            </div>
+            {/* Total Credit Amount Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-blue-900" : "bg-blue-200"
@@ -594,6 +577,7 @@ const SupplierReport = ({ showToast }) => {
                 ETB {report.summary.totalCreditAmount.toFixed(2) || 0}
               </p>
             </div>
+            {/* Total Paid Amount Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-green-900" : "bg-green-200"
@@ -610,6 +594,25 @@ const SupplierReport = ({ showToast }) => {
               </div>
               <p className="text-xl sm:text-2xl font-bold">
                 ETB {report.summary.totalPaidAmount.toFixed(2) || 0}
+              </p>
+            </div>
+            {/* Credit Count Card */}
+            <div
+              className={`p-4 rounded-lg shadow ${
+                theme === "dark" ? "bg-orange-900" : "bg-orange-200"
+              }`}
+              style={{
+                backgroundColor: theme === "dark" ? "#DD6B20" : "#FBD38D",
+              }}
+            >
+              <div className="flex items-center mb-2">
+                <span className="text-blue-500 mr-3 text-xl">⏰</span>
+                <h3 className="text-base sm:text-lg font-semibold">
+                  Credit Count
+                </h3>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold">
+                {report.summary.creditCount || 0}
               </p>
             </div>
           </div>

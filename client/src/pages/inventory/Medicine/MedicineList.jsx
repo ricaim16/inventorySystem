@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { getAllMedicines, deleteMedicine } from "../../../api/medicineApi";
 import { useAuth } from "../../../context/AuthContext";
 import { useTheme } from "../../../context/ThemeContext";
@@ -28,6 +29,7 @@ const MedicineList = () => {
   const itemsPerPage = 10;
   const { user } = useAuth();
   const { theme } = useTheme();
+  const location = useLocation();
 
   const formatEAT = (date) => {
     const options = {
@@ -85,6 +87,24 @@ const MedicineList = () => {
       );
     }
   };
+
+  // Handle medicine selection from Navbar
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const medicineId = params.get("medicineId");
+    const search = params.get("search");
+    if (medicineId) {
+      const medicine = medicines.find((med) => med.id === medicineId);
+      if (medicine) {
+        setMedicineToView(medicine);
+        setIsViewOpen(true);
+      }
+    }
+    if (search) {
+      setSearchTerm(decodeURIComponent(search));
+      setCurrentPage(1);
+    }
+  }, [location, medicines]);
 
   const handleEdit = (medicine) => {
     setSelectedMedicine(medicine);
@@ -148,10 +168,6 @@ const MedicineList = () => {
     startIndex,
     startIndex + itemsPerPage
   );
-
-  useEffect(() => {
-    console.log("Current Medicines:", currentMedicines);
-  }, [currentMedicines]);
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
@@ -271,7 +287,6 @@ const MedicineList = () => {
             Medicine Details
           </h3>
           <div className="space-y-10">
-            {/* General Information */}
             <div className="border-b-2 border-gray-300 pb-8">
               <h4
                 className={`text-lg sm:text-xl font-semibold mb-6`}
@@ -378,8 +393,6 @@ const MedicineList = () => {
                 </div>
               </div>
             </div>
-
-            {/* Pricing and Expiry */}
             <div className="border-b-2 border-gray-300 pb-8">
               <h4
                 className={`text-lg sm:text-xl font-semibold mb-6`}
@@ -486,8 +499,6 @@ const MedicineList = () => {
                 </div>
               </div>
             </div>
-
-            {/* Additional Details */}
             <div className="pb-8">
               <h4
                 className={`text-lg sm:text-xl font-semibold mb-6`}
@@ -972,7 +983,6 @@ const MedicineList = () => {
             >
               <HiChevronLeft size={20} />
             </button>
-
             {getPageNumbers().map((page, index) => (
               <button
                 key={index}
@@ -988,7 +998,6 @@ const MedicineList = () => {
                 {page}
               </button>
             ))}
-
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}

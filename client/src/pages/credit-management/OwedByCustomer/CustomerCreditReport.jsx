@@ -94,7 +94,6 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
       if (!reportData.credits || !Array.isArray(reportData.credits)) {
         throw new Error("Invalid report data structure");
       }
-      // Sort credits by credit_date in descending order
       const sortedCredits = [...reportData.credits].sort(
         (a, b) => new Date(b.credit_date) - new Date(a.credit_date)
       );
@@ -183,13 +182,13 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Credit Count: ${credits.length || 0}`, 14, y);
-    y += 6;
     doc.text(`Total Credit: ETB ${totalCreditAmount.toFixed(2) || 0}`, 14, y);
     y += 6;
-    doc.text(`Total Paid: ETB ${totalPaidAmount.toFixed(2) || 0}`, 14, y);
-    y += 6;
     doc.text(`Total Unpaid: ETB ${totalUnpaidAmount.toFixed(2) || 0}`, 14, y);
+    y += 6;
+    doc.text(`Credit Count: ${credits.length || 0}`, 14, y);
+    y += 6;
+    doc.text(`Total Paid: ETB ${totalPaidAmount.toFixed(2) || 0}`, 14, y);
     y += 10;
 
     doc.setFontSize(12);
@@ -211,7 +210,6 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
       ...(userRole === "MANAGER" ? ["Created By", "Updated By"] : []),
     ];
 
-    // Sort credits again for PDF (in case state changes)
     const sortedCredits = [...credits].sort(
       (a, b) => new Date(b.credit_date) - new Date(a.credit_date)
     );
@@ -232,37 +230,35 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
         : []),
     ]);
 
-    // Calculate total columns and adjust widths dynamically
     const totalColumns = tableHeaders.length;
-    const pageWidthForTable = pageWidth - 28; // 14mm margin on each side
+    const pageWidthForTable = pageWidth - 28;
     const baseWidth = pageWidthForTable / totalColumns;
 
     const columnStyles = {};
     tableHeaders.forEach((_, index) => {
-      if (index === 0)
-        columnStyles[index] = { cellWidth: baseWidth * 0.5 }; // No.
+      if (index === 0) columnStyles[index] = { cellWidth: baseWidth * 0.5 };
       else if (index === 1)
-        columnStyles[index] = { cellWidth: baseWidth * 1.2 }; // Customer
+        columnStyles[index] = { cellWidth: baseWidth * 1.2 };
       else if (index === 2)
-        columnStyles[index] = { cellWidth: baseWidth * 0.8 }; // Credit Amount
+        columnStyles[index] = { cellWidth: baseWidth * 0.8 };
       else if (index === 3)
-        columnStyles[index] = { cellWidth: baseWidth * 0.8 }; // Paid Amount
+        columnStyles[index] = { cellWidth: baseWidth * 0.8 };
       else if (index === 4)
-        columnStyles[index] = { cellWidth: baseWidth * 0.8 }; // Unpaid Amount
+        columnStyles[index] = { cellWidth: baseWidth * 0.8 };
       else if (index === 5)
-        columnStyles[index] = { cellWidth: baseWidth * 1.0 }; // Medicine
+        columnStyles[index] = { cellWidth: baseWidth * 1.0 };
       else if (index === 6)
-        columnStyles[index] = { cellWidth: baseWidth * 1.0 }; // Payment Method
+        columnStyles[index] = { cellWidth: baseWidth * 1.0 };
       else if (index === 7)
-        columnStyles[index] = { cellWidth: baseWidth * 1.2 }; // Description
+        columnStyles[index] = { cellWidth: baseWidth * 1.2 };
       else if (index === 8)
-        columnStyles[index] = { cellWidth: baseWidth * 0.7 }; // Status
+        columnStyles[index] = { cellWidth: baseWidth * 0.7 };
       else if (index === 9)
-        columnStyles[index] = { cellWidth: baseWidth * 1.0 }; // Date
+        columnStyles[index] = { cellWidth: baseWidth * 1.0 };
       else if (index === 10)
-        columnStyles[index] = { cellWidth: baseWidth * 0.9 }; // Created By
+        columnStyles[index] = { cellWidth: baseWidth * 0.9 };
       else if (index === 11)
-        columnStyles[index] = { cellWidth: baseWidth * 0.9 }; // Updated By
+        columnStyles[index] = { cellWidth: baseWidth * 0.9 };
     });
 
     autoTable(doc, {
@@ -280,7 +276,7 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
         fontSize: 7,
         cellPadding: 2,
         textColor: [0, 0, 0],
-        overflow: "linebreak", // Wrap text if too long
+        overflow: "linebreak",
       },
       columnStyles: columnStyles,
       margin: { left: 14, right: 14 },
@@ -509,29 +505,6 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div
               className={`p-4 rounded-lg shadow ${
-                theme === "dark" ? "bg-yellow-900" : "bg-yellow-200"
-              }`}
-            >
-              <div className="flex items-center mb-2">
-                <span className="text-yellow-500 mr-3">⚠️</span>
-                <h3
-                  className={`text-base sm:text-lg font-semibold ${
-                    theme === "dark" ? "text-white" : "text-black"
-                  }`}
-                >
-                  Credit Count
-                </h3>
-              </div>
-              <p
-                className={`text-xl sm:text-2xl font-bold ${
-                  theme === "dark" ? "text-white" : "text-black"
-                }`}
-              >
-                {credits.length || 0}
-              </p>
-            </div>
-            <div
-              className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-blue-900" : "bg-blue-200"
               }`}
             >
@@ -574,6 +547,29 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
                 }`}
               >
                 ETB {totalUnpaidAmount.toFixed(2) || 0}
+              </p>
+            </div>
+            <div
+              className={`p-4 rounded-lg shadow ${
+                theme === "dark" ? "bg-yellow-900" : "bg-yellow-200"
+              }`}
+            >
+              <div className="flex items-center mb-2">
+                <span className="text-yellow-500 mr-3">⚠️</span>
+                <h3
+                  className={`text-base sm:text-lg font-semibold ${
+                    theme === "dark" ? "text-white" : "text-black"
+                  }`}
+                >
+                  Credit Count
+                </h3>
+              </div>
+              <p
+                className={`text-xl sm:text-2xl font-bold ${
+                  theme === "dark" ? "text-white" : "text-black"
+                }`}
+              >
+                {credits.length || 0}
               </p>
             </div>
           </div>

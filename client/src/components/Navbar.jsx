@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getAllMedicines } from "../api/medicineApi";
 import {
   Bars3Icon,
   MagnifyingGlassIcon,
@@ -18,26 +19,62 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [medicines, setMedicines] = useState([]);
+  const [filteredMedicines, setFilteredMedicines] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  // Fetch medicines for autocomplete
+  useEffect(() => {
+    const fetchMedicines = async () => {
+      try {
+        const data = await getAllMedicines();
+        setMedicines(data);
+      } catch (err) {
+        console.error("Failed to fetch medicines:", err);
+      }
+    };
+    fetchMedicines();
+  }, []);
+
+  // Filter medicines based on search term
+  useEffect(() => {
+    if (searchTerm.trim()) {
+      const filtered = medicines
+        .filter((med) =>
+          med.medicine_name.toLowerCase().startsWith(searchTerm.toLowerCase())
+        )
+        .slice(0, 5); // Limit to 5 suggestions
+      setFilteredMedicines(filtered);
+      setShowDropdown(true);
+    } else {
+      setFilteredMedicines([]);
+      setShowDropdown(false);
+    }
+  }, [searchTerm, medicines]);
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
       navigate(
         `/inventory/medicine/list?search=${encodeURIComponent(searchTerm)}`
       );
+      setShowDropdown(false);
     } else {
       navigate("/inventory/medicine/list");
     }
+    setSearchTerm("");
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSearch();
     }
+  };
+
+  const handleMedicineSelect = (medicine) => {
+    navigate(`/inventory/medicine/list?medicineId=${medicine.id}`);
+    setSearchTerm("");
+    setShowDropdown(false);
   };
 
   return (
@@ -51,7 +88,7 @@ const Navbar = () => {
         {/* Hamburger Menu (Mobile) */}
         <div className="sm:hidden">
           <button
-            onClick={toggleMenu}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`p-2 rounded-lg transition-colors duration-200 ${
               theme === "dark"
                 ? "text-gray-200 hover:bg-gray-700"
@@ -95,11 +132,32 @@ const Navbar = () => {
               }`}
             />
           </button>
+          {/* Autocomplete Dropdown */}
+          {showDropdown && filteredMedicines.length > 0 && (
+            <ul
+              className={`absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto ${
+                theme === "dark" ? "bg-gray-800" : "bg-[#2A3B5A]"
+              }`}
+            >
+              {filteredMedicines.map((med) => (
+                <li
+                  key={med.id}
+                  onClick={() => handleMedicineSelect(med)}
+                  className={`px-4 py-2 cursor-pointer text-base ${
+                    theme === "dark"
+                      ? "text-gray-200 hover:bg-gray-700"
+                      : "text-white hover:bg-[#5DB5B5]"
+                  } transition-colors duration-200`}
+                >
+                  {med.medicine_name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Desktop Menu */}
         <div className="hidden sm:flex items-center space-x-5">
-          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             className={`flex items-center p-2 rounded-full text-base font-medium ${
@@ -116,8 +174,6 @@ const Navbar = () => {
             )}
             {theme === "dark" ? "Light" : "Dark"}
           </button>
-
-          {/* Notifications */}
           <Link
             to="/notifications"
             className={`flex items-center text-base font-medium ${
@@ -130,8 +186,6 @@ const Navbar = () => {
             <BellIcon className="w-5 h-5 mr-1.5" />
             Notifications
           </Link>
-
-          {/* Profile */}
           <Link
             to="/profile"
             className={`flex items-center text-base font-medium ${
@@ -144,8 +198,6 @@ const Navbar = () => {
             <UserIcon className="w-5 h-5 mr-1.5" />
             {user?.username || "User"}
           </Link>
-
-          {/* Logout */}
           <button
             onClick={logout}
             className={`flex items-center text-base font-medium ${
@@ -161,7 +213,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu (shown when hamburger is clicked) */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div
           className={`sm:hidden ${
@@ -169,7 +221,6 @@ const Navbar = () => {
           } px-4 py-4 shadow-md transition-all duration-300`}
         >
           <div className="flex flex-col space-y-3">
-            {/* Settings */}
             <Link
               to="/settings"
               className={`flex items-center text-base font-medium ${
@@ -177,17 +228,15 @@ const Navbar = () => {
                   ? "text-gray-200 hover:text-[#5DB5B5]"
                   : "text-white hover:text-[#5DB5B5]"
               } transition-colors duration-200`}
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(false)}
             >
               <Cog6ToothIcon className="w-5 h-5 mr-1.5" />
               Settings
             </Link>
-
-            {/* Theme Toggle */}
             <button
               onClick={() => {
                 toggleTheme();
-                toggleMenu();
+                setIsMenuOpen(false);
               }}
               className={`flex items-center text-base font-medium p-2 rounded-lg ${
                 theme === "dark"
@@ -202,8 +251,6 @@ const Navbar = () => {
               )}
               {theme === "dark" ? "Light Mode" : "Dark Mode"}
             </button>
-
-            {/* Notifications */}
             <Link
               to="/notifications"
               className={`flex items-center text-base font-medium ${
@@ -211,13 +258,11 @@ const Navbar = () => {
                   ? "text-gray-200 hover:text-[#5DB5B5]"
                   : "text-white hover:text-[#5DB5B5]"
               } transition-colors duration-200`}
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(false)}
             >
               <BellIcon className="w-5 h-5 mr-1.5" />
               Notifications
             </Link>
-
-            {/* Profile */}
             <Link
               to="/profile"
               className={`flex items-center text-base font-medium ${
@@ -225,17 +270,15 @@ const Navbar = () => {
                   ? "text-gray-200 hover:text-[#5DB5B5]"
                   : "text-white hover:text-[#5DB5B5]"
               } transition-colors duration-200`}
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(false)}
             >
               <UserIcon className="w-5 h-5 mr-1.5" />
               {user?.username || "User"}
             </Link>
-
-            {/* Logout */}
             <button
               onClick={() => {
                 logout();
-                toggleMenu();
+                setIsMenuOpen(false);
               }}
               className={`flex items-center text-base font-medium ${
                 theme === "dark"

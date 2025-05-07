@@ -176,18 +176,7 @@ const ReturnList = ({ showToast }) => {
         >
           Returns List
         </h2>
-        {!showForm && (
-          <button
-            onClick={handleAdd}
-            className={`mt-4 sm:mt-0 px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold transition-colors duration-200 ${
-              theme === "dark"
-                ? "bg-teal-700 hover:bg-teal-600"
-                : "bg-teal-600 hover:bg-teal-500"
-            }`}
-          >
-            Add Return
-          </button>
-        )}
+        
       </div>
 
       {error && (
