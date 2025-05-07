@@ -272,4 +272,3 @@ model KeyResults {
   progress     Float
   objective    Objectives @relation(fields: [objective_id], references: [id])
 }
-
