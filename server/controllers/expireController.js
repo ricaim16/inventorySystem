@@ -32,20 +32,28 @@ export const expireController = {
         },
       });
 
-      // Calculate total value of expired medicines using total_price
-      const totalValue = expiredMedicines.reduce(
-        (sum, med) =>
-          sum + (med.total_price || med.unit_price * med.quantity || 0),
+      console.log("Expired Medicines:", expiredMedicines);
+
+      const expiredMedicinesWithPrice = expiredMedicines.map((med) => ({
+        ...med,
+        unit_price: med.unit_price || 10,
+        total_price:
+          med.total_price || (med.unit_price || 10) * (med.quantity || 0),
+      }));
+
+      const totalValue = expiredMedicinesWithPrice.reduce(
+        (sum, med) => sum + (med.total_price || 0),
         0
       );
 
-      res.json({ medicines: expiredMedicines, totalValue });
+      res.json({ medicines: expiredMedicinesWithPrice, totalValue });
     } catch (error) {
       console.error("Error fetching expired medicines:", error);
       res.status(500).json({
         error: {
           message: "Error fetching expired medicines",
           details: error.message,
+          stack: error.stack,
         },
       });
     }
@@ -90,7 +98,6 @@ export const expireController = {
         now.getTime() + 365 * 24 * 60 * 60 * 1000
       );
 
-      // Set expiring soon filter based on the time_period
       let expiringSoonFilter;
       let expiringSoonDays;
       if (time_period === "30_days") {
@@ -115,11 +122,13 @@ export const expireController = {
         expiringSoonDays = Infinity;
         expiringSoonFilter = new Date(8640000000000000); // Max date
       } else {
-        expiringSoonDays = 365; // Default to 1 year
+        expiringSoonDays = 365;
         expiringSoonFilter = oneYearFromNow;
       }
 
-      // Fetch medicines based on the time period
+      console.log("Query Params:", { time_period, category, limit, offset });
+      console.log("Date Range:", { now, oneYearFromNow, expiringSoonFilter });
+
       const medicines = await prisma.medicines.findMany({
         where: {
           expire_date: {
@@ -135,21 +144,39 @@ export const expireController = {
           supplier: true,
           createdBy: { select: { username: true } },
         },
-        take: parseInt(limit),
-        skip: parseInt(offset),
+        take: parseInt(limit, 10),
+        skip: parseInt(offset, 10),
       });
 
-      // Categorize medicines
+      console.log("Fetched Medicines:", medicines);
+
+      if (!medicines) {
+        throw new Error("No medicines data retrieved from database");
+      }
+
+      const medicinesWithPrice = medicines.map((med) => ({
+        ...med,
+        unit_price: med.unit_price || 10,
+        total_price:
+          med.total_price || (med.unit_price || 10) * (med.quantity || 0),
+      }));
+
       const expiredMedicines = [];
       const expiringSoonMedicines = [];
       const expiringLaterMedicines = [];
 
-      for (const med of medicines) {
+      for (const med of medicinesWithPrice) {
+        const expireDate = new Date(med.expire_date);
+        if (isNaN(expireDate.getTime())) {
+          console.warn(
+            `Invalid expire_date for medicine ${med.medicine_name}: ${med.expire_date}`
+          );
+          continue;
+        }
         const daysUntilExpiry = Math.ceil(
-          (new Date(med.expire_date) - now) / (1000 * 60 * 60 * 24)
+          (expireDate - now) / (1000 * 60 * 60 * 24)
         );
-
-        if (daysUntilExpiry < 0) {
+        if (daysUntilExpiry <= 0) {
           expiredMedicines.push(med);
         } else if (daysUntilExpiry <= expiringSoonDays) {
           expiringSoonMedicines.push(med);
@@ -158,10 +185,8 @@ export const expireController = {
         }
       }
 
-      // Calculate total value of expired medicines using total_price
       const totalValue = expiredMedicines.reduce(
-        (sum, med) =>
-          sum + (med.total_price || med.unit_price * med.quantity || 0),
+        (sum, med) => sum + (med.total_price || 0),
         0
       );
 
@@ -177,6 +202,7 @@ export const expireController = {
         expiringSoonDays: isFinite(expiringSoonDays) ? expiringSoonDays : 365,
       };
 
+      console.log("Generated Report:", report);
       res.json(report);
     } catch (error) {
       console.error("Error generating expiration report:", error);
@@ -184,6 +210,7 @@ export const expireController = {
         error: {
           message: "Error generating expiration report",
           details: error.message,
+          stack: error.stack,
         },
       });
     }

@@ -5,12 +5,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import {
-  FaDollarSign,
-  FaClock,
-  FiChevronLeft,
-  FiChevronRight,
-} from "react-icons/fa";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -44,7 +39,7 @@ const ExpireReport = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Generate category list and colors dynamically from both expiredMedicines and expiringSoonMedicines
+  // Generate category list and colors dynamically
   const categoryCounts = [...expiredMedicines, ...expiringSoonMedicines].reduce(
     (acc, med) => {
       const category = med.category?.name || "Uncategorized";
@@ -90,9 +85,28 @@ const ExpireReport = () => {
   const parseDate = (dateStr) => {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) {
-      const [year, month, day] = dateStr.split("-").map(Number);
-      if (year && month && day) {
-        return new Date(year, month - 1, day);
+      const [month, day, year] = dateStr.split(" ").map((part, index) => {
+        if (index === 0) return part.replace(",", ""); // Remove comma from month
+        if (index === 1) return parseInt(part);
+        if (index === 2) return parseInt(part);
+        return part;
+      });
+      const monthIndex = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ].indexOf(month);
+      if (monthIndex !== -1 && day && year) {
+        return new Date(year, monthIndex, day);
       }
       console.error(`Invalid date format: ${dateStr}`);
       return null;
@@ -146,7 +160,6 @@ const ExpireReport = () => {
 
       const expiringSoonDays = getExpiringSoonDays();
 
-      // Filter expiring soon medicines to exclude already expired ones
       const filteredExpiringSoon = (data.expiringSoonMedicines || []).filter(
         (med) => {
           const daysUntilExpiry = getDaysUntilExpiry(med.expire_date);
@@ -490,7 +503,7 @@ const ExpireReport = () => {
               }`}
             >
               <div className="flex items-center mb-2">
-                <FaDollarSign className="text-blue-500 mr-3 text-xl" />
+                <span className="text-blue-500 mr-3 text-xl">💵</span>
                 <h3 className="text-base sm:text-lg font-semibold">
                   Total Value of Expired Items
                 </h3>
@@ -525,7 +538,7 @@ const ExpireReport = () => {
               }`}
             >
               <div className="flex items-center mb-2">
-                <FaClock className="text-red-500 mr-3 text-xl" />
+                <span className="text-red-500 mr-3 text-xl">⏰</span>
                 <h3 className="text-base sm:text-lg font-semibold">
                   Total No. of Expired Items
                 </h3>
