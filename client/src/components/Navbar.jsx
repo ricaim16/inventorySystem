@@ -29,9 +29,11 @@ const Navbar = () => {
     const fetchMedicines = async () => {
       try {
         const data = await getAllMedicines();
-        setMedicines(data);
+        console.log("Fetched Medicines for Search:", data); // Debug log
+        setMedicines(data || []);
       } catch (err) {
         console.error("Failed to fetch medicines:", err);
+        setMedicines([]);
       }
     };
     fetchMedicines();
@@ -41,10 +43,12 @@ const Navbar = () => {
   useEffect(() => {
     if (searchTerm.trim()) {
       const filtered = medicines
-        .filter((med) =>
-          med.medicine_name.toLowerCase().startsWith(searchTerm.toLowerCase())
-        )
+        .filter((med) => {
+          const name = med.medicine_name || ""; // Handle null/undefined
+          return name.toLowerCase().includes(searchTerm.toLowerCase());
+        })
         .slice(0, 5); // Limit to 5 suggestions
+      console.log("Search Term:", searchTerm, "Filtered Medicines:", filtered); // Debug log
       setFilteredMedicines(filtered);
       setShowDropdown(true);
     } else {
