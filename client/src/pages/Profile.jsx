@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { getUserById, updateUser } from "../api/userApi";
+import Sidebar from "../components/Sidebar";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -11,46 +12,40 @@ const Profile = () => {
   const { id } = useParams();
 
   const [formData, setFormData] = useState({
-    username: "",
     FirstName: "",
     LastName: "",
-    phone: "",
-    email: "",
-    address: "",
-    dob: "",
-    gender: "",
+    username: "",
   });
   const [passwordData, setPasswordData] = useState({
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordError, setPasswordError] = useState("");
 
-  const fileInputRef = useRef(null);
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const userData = await getUserById(id || user.id);
         setFormData({
-          username: userData.username || "",
           FirstName: userData.FirstName || "",
           LastName: userData.LastName || "",
-          phone: userData.member?.phone || "+251",
-          email: userData.member?.email || "",
-          address: userData.member?.address || "",
-          dob: userData.member?.dob || "",
-          gender: userData.member?.gender || "",
+          username: userData.username || "",
         });
       } catch (err) {
-        setError("Failed to load user data.");
+        console.error("Fetch user error:", err);
+        if (err.message.includes("404")) {
+          setError("User not found. Please check the URL or contact support.");
+        } else {
+          setError("Failed to load user data.");
+        }
       }
     };
     fetchUser();
@@ -64,484 +59,513 @@ const Profile = () => {
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfilePicture(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemovePicture = () => {
-    setProfilePicture(null);
-    setPreview(null);
-    fileInputRef.current.value = null;
-  };
-
-  const handlePasswordSubmit = async () => {
     setPasswordError("");
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError("New password and confirm password do not match.");
-      return;
-    }
-    if (passwordData.newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters long.");
-      return;
-    }
+  };
 
-    try {
-      await updateUser(id || user.id, { password: passwordData.newPassword });
-      setSuccess("Password updated successfully!");
-      setPasswordData({
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setShowPasswordForm(false);
-    } catch (err) {
-      setPasswordError("Failed to update password. Please try again.");
-    }
+  const handleReset = () => {
+    setFormData({
+      FirstName: "",
+      LastName: "",
+      username: "",
+    });
+    setPasswordData({
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setShowPasswordForm(false);
+    setError("");
+    setSuccess("");
+    setPasswordError("");
+    setShowOldPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setPasswordError("");
     setIsLoading(true);
+
+    if (showPasswordForm) {
+      if (!passwordData.oldPassword) {
+        setPasswordError("Please enter your current password.");
+        setIsLoading(false);
+        return;
+      }
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        setPasswordError("New password and confirm password do not match.");
+        setIsLoading(false);
+        return;
+      }
+      if (passwordData.newPassword.length < 8) {
+        setPasswordError("New password must be at least 8 characters long.");
+        setIsLoading(false);
+        return;
+      }
+      if (
+        !/[A-Z]/.test(passwordData.newPassword) ||
+        !/[0-9]/.test(passwordData.newPassword)
+      ) {
+        setPasswordError(
+          "New password must include at least one uppercase letter and one number."
+        );
+        setIsLoading(false);
+        return;
+      }
+    }
 
     try {
       const updatedData = {
-        username: formData.username,
         FirstName: formData.FirstName,
         LastName: formData.LastName,
+        username: formData.username,
       };
 
-      await updateUser(id || user.id, updatedData);
+      if (showPasswordForm && passwordData.newPassword) {
+        updatedData.oldPassword = passwordData.oldPassword;
+        updatedData.password = passwordData.newPassword;
+      }
 
+      await updateUser(id || user.id, updatedData);
       setSuccess("Profile updated successfully!");
+      setPasswordData({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setShowPasswordForm(false);
+      setShowOldPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
-      setError("Failed to update profile. Please try again.");
+      if (err.response?.data?.error.includes("password")) {
+        setPasswordError(
+          err.response?.data?.error ||
+            "Failed to update password. Please check your current password."
+        );
+      } else {
+        setError(
+          err.response?.data?.error ||
+            "Failed to update profile. Please try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const countryCodes = [
-    { code: "ET", dial: "+251" },
-    { code: "US", dial: "+1" },
-    { code: "UK", dial: "+44" },
-  ];
-
-  const handlePhoneChange = (e) => {
-    const { value } = e.target;
-    const selectedCode =
-      countryCodes.find((c) => c.dial === formData.phone.split(" ")[0])?.dial ||
-      "+251";
-    const phoneNumber = value.replace(/[^0-9]/g, ""); // Allow only numbers
-    setFormData((prev) => ({
-      ...prev,
-      phone: `${selectedCode} ${phoneNumber}`,
-    }));
-  };
-
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center p-6 ${
-        theme === "dark" ? "bg-gray-900" : "bg-gray-50"
-      }`}
-    >
+    <div className="flex min-h-screen">
+      <Sidebar />
       <div
-        className={`w-full max-w-2xl p-8 rounded-xl shadow-2xl ${
-          theme === "dark"
-            ? "bg-gray-800 text-gray-100"
-            : "bg-white text-gray-900"
+        className={`flex-1 pt-6 pr-6 pb-6 pl-4 ${
+          theme === "dark" ? "bg-gray-900" : "bg-gray-100"
         }`}
       >
-        <h2 className="text-3xl font-semibold mb-8 border-b-2 border-indigo-600 pb-2">
+        <h1 className={`text-3xl font-bold mb-6 text-[#10B981]`}>
           Edit Profile
-        </h2>
+        </h1>
 
         {error && (
           <div
-            className="bg-red-100 text-red-800 p-4 rounded-lg mb-6"
+            className="bg-red-50 text-red-700 p-3 rounded-md mb-4 flex items-center"
             role="alert"
           >
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
             {error}
           </div>
         )}
         {success && (
           <div
-            className="bg-green-100 text-green-800 p-4 rounded-lg mb-6"
+            className="bg-green-50 text-green-700 p-3 rounded-md mb-4 flex items-center"
             role="alert"
           >
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
             {success}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Profile Picture */}
-          <div className="flex items-center space-x-6">
-            <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-gray-300">
-              <img
-                src={preview || "https://via.placeholder.com/112"}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="flex space-x-4">
-              <label className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium cursor-pointer hover:bg-indigo-700 transition-all">
-                Upload New Profile Picture
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  ref={fileInputRef}
-                />
-              </label>
-              <button
-                type="button"
-                onClick={handleRemovePicture}
-                className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-all"
-              >
-                Remove Profile Picture
-              </button>
-            </div>
-          </div>
-
-          {/* Username */}
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium mb-2"
-            >
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              value={formData.username}
-              onChange={handleInputChange}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                theme === "dark"
-                  ? "bg-gray-700 border-gray-600 text-gray-100"
-                  : "bg-gray-100 border-gray-300"
-              }`}
-              placeholder="Username"
-              required
-            />
-          </div>
-
-          {/* Change Password */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Password</label>
-            {!showPasswordForm ? (
-              <button
-                type="button"
-                onClick={() => setShowPasswordForm(true)}
-                className="text-indigo-600 hover:underline font-medium"
-              >
-                Change Password
-              </button>
-            ) : (
-              <div className="space-y-4">
-                {passwordError && (
-                  <div
-                    className="bg-red-100 text-red-800 p-3 rounded-lg"
-                    role="alert"
-                  >
-                    {passwordError}
-                  </div>
-                )}
-                <div>
-                  <label
-                    htmlFor="oldPassword"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    Old Password
-                  </label>
-                  <input
-                    id="oldPassword"
-                    name="oldPassword"
-                    type="password"
-                    value={passwordData.oldPassword}
-                    onChange={handlePasswordChange}
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      theme === "dark"
-                        ? "bg-gray-700 border-gray-600 text-gray-100"
-                        : "bg-gray-100 border-gray-300"
-                    }`}
-                    placeholder="Old Password"
-                    required
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="newPassword"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    New Password
-                  </label>
-                  <input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      theme === "dark"
-                        ? "bg-gray-700 border-gray-600 text-gray-100"
-                        : "bg-gray-100 border-gray-300"
-                    }`}
-                    placeholder="New Password"
-                    required
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    Confirm New Password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      theme === "dark"
-                        ? "bg-gray-700 border-gray-600 text-gray-100"
-                        : "bg-gray-100 border-gray-300"
-                    }`}
-                    placeholder="Confirm New Password"
-                    required
-                  />
-                </div>
-                <div className="flex space-x-4">
-                  <button
-                    type="button"
-                    onClick={handlePasswordSubmit}
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-all"
-                  >
-                    Update Password
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswordForm(false)}
-                    className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-all"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* First Name and Last Name */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div
+          className={`max-w-2xl p-6 rounded-md shadow-md ${
+            theme === "dark"
+              ? "bg-gray-800 text-gray-100"
+              : "bg-[#f4f4f4] text-gray-900"
+          }`}
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
-                htmlFor="FirstName"
-                className="block text-sm font-medium mb-2"
+                htmlFor="username"
+                className="block text-sm font-medium mb-1"
               >
-                First Name
+                Username
               </label>
               <input
-                id="FirstName"
-                name="FirstName"
+                id="username"
+                name="username"
                 type="text"
-                value={formData.FirstName}
+                value={formData.username}
                 onChange={handleInputChange}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                className={`w-full p-2 border rounded-md ${
                   theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-gray-100 border-gray-300"
-                }`}
-                placeholder="First Name"
+                    ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
+                    : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
+                } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                placeholder="Enter your username"
                 required
               />
             </div>
-            <div>
-              <label
-                htmlFor="LastName"
-                className="block text-sm font-medium mb-2"
-              >
-                Last Name
-              </label>
-              <input
-                id="LastName"
-                name="LastName"
-                type="text"
-                value={formData.LastName}
-                onChange={handleInputChange}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-gray-100 border-gray-300"
-                }`}
-                placeholder="Last Name"
-                required
-              />
-            </div>
-          </div>
 
-          {/* Phone and Email */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium mb-2">
-                Phone Number
-              </label>
-              <div className="flex">
-                <select
-                  name="countryCode"
-                  onChange={(e) => {
-                    const newCode = e.target.value;
-                    const currentNumber =
-                      formData.phone.split(" ").slice(1).join("") || "";
-                    setFormData((prev) => ({
-                      ...prev,
-                      phone: `${newCode} ${currentNumber}`,
-                    }));
-                  }}
-                  value={formData.phone.split(" ")[0] || "+251"}
-                  className={`p-3 border-r-0 rounded-l-lg focus:outline-none ${
-                    theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-gray-100"
-                      : "bg-gray-100 border-gray-300"
-                  }`}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="FirstName"
+                  className="block text-sm font-medium mb-1"
                 >
-                  {countryCodes.map((country) => (
-                    <option key={country.code} value={country.dial}>
-                      {country.dial}
-                    </option>
-                  ))}
-                </select>
+                  First Name
+                </label>
                 <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone.split(" ").slice(1).join("") || ""}
-                  onChange={handlePhoneChange}
-                  className={`w-full p-3 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  id="FirstName"
+                  name="FirstName"
+                  type="text"
+                  value={formData.FirstName}
+                  onChange={handleInputChange}
+                  className={`w-full p-2 border rounded-md ${
                     theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-gray-100"
-                      : "bg-gray-100 border-gray-300"
-                  }`}
-                  placeholder="Phone Number"
+                      ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
+                      : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
+                  } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                  placeholder="Enter your first name"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="LastName"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Last Name
+                </label>
+                <input
+                  id="LastName"
+                  name="LastName"
+                  type="text"
+                  value={formData.LastName}
+                  onChange={handleInputChange}
+                  className={`w-full p-2 border rounded-md ${
+                    theme === "dark"
+                      ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
+                      : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
+                  } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                  placeholder="Enter your last name"
                   required
                 />
               </div>
             </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-gray-100 border-gray-300"
-                }`}
-                placeholder="Email Address"
-                required
-              />
-            </div>
-          </div>
 
-          {/* Address */}
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium mb-2">
-              Address
-            </label>
-            <input
-              id="address"
-              name="address"
-              type="text"
-              value={formData.address}
-              onChange={handleInputChange}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                theme === "dark"
-                  ? "bg-gray-700 border-gray-600 text-gray-100"
-                  : "bg-gray-100 border-gray-300"
-              }`}
-              placeholder="Address"
-              required
-            />
-          </div>
-
-          {/* Date of Birth and Gender */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="dob" className="block text-sm font-medium mb-2">
-                Date of Birth
-              </label>
-              <input
-                id="dob"
-                name="dob"
-                type="date"
-                value={formData.dob}
-                onChange={handleInputChange}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-gray-100 border-gray-300"
-                }`}
-                max="2025-05-07"
-                required
-              />
+              <label className="block text-sm font-medium mb-1">Password</label>
+              {!showPasswordForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordForm(true)}
+                  className={`text-[#10B981] hover:text-[#059669] transition-colors duration-200 ${
+                    theme === "dark" ? "hover:text-[#34D399]" : ""
+                  }`}
+                >
+                  Change Password
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  {passwordError && (
+                    <div
+                      className="bg-red-50 text-red-700 p-2 rounded-md flex items-center text-sm"
+                      role="alert"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {passwordError}
+                    </div>
+                  )}
+                  <div className="relative">
+                    <label
+                      htmlFor="oldPassword"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Current Password
+                    </label>
+                    <input
+                      id="oldPassword"
+                      name="oldPassword"
+                      type={showOldPassword ? "text" : "password"}
+                      value={passwordData.oldPassword}
+                      onChange={handlePasswordChange}
+                      className={`w-full p-2 pr-10 border rounded-md ${
+                        theme === "dark"
+                          ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
+                          : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
+                      } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                      placeholder="Enter current password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOldPassword(!showOldPassword)}
+                      className="absolute right-2 top-9 text-[#10B981] hover:text-[#059669]"
+                    >
+                      {showOldPassword ? (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <label
+                      htmlFor="newPassword"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      New Password
+                    </label>
+                    <input
+                      id="newPassword"
+                      name="newPassword"
+                      type={showNewPassword ? "text" : "password"}
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      className={`w-full p-2 pr-10 border rounded-md ${
+                        theme === "dark"
+                          ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
+                          : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
+                      } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                      placeholder="Enter new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-2 top-9 text-[#10B981] hover:text-[#059669]"
+                    >
+                      {showNewPassword ? (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <label
+                      htmlFor="confirmPassword"
+                      className="block text-sm font-medium mb-1"
+                    >
+                      Confirm New Password
+                    </label>
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={passwordData.confirmPassword}
+                      onChange={handlePasswordChange}
+                      className={`w-full p-2 pr-10 border rounded-md ${
+                        theme === "dark"
+                          ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
+                          : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
+                      } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                      placeholder="Confirm new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-2 top-9 text-[#10B981] hover:text-[#059669]"
+                    >
+                      {showConfirmPassword ? (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordForm(false);
+                      setPasswordData({
+                        oldPassword: "",
+                        newPassword: "",
+                        confirmPassword: "",
+                      });
+                      setPasswordError("");
+                      setShowOldPassword(false);
+                      setShowNewPassword(false);
+                      setShowConfirmPassword(false);
+                    }}
+                    className={`py-2 px-4 rounded-md font-medium transition duration-300 ${
+                      theme === "dark"
+                        ? "bg-gray-600 text-gray-100 hover:bg-gray-500"
+                        : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}
+                  >
+                    Cancel Password Change
+                  </button>
+                </div>
+              )}
             </div>
-            <div>
-              <label
-                htmlFor="gender"
-                className="block text-sm font-medium mb-2"
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`flex-1 py-2 px-4 rounded-md font-bold transition duration-300 ${
+                  theme === "dark"
+                    ? "bg-[#10B981] text-white hover:bg-[#059669]"
+                    : "bg-[#10B981] text-white hover:bg-[#059669]"
+                } disabled:bg-[#10B981]/50 disabled:cursor-not-allowed`}
               >
-                Gender
-              </label>
-              <select
-                id="gender"
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                {isLoading ? "Saving..." : "Update Profile"}
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className={`flex-1 py-2 px-4 rounded-md font-bold transition duration-300 ${
                   theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-100"
-                    : "bg-gray-100 border-gray-300"
+                    ? "bg-gray-600 text-gray-100 hover:bg-gray-500"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                 }`}
-                required
               >
-                <option value="">Select Gender</option>
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-              </select>
+                Reset
+              </button>
             </div>
-          </div>
-
-          {/* Submit Button */}
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all disabled:bg-indigo-400"
-            >
-              {isLoading ? "Saving..." : "Update Profile"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -30,7 +30,13 @@ const Navbar = () => {
       try {
         const data = await getAllMedicines();
         console.log("Fetched Medicines for Search:", data); // Debug log
-        setMedicines(data || []);
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setMedicines(data);
+        } else {
+          console.error("getAllMedicines did not return an array:", data);
+          setMedicines([]);
+        }
       } catch (err) {
         console.error("Failed to fetch medicines:", err);
         setMedicines([]);
@@ -42,13 +48,29 @@ const Navbar = () => {
   // Filter medicines based on search term
   useEffect(() => {
     if (searchTerm.trim()) {
+      const cleanedSearchTerm = searchTerm.trim().toLowerCase();
       const filtered = medicines
         .filter((med) => {
-          const name = med.medicine_name || ""; // Handle null/undefined
-          return name.toLowerCase().includes(searchTerm.toLowerCase());
+          // Handle cases where medicine_name might be missing or not a string
+          const name =
+            typeof med.medicine_name === "string"
+              ? med.medicine_name.toLowerCase()
+              : "";
+          console.log("Filtering:", {
+            id: med.id,
+            name,
+            searchTerm: cleanedSearchTerm,
+            matches: name.includes(cleanedSearchTerm),
+          }); // Detailed debug log
+          return name.includes(cleanedSearchTerm);
         })
         .slice(0, 5); // Limit to 5 suggestions
-      console.log("Search Term:", searchTerm, "Filtered Medicines:", filtered); // Debug log
+      console.log(
+        "Search Term:",
+        cleanedSearchTerm,
+        "Filtered Medicines:",
+        filtered
+      ); // Debug log
       setFilteredMedicines(filtered);
       setShowDropdown(true);
     } else {
@@ -137,25 +159,35 @@ const Navbar = () => {
             />
           </button>
           {/* Autocomplete Dropdown */}
-          {showDropdown && filteredMedicines.length > 0 && (
+          {showDropdown && (
             <ul
               className={`absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto ${
                 theme === "dark" ? "bg-gray-800" : "bg-[#2A3B5A]"
               }`}
             >
-              {filteredMedicines.map((med) => (
+              {filteredMedicines.length > 0 ? (
+                filteredMedicines.map((med) => (
+                  <li
+                    key={med.id}
+                    onClick={() => handleMedicineSelect(med)}
+                    className={`px-4 py-2 cursor-pointer text-base ${
+                      theme === "dark"
+                        ? "text-gray-200 hover:bg-gray-700"
+                        : "text-white hover:bg-[#5DB5B5]"
+                    } transition-colors duration-200`}
+                  >
+                    {med.medicine_name || "Unnamed Medicine"}
+                  </li>
+                ))
+              ) : (
                 <li
-                  key={med.id}
-                  onClick={() => handleMedicineSelect(med)}
-                  className={`px-4 py-2 cursor-pointer text-base ${
-                    theme === "dark"
-                      ? "text-gray-200 hover:bg-gray-700"
-                      : "text-white hover:bg-[#5DB5B5]"
-                  } transition-colors duration-200`}
+                  className={`px-4 py-2 text-base ${
+                    theme === "dark" ? "text-gray-400" : "text-gray-300"
+                  }`}
                 >
-                  {med.medicine_name}
+                  No medicines found
                 </li>
-              ))}
+              )}
             </ul>
           )}
         </div>
