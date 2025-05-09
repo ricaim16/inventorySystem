@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -46,6 +46,8 @@ model Users {
   LastName               String
   username               String            @unique
   password               String
+  email                  String?            @unique
+  otp                    Int?
   role                   Role
   status                 Status            @default(ACTIVE)
   member                 Members?

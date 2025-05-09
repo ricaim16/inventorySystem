@@ -1,9 +1,10 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import
+  {
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    Navigate,
+  } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { ToastContainer, toast } from "react-toastify";
@@ -32,29 +33,34 @@ import OkrGenerateReport from "./pages/okr/OkrGenerateReport";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import VerifyOtp from "./pages/VerifyOtp.jsx";
+import NewPassword from "./pages/NewPassword.jsx";
 
 // Protected Route component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }) =>
+{
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? children : <Navigate to="/" replace />;
 };
 
 // Logout component
-const Logout = () => {
+const Logout = () =>
+{
   const { logout } = useAuth();
   logout();
   return <Navigate to="/" replace />;
 };
 
 // Layout component for protected routes
-const Layout = ({ children, showToast }) => {
+const Layout = ({ children, showToast }) =>
+{
   const { theme } = useTheme();
 
   return (
     <div
-      className={`flex min-h-screen ${
-        theme === "dark" ? "bg-gray-900" : "bg-[#F7F7F7]"
-      }`}
+      className={`flex min-h-screen ${theme === "dark" ? "bg-gray-900" : "bg-[#F7F7F7]"
+        }`}
     >
       <Sidebar />
       <div className="flex-1 flex flex-col">
@@ -65,8 +71,10 @@ const Layout = ({ children, showToast }) => {
   );
 };
 
-function App() {
-  const showToast = (message, options = {}) => {
+function App()
+{
+  const showToast = (message, options = {}) =>
+  {
     toast.dismiss();
     toast.success(message, { ...options, autoClose: 3000 });
   };
@@ -290,6 +298,24 @@ function App() {
                     <Profile />
                   </Layout>
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <ForgotPassword />
+              }
+            />
+            <Route
+              path="/verify-otp"
+              element={
+                <VerifyOtp />
+              }
+            />
+            <Route
+              path="/change-password"
+              element={
+                <NewPassword />
               }
             />
             <Route path="/logout" element={<Logout />} />
