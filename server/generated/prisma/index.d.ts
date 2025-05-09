@@ -477,8 +477,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.6.0
-   * Query Engine version: f676762280b54cd07c770017ed3711ddde35f37a
+   * Prisma Client JS version: 6.7.0
+   * Query Engine version: 3cff47a7f5d65c3ea74883f1d736e41d68ce91ed
    */
   export type PrismaVersion = {
     client: string
@@ -2444,8 +2444,18 @@ export namespace Prisma {
 
   export type AggregateUsers = {
     _count: UsersCountAggregateOutputType | null
+    _avg: UsersAvgAggregateOutputType | null
+    _sum: UsersSumAggregateOutputType | null
     _min: UsersMinAggregateOutputType | null
     _max: UsersMaxAggregateOutputType | null
+  }
+
+  export type UsersAvgAggregateOutputType = {
+    otp: number | null
+  }
+
+  export type UsersSumAggregateOutputType = {
+    otp: number | null
   }
 
   export type UsersMinAggregateOutputType = {
@@ -2453,7 +2463,9 @@ export namespace Prisma {
     FirstName: string | null
     LastName: string | null
     username: string | null
+    email: string | null
     password: string | null
+    otp: number | null
     role: $Enums.Role | null
     status: $Enums.Status | null
   }
@@ -2463,7 +2475,9 @@ export namespace Prisma {
     FirstName: string | null
     LastName: string | null
     username: string | null
+    email: string | null
     password: string | null
+    otp: number | null
     role: $Enums.Role | null
     status: $Enums.Status | null
   }
@@ -2473,19 +2487,31 @@ export namespace Prisma {
     FirstName: number
     LastName: number
     username: number
+    email: number
     password: number
+    otp: number
     role: number
     status: number
     _all: number
   }
 
 
+  export type UsersAvgAggregateInputType = {
+    otp?: true
+  }
+
+  export type UsersSumAggregateInputType = {
+    otp?: true
+  }
+
   export type UsersMinAggregateInputType = {
     id?: true
     FirstName?: true
     LastName?: true
     username?: true
+    email?: true
     password?: true
+    otp?: true
     role?: true
     status?: true
   }
@@ -2495,7 +2521,9 @@ export namespace Prisma {
     FirstName?: true
     LastName?: true
     username?: true
+    email?: true
     password?: true
+    otp?: true
     role?: true
     status?: true
   }
@@ -2505,7 +2533,9 @@ export namespace Prisma {
     FirstName?: true
     LastName?: true
     username?: true
+    email?: true
     password?: true
+    otp?: true
     role?: true
     status?: true
     _all?: true
@@ -2549,6 +2579,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: UsersAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UsersSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: UsersMinAggregateInputType
@@ -2579,6 +2621,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: UsersCountAggregateInputType | true
+    _avg?: UsersAvgAggregateInputType
+    _sum?: UsersSumAggregateInputType
     _min?: UsersMinAggregateInputType
     _max?: UsersMaxAggregateInputType
   }
@@ -2588,10 +2632,14 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email: string | null
     password: string
+    otp: number | null
     role: $Enums.Role
     status: $Enums.Status
     _count: UsersCountAggregateOutputType | null
+    _avg: UsersAvgAggregateOutputType | null
+    _sum: UsersSumAggregateOutputType | null
     _min: UsersMinAggregateOutputType | null
     _max: UsersMaxAggregateOutputType | null
   }
@@ -2615,7 +2663,9 @@ export namespace Prisma {
     FirstName?: boolean
     LastName?: boolean
     username?: boolean
+    email?: boolean
     password?: boolean
+    otp?: boolean
     role?: boolean
     status?: boolean
     member?: boolean | Users$memberArgs<ExtArgs>
@@ -2634,7 +2684,9 @@ export namespace Prisma {
     FirstName?: boolean
     LastName?: boolean
     username?: boolean
+    email?: boolean
     password?: boolean
+    otp?: boolean
     role?: boolean
     status?: boolean
   }, ExtArgs["result"]["users"]>
@@ -2644,7 +2696,9 @@ export namespace Prisma {
     FirstName?: boolean
     LastName?: boolean
     username?: boolean
+    email?: boolean
     password?: boolean
+    otp?: boolean
     role?: boolean
     status?: boolean
   }, ExtArgs["result"]["users"]>
@@ -2654,12 +2708,14 @@ export namespace Prisma {
     FirstName?: boolean
     LastName?: boolean
     username?: boolean
+    email?: boolean
     password?: boolean
+    otp?: boolean
     role?: boolean
     status?: boolean
   }
 
-  export type UsersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "FirstName" | "LastName" | "username" | "password" | "role" | "status", ExtArgs["result"]["users"]>
+  export type UsersOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "FirstName" | "LastName" | "username" | "email" | "password" | "otp" | "role" | "status", ExtArgs["result"]["users"]>
   export type UsersInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     member?: boolean | Users$memberArgs<ExtArgs>
     credits?: boolean | Users$creditsArgs<ExtArgs>
@@ -2691,7 +2747,9 @@ export namespace Prisma {
       FirstName: string
       LastName: string
       username: string
+      email: string | null
       password: string
+      otp: number | null
       role: $Enums.Role
       status: $Enums.Status
     }, ExtArgs["result"]["users"]>
@@ -3129,7 +3187,9 @@ export namespace Prisma {
     readonly FirstName: FieldRef<"Users", 'String'>
     readonly LastName: FieldRef<"Users", 'String'>
     readonly username: FieldRef<"Users", 'String'>
+    readonly email: FieldRef<"Users", 'String'>
     readonly password: FieldRef<"Users", 'String'>
+    readonly otp: FieldRef<"Users", 'Int'>
     readonly role: FieldRef<"Users", 'Role'>
     readonly status: FieldRef<"Users", 'Status'>
   }
@@ -8256,6 +8316,7 @@ export namespace Prisma {
   export type MedicinesAvgAggregateOutputType = {
     medicine_weight: number | null
     quantity: number | null
+    initial_quantity: number | null
     unit_price: number | null
     sell_price: number | null
     total_price: number | null
@@ -8264,6 +8325,7 @@ export namespace Prisma {
   export type MedicinesSumAggregateOutputType = {
     medicine_weight: number | null
     quantity: number | null
+    initial_quantity: number | null
     unit_price: number | null
     sell_price: number | null
     total_price: number | null
@@ -8278,6 +8340,7 @@ export namespace Prisma {
     dosage_form_id: string | null
     medicine_weight: number | null
     quantity: number | null
+    initial_quantity: number | null
     supplier_id: string | null
     invoice_number: string | null
     unit_price: number | null
@@ -8302,6 +8365,7 @@ export namespace Prisma {
     dosage_form_id: string | null
     medicine_weight: number | null
     quantity: number | null
+    initial_quantity: number | null
     supplier_id: string | null
     invoice_number: string | null
     unit_price: number | null
@@ -8326,6 +8390,7 @@ export namespace Prisma {
     dosage_form_id: number
     medicine_weight: number
     quantity: number
+    initial_quantity: number
     supplier_id: number
     invoice_number: number
     unit_price: number
@@ -8346,6 +8411,7 @@ export namespace Prisma {
   export type MedicinesAvgAggregateInputType = {
     medicine_weight?: true
     quantity?: true
+    initial_quantity?: true
     unit_price?: true
     sell_price?: true
     total_price?: true
@@ -8354,6 +8420,7 @@ export namespace Prisma {
   export type MedicinesSumAggregateInputType = {
     medicine_weight?: true
     quantity?: true
+    initial_quantity?: true
     unit_price?: true
     sell_price?: true
     total_price?: true
@@ -8368,6 +8435,7 @@ export namespace Prisma {
     dosage_form_id?: true
     medicine_weight?: true
     quantity?: true
+    initial_quantity?: true
     supplier_id?: true
     invoice_number?: true
     unit_price?: true
@@ -8392,6 +8460,7 @@ export namespace Prisma {
     dosage_form_id?: true
     medicine_weight?: true
     quantity?: true
+    initial_quantity?: true
     supplier_id?: true
     invoice_number?: true
     unit_price?: true
@@ -8416,6 +8485,7 @@ export namespace Prisma {
     dosage_form_id?: true
     medicine_weight?: true
     quantity?: true
+    initial_quantity?: true
     supplier_id?: true
     invoice_number?: true
     unit_price?: true
@@ -8527,6 +8597,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -8570,6 +8641,7 @@ export namespace Prisma {
     dosage_form_id?: boolean
     medicine_weight?: boolean
     quantity?: boolean
+    initial_quantity?: boolean
     supplier_id?: boolean
     invoice_number?: boolean
     unit_price?: boolean
@@ -8601,6 +8673,7 @@ export namespace Prisma {
     dosage_form_id?: boolean
     medicine_weight?: boolean
     quantity?: boolean
+    initial_quantity?: boolean
     supplier_id?: boolean
     invoice_number?: boolean
     unit_price?: boolean
@@ -8629,6 +8702,7 @@ export namespace Prisma {
     dosage_form_id?: boolean
     medicine_weight?: boolean
     quantity?: boolean
+    initial_quantity?: boolean
     supplier_id?: boolean
     invoice_number?: boolean
     unit_price?: boolean
@@ -8657,6 +8731,7 @@ export namespace Prisma {
     dosage_form_id?: boolean
     medicine_weight?: boolean
     quantity?: boolean
+    initial_quantity?: boolean
     supplier_id?: boolean
     invoice_number?: boolean
     unit_price?: boolean
@@ -8672,7 +8747,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type MedicinesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "medicine_name" | "brand_name" | "batch_number" | "category_id" | "dosage_form_id" | "medicine_weight" | "quantity" | "supplier_id" | "invoice_number" | "unit_price" | "sell_price" | "total_price" | "expire_date" | "required_prescription" | "payment_method" | "Payment_file" | "details" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["medicines"]>
+  export type MedicinesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "medicine_name" | "brand_name" | "batch_number" | "category_id" | "dosage_form_id" | "medicine_weight" | "quantity" | "initial_quantity" | "supplier_id" | "invoice_number" | "unit_price" | "sell_price" | "total_price" | "expire_date" | "required_prescription" | "payment_method" | "Payment_file" | "details" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["medicines"]>
   export type MedicinesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     category?: boolean | CategoriesDefaultArgs<ExtArgs>
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
@@ -8714,6 +8789,7 @@ export namespace Prisma {
       dosage_form_id: string
       medicine_weight: number | null
       quantity: number
+      initial_quantity: number
       supplier_id: string
       invoice_number: string
       unit_price: number
@@ -9164,6 +9240,7 @@ export namespace Prisma {
     readonly dosage_form_id: FieldRef<"Medicines", 'String'>
     readonly medicine_weight: FieldRef<"Medicines", 'Float'>
     readonly quantity: FieldRef<"Medicines", 'Int'>
+    readonly initial_quantity: FieldRef<"Medicines", 'Int'>
     readonly supplier_id: FieldRef<"Medicines", 'String'>
     readonly invoice_number: FieldRef<"Medicines", 'String'>
     readonly unit_price: FieldRef<"Medicines", 'Float'>
@@ -19087,7 +19164,9 @@ export namespace Prisma {
     FirstName: 'FirstName',
     LastName: 'LastName',
     username: 'username',
+    email: 'email',
     password: 'password',
+    otp: 'otp',
     role: 'role',
     status: 'status'
   };
@@ -19158,6 +19237,7 @@ export namespace Prisma {
     dosage_form_id: 'dosage_form_id',
     medicine_weight: 'medicine_weight',
     quantity: 'quantity',
+    initial_quantity: 'initial_quantity',
     supplier_id: 'supplier_id',
     invoice_number: 'invoice_number',
     unit_price: 'unit_price',
@@ -19350,6 +19430,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Int'
+   */
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Role'
    */
   export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
@@ -19420,20 +19514,6 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Int'
-   */
-  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-  /**
-   * Reference to a field of type 'Int[]'
-   */
-  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
-
-
-  /**
    * Reference to a field of type 'Boolean'
    */
   export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -19479,7 +19559,9 @@ export namespace Prisma {
     FirstName?: StringFilter<"Users"> | string
     LastName?: StringFilter<"Users"> | string
     username?: StringFilter<"Users"> | string
+    email?: StringNullableFilter<"Users"> | string | null
     password?: StringFilter<"Users"> | string
+    otp?: IntNullableFilter<"Users"> | number | null
     role?: EnumRoleFilter<"Users"> | $Enums.Role
     status?: EnumStatusFilter<"Users"> | $Enums.Status
     member?: XOR<MembersNullableScalarRelationFilter, MembersWhereInput> | null
@@ -19497,7 +19579,9 @@ export namespace Prisma {
     FirstName?: SortOrder
     LastName?: SortOrder
     username?: SortOrder
+    email?: SortOrderInput | SortOrder
     password?: SortOrder
+    otp?: SortOrderInput | SortOrder
     role?: SortOrder
     status?: SortOrder
     member?: MembersOrderByWithRelationInput
@@ -19513,12 +19597,14 @@ export namespace Prisma {
   export type UsersWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     username?: string
+    email?: string
     AND?: UsersWhereInput | UsersWhereInput[]
     OR?: UsersWhereInput[]
     NOT?: UsersWhereInput | UsersWhereInput[]
     FirstName?: StringFilter<"Users"> | string
     LastName?: StringFilter<"Users"> | string
     password?: StringFilter<"Users"> | string
+    otp?: IntNullableFilter<"Users"> | number | null
     role?: EnumRoleFilter<"Users"> | $Enums.Role
     status?: EnumStatusFilter<"Users"> | $Enums.Status
     member?: XOR<MembersNullableScalarRelationFilter, MembersWhereInput> | null
@@ -19529,19 +19615,23 @@ export namespace Prisma {
     updatedSupplierCredits?: SupplierCreditsListRelationFilter
     createdSales?: SalesListRelationFilter
     updatedSales?: SalesListRelationFilter
-  }, "id" | "username">
+  }, "id" | "username" | "email">
 
   export type UsersOrderByWithAggregationInput = {
     id?: SortOrder
     FirstName?: SortOrder
     LastName?: SortOrder
     username?: SortOrder
+    email?: SortOrderInput | SortOrder
     password?: SortOrder
+    otp?: SortOrderInput | SortOrder
     role?: SortOrder
     status?: SortOrder
     _count?: UsersCountOrderByAggregateInput
+    _avg?: UsersAvgOrderByAggregateInput
     _max?: UsersMaxOrderByAggregateInput
     _min?: UsersMinOrderByAggregateInput
+    _sum?: UsersSumOrderByAggregateInput
   }
 
   export type UsersScalarWhereWithAggregatesInput = {
@@ -19552,7 +19642,9 @@ export namespace Prisma {
     FirstName?: StringWithAggregatesFilter<"Users"> | string
     LastName?: StringWithAggregatesFilter<"Users"> | string
     username?: StringWithAggregatesFilter<"Users"> | string
+    email?: StringNullableWithAggregatesFilter<"Users"> | string | null
     password?: StringWithAggregatesFilter<"Users"> | string
+    otp?: IntNullableWithAggregatesFilter<"Users"> | number | null
     role?: EnumRoleWithAggregatesFilter<"Users"> | $Enums.Role
     status?: EnumStatusWithAggregatesFilter<"Users"> | $Enums.Status
   }
@@ -19850,6 +19942,7 @@ export namespace Prisma {
     dosage_form_id?: StringFilter<"Medicines"> | string
     medicine_weight?: FloatNullableFilter<"Medicines"> | number | null
     quantity?: IntFilter<"Medicines"> | number
+    initial_quantity?: IntFilter<"Medicines"> | number
     supplier_id?: StringFilter<"Medicines"> | string
     invoice_number?: StringFilter<"Medicines"> | string
     unit_price?: FloatFilter<"Medicines"> | number
@@ -19880,6 +19973,7 @@ export namespace Prisma {
     dosage_form_id?: SortOrder
     medicine_weight?: SortOrderInput | SortOrder
     quantity?: SortOrder
+    initial_quantity?: SortOrder
     supplier_id?: SortOrder
     invoice_number?: SortOrder
     unit_price?: SortOrder
@@ -19914,6 +20008,7 @@ export namespace Prisma {
     dosage_form_id?: StringFilter<"Medicines"> | string
     medicine_weight?: FloatNullableFilter<"Medicines"> | number | null
     quantity?: IntFilter<"Medicines"> | number
+    initial_quantity?: IntFilter<"Medicines"> | number
     supplier_id?: StringFilter<"Medicines"> | string
     unit_price?: FloatFilter<"Medicines"> | number
     sell_price?: FloatNullableFilter<"Medicines"> | number | null
@@ -19943,6 +20038,7 @@ export namespace Prisma {
     dosage_form_id?: SortOrder
     medicine_weight?: SortOrderInput | SortOrder
     quantity?: SortOrder
+    initial_quantity?: SortOrder
     supplier_id?: SortOrder
     invoice_number?: SortOrder
     unit_price?: SortOrder
@@ -19975,6 +20071,7 @@ export namespace Prisma {
     dosage_form_id?: StringWithAggregatesFilter<"Medicines"> | string
     medicine_weight?: FloatNullableWithAggregatesFilter<"Medicines"> | number | null
     quantity?: IntWithAggregatesFilter<"Medicines"> | number
+    initial_quantity?: IntWithAggregatesFilter<"Medicines"> | number
     supplier_id?: StringWithAggregatesFilter<"Medicines"> | string
     invoice_number?: StringWithAggregatesFilter<"Medicines"> | string
     unit_price?: FloatWithAggregatesFilter<"Medicines"> | number
@@ -20686,7 +20783,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -20704,7 +20803,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -20722,7 +20823,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -20740,7 +20843,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -20758,7 +20863,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
   }
@@ -20768,7 +20875,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
   }
@@ -20778,7 +20887,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
   }
@@ -21107,6 +21218,7 @@ export namespace Prisma {
     batch_number?: string | null
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -21135,6 +21247,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -21159,6 +21272,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -21187,6 +21301,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -21213,6 +21328,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -21235,6 +21351,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -21257,6 +21374,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -22027,6 +22145,32 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
+  export type StringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type EnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -22070,6 +22214,11 @@ export namespace Prisma {
     none?: SalesWhereInput
   }
 
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
+  }
+
   export type SupplierCreditsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -22091,9 +22240,15 @@ export namespace Prisma {
     FirstName?: SortOrder
     LastName?: SortOrder
     username?: SortOrder
+    email?: SortOrder
     password?: SortOrder
+    otp?: SortOrder
     role?: SortOrder
     status?: SortOrder
+  }
+
+  export type UsersAvgOrderByAggregateInput = {
+    otp?: SortOrder
   }
 
   export type UsersMaxOrderByAggregateInput = {
@@ -22101,7 +22256,9 @@ export namespace Prisma {
     FirstName?: SortOrder
     LastName?: SortOrder
     username?: SortOrder
+    email?: SortOrder
     password?: SortOrder
+    otp?: SortOrder
     role?: SortOrder
     status?: SortOrder
   }
@@ -22111,9 +22268,15 @@ export namespace Prisma {
     FirstName?: SortOrder
     LastName?: SortOrder
     username?: SortOrder
+    email?: SortOrder
     password?: SortOrder
+    otp?: SortOrder
     role?: SortOrder
     status?: SortOrder
+  }
+
+  export type UsersSumOrderByAggregateInput = {
+    otp?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -22134,6 +22297,40 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
+  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
   export type EnumRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -22152,21 +22349,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumStatusFilter<$PrismaModel>
     _max?: NestedEnumStatusFilter<$PrismaModel>
-  }
-
-  export type StringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    mode?: QueryMode
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type EnumGenderNullableFilter<$PrismaModel = never> = {
@@ -22212,11 +22394,6 @@ export namespace Prisma {
   export type UsersScalarRelationFilter = {
     is?: UsersWhereInput
     isNot?: UsersWhereInput
-  }
-
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
   }
 
   export type MembersCountOrderByAggregateInput = {
@@ -22282,24 +22459,6 @@ export namespace Prisma {
 
   export type MembersSumOrderByAggregateInput = {
     salary?: SortOrder
-  }
-
-  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    mode?: QueryMode
-    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedStringNullableFilter<$PrismaModel>
-    _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
   export type EnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -22493,6 +22652,7 @@ export namespace Prisma {
     dosage_form_id?: SortOrder
     medicine_weight?: SortOrder
     quantity?: SortOrder
+    initial_quantity?: SortOrder
     supplier_id?: SortOrder
     invoice_number?: SortOrder
     unit_price?: SortOrder
@@ -22511,6 +22671,7 @@ export namespace Prisma {
   export type MedicinesAvgOrderByAggregateInput = {
     medicine_weight?: SortOrder
     quantity?: SortOrder
+    initial_quantity?: SortOrder
     unit_price?: SortOrder
     sell_price?: SortOrder
     total_price?: SortOrder
@@ -22525,6 +22686,7 @@ export namespace Prisma {
     dosage_form_id?: SortOrder
     medicine_weight?: SortOrder
     quantity?: SortOrder
+    initial_quantity?: SortOrder
     supplier_id?: SortOrder
     invoice_number?: SortOrder
     unit_price?: SortOrder
@@ -22549,6 +22711,7 @@ export namespace Prisma {
     dosage_form_id?: SortOrder
     medicine_weight?: SortOrder
     quantity?: SortOrder
+    initial_quantity?: SortOrder
     supplier_id?: SortOrder
     invoice_number?: SortOrder
     unit_price?: SortOrder
@@ -22567,6 +22730,7 @@ export namespace Prisma {
   export type MedicinesSumOrderByAggregateInput = {
     medicine_weight?: SortOrder
     quantity?: SortOrder
+    initial_quantity?: SortOrder
     unit_price?: SortOrder
     sell_price?: SortOrder
     total_price?: SortOrder
@@ -23201,6 +23365,18 @@ export namespace Prisma {
     set?: string
   }
 
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type EnumRoleFieldUpdateOperationsInput = {
     set?: $Enums.Role
   }
@@ -23429,10 +23605,6 @@ export namespace Prisma {
     create?: XOR<UsersCreateWithoutMemberInput, UsersUncheckedCreateWithoutMemberInput>
     connectOrCreate?: UsersCreateOrConnectWithoutMemberInput
     connect?: UsersWhereUniqueInput
-  }
-
-  export type NullableStringFieldUpdateOperationsInput = {
-    set?: string | null
   }
 
   export type NullableEnumGenderFieldUpdateOperationsInput = {
@@ -24231,6 +24403,31 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
+  export type NestedStringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedEnumRoleFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -24273,6 +24470,50 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedEnumRoleWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.Role | EnumRoleFieldRefInput<$PrismaModel>
     in?: $Enums.Role[] | ListEnumRoleFieldRefInput<$PrismaModel>
@@ -24291,20 +24532,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumStatusFilter<$PrismaModel>
     _max?: NestedEnumStatusFilter<$PrismaModel>
-  }
-
-  export type NestedStringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type NestedEnumGenderNullableFilter<$PrismaModel = never> = {
@@ -24345,34 +24572,6 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
-  }
-
-  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedStringNullableFilter<$PrismaModel>
-    _max?: NestedStringNullableFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -24427,17 +24626,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedBoolFilter<$PrismaModel = never> = {
@@ -24632,6 +24820,7 @@ export namespace Prisma {
     batch_number?: string | null
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -24659,6 +24848,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -25031,6 +25221,7 @@ export namespace Prisma {
     dosage_form_id?: StringFilter<"Medicines"> | string
     medicine_weight?: FloatNullableFilter<"Medicines"> | number | null
     quantity?: IntFilter<"Medicines"> | number
+    initial_quantity?: IntFilter<"Medicines"> | number
     supplier_id?: StringFilter<"Medicines"> | string
     invoice_number?: StringFilter<"Medicines"> | string
     unit_price?: FloatFilter<"Medicines"> | number
@@ -25175,7 +25366,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
@@ -25192,7 +25385,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
@@ -25225,7 +25420,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
@@ -25242,7 +25439,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -25309,6 +25508,7 @@ export namespace Prisma {
     batch_number?: string | null
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -25336,6 +25536,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -25401,6 +25602,7 @@ export namespace Prisma {
     batch_number?: string | null
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -25427,6 +25629,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -25477,6 +25680,7 @@ export namespace Prisma {
     batch_number?: string | null
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -25503,6 +25707,7 @@ export namespace Prisma {
     category_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -25740,7 +25945,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -25757,7 +25964,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -25951,7 +26160,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -25968,7 +26179,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -26061,6 +26274,7 @@ export namespace Prisma {
     batch_number?: string | null
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -26088,6 +26302,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -26114,7 +26329,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -26131,7 +26348,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -26153,7 +26372,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -26170,7 +26391,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -26259,6 +26482,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -26286,6 +26510,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -26318,7 +26543,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -26335,7 +26562,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -26363,7 +26592,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -26380,7 +26611,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -26418,6 +26651,7 @@ export namespace Prisma {
     batch_number?: string | null
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -26445,6 +26679,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -26509,6 +26744,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -26536,6 +26772,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -26714,7 +26951,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -26731,7 +26970,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -26753,7 +26994,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -26770,7 +27013,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -26842,7 +27087,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -26859,7 +27106,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -26887,7 +27136,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -26904,7 +27155,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -26944,7 +27197,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -26961,7 +27216,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -26983,7 +27240,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
@@ -27000,7 +27259,9 @@ export namespace Prisma {
     FirstName: string
     LastName: string
     username: string
+    email?: string | null
     password: string
+    otp?: number | null
     role: $Enums.Role
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
@@ -27062,7 +27323,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -27079,7 +27342,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -27107,7 +27372,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
@@ -27124,7 +27391,9 @@ export namespace Prisma {
     FirstName?: StringFieldUpdateOperationsInput | string
     LastName?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
     role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
@@ -27269,6 +27538,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -27438,6 +27708,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -27465,6 +27736,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -27490,6 +27762,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -27805,6 +28078,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     invoice_number: string
     unit_price: number
     sell_price?: number | null
@@ -27883,6 +28157,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -27910,6 +28185,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -27935,6 +28211,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -27957,6 +28234,7 @@ export namespace Prisma {
     dosage_form_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -27979,6 +28257,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -28005,6 +28284,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -28030,6 +28310,7 @@ export namespace Prisma {
     dosage_form_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -28053,6 +28334,7 @@ export namespace Prisma {
     category_id: string
     medicine_weight?: number | null
     quantity: number
+    initial_quantity: number
     supplier_id: string
     invoice_number: string
     unit_price: number
@@ -28103,6 +28385,7 @@ export namespace Prisma {
     batch_number?: NullableStringFieldUpdateOperationsInput | string | null
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -28129,6 +28412,7 @@ export namespace Prisma {
     category_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number
@@ -28154,6 +28438,7 @@ export namespace Prisma {
     category_id?: StringFieldUpdateOperationsInput | string
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
     invoice_number?: StringFieldUpdateOperationsInput | string
     unit_price?: FloatFieldUpdateOperationsInput | number

@@ -1,6 +1,15 @@
 import { useEffect, useState, useRef } from "react";
-import { createUser, updateUser } from "../../../api/userApi";
+import { createUser, updateUser, checkEmail } from "../../../api/userApi";
 import { useTheme } from "../../../context/ThemeContext";
+
+// Custom debounce function
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
 
 const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
   const { theme } = useTheme();
@@ -8,16 +17,19 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
     FirstName: "",
     LastName: "",
     username: "",
+    email: "",
     password: "",
     role: "EMPLOYEE",
     status: "ACTIVE",
   });
   const [error, setError] = useState("");
+  const [emailStatus, setEmailStatus] = useState(""); // Track email availability
 
   // Refs for input fields to manage focus
   const firstNameRef = useRef(null);
   const lastNameRef = useRef(null);
   const usernameRef = useRef(null);
+  const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const statusRef = useRef(null);
   const statusInactiveRef = useRef(null);
@@ -29,16 +41,47 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
         FirstName: initialData.FirstName || "",
         LastName: initialData.LastName || "",
         username: initialData.username || "",
+        email: initialData.email || "",
         password: "",
         role: "EMPLOYEE",
         status: initialData.status || "ACTIVE",
         id: initialData.id,
       });
+      setEmailStatus(""); // Reset email status on edit
     }
   }, [initialData]);
 
+  // Debounced email check
+  const checkEmailAvailability = debounce(async (email) => {
+    setEmailStatus(""); // Reset status
+    if (!email || (initialData && email === initialData.email)) {
+      return; // No need to check if email is empty or unchanged
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailStatus("Invalid email format");
+      return;
+    }
+    try {
+      const result = await checkEmail(email);
+      setEmailStatus(
+        result.exists ? "Email already exists" : "Email available"
+      );
+    } catch (err) {
+      console.error("Email check error:", err);
+      if (err.response?.status === 400) {
+        setEmailStatus(err.response.data.error);
+      } else {
+        setEmailStatus("Error checking email");
+      }
+    }
+  }, 500);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === "email") {
+      checkEmailAvailability(value);
+    }
   };
 
   const handleKeyDown = (e, nextRef) => {
@@ -55,33 +98,71 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Validate required fields
+      if (
+        !formData.FirstName ||
+        !formData.LastName ||
+        !formData.username ||
+        !formData.password ||
+        !formData.status
+      ) {
+        setError("Please fill all required fields");
+        return;
+      }
+      // Validate email format (if provided)
+      if (
+        formData.email &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+      ) {
+        setError("Invalid email format");
+        return;
+      }
+      // Check if email is already taken
+      if (emailStatus === "Email already exists") {
+        setError("Email already exists");
+        return;
+      }
+
       let response;
       if (initialData) {
         response = await updateUser(initialData.id, {
           FirstName: formData.FirstName,
           LastName: formData.LastName,
           username: formData.username,
+          email: formData.email || null,
           role: formData.role,
           status: formData.status,
           ...(formData.password && { password: formData.password }),
         });
         showToast("User updated successfully!");
       } else {
-        response = await createUser(formData);
+        response = await createUser({
+          FirstName: formData.FirstName,
+          LastName: formData.LastName,
+          username: formData.username,
+          email: formData.email || null,
+          password: formData.password,
+          role: formData.role,
+          status: formData.status,
+        });
         showToast("User added successfully!");
       }
       setFormData({
         FirstName: "",
         LastName: "",
         username: "",
+        email: "",
         password: "",
         role: "EMPLOYEE",
         status: "ACTIVE",
       });
+      setEmailStatus("");
       onUserCreated(response.user);
       setError("");
     } catch (err) {
-      setError("Please fill all required fields");
+      setError(
+        err.response?.data?.error || "Failed to save user. Please try again."
+      );
     }
   };
 
@@ -180,7 +261,7 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
             name="username"
             value={formData.username}
             onChange={handleChange}
-            onKeyDown={(e) => handleKeyDown(e, passwordRef)}
+            onKeyDown={(e) => handleKeyDown(e, emailRef)}
             ref={usernameRef}
             placeholder="Enter Username"
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E8C7] text-sm ${
@@ -189,6 +270,41 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
                 : "bg-white border-black text-gray-800"
             }`}
           />
+        </div>
+
+        <div>
+          <label
+            className={`block text-sm font-medium ${
+              theme === "dark" ? "text-gray-200" : "text-gray-600"
+            }`}
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            onKeyDown={(e) => handleKeyDown(e, passwordRef)}
+            ref={emailRef}
+            placeholder="Enter Email"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E8C7] text-sm ${
+              theme === "dark"
+                ? "bg-gray-700 border-gray-500 text-gray-200"
+                : "bg-white border-black text-gray-800"
+            }`}
+          />
+          {emailStatus && (
+            <p
+              className={`mt-1 text-xs ${
+                emailStatus === "Email available"
+                  ? "text-green-500"
+                  : "text-red-500"
+              }`}
+            >
+              {emailStatus}
+            </p>
+          )}
         </div>
 
         <div>

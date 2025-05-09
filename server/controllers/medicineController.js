@@ -159,12 +159,35 @@ export const medicineController = {
 
       const total_price = parsedUnitPrice * parsedQuantity;
 
+      console.log("Creating medicine with data:", {
+        medicine_name,
+        brand_name,
+        batch_number,
+        quantity: parsedQuantity,
+        initial_quantity: parsedQuantity,
+        supplier_id: parsedSupplierId,
+        invoice_number,
+        unit_price: parsedUnitPrice,
+        sell_price: parsedSellPrice,
+        total_price,
+        expire_date: parsedExpireDate,
+        required_prescription: required_prescription === "true",
+        payment_method: payment_method || "NONE",
+        Payment_file: payment_file,
+        details,
+        category_id: parsedCategoryId,
+        dosage_form_id: parsedDosageFormId,
+        medicine_weight: parsedMedicineWeight,
+        createdById: req.user.id,
+      });
+
       const medicine = await prisma.medicines.create({
         data: {
           medicine_name,
           brand_name: brand_name || null,
           batch_number: batch_number || null,
           quantity: parsedQuantity,
+          initial_quantity: parsedQuantity,
           supplier: { connect: { id: parsedSupplierId } },
           invoice_number,
           unit_price: parsedUnitPrice,
@@ -289,6 +312,33 @@ export const medicineController = {
           : existingMedicine.quantity;
       const total_price = updatedUnitPrice * updatedQuantity;
 
+      console.log("Updating medicine with data:", {
+        medicine_name: medicine_name ?? existingMedicine.medicine_name,
+        brand_name: brand_name ?? existingMedicine.brand_name,
+        batch_number: batch_number ?? existingMedicine.batch_number,
+        category_id: parsedCategoryId ?? existingMedicine.category_id,
+        dosage_form_id: parsedDosageFormId ?? existingMedicine.dosage_form_id,
+        medicine_weight:
+          parsedMedicineWeight ?? existingMedicine.medicine_weight,
+        quantity: updatedQuantity,
+        supplier_id: parsedSupplierId ?? existingMedicine.supplier_id,
+        unit_price: updatedUnitPrice,
+        sell_price: parsedSellPrice ?? existingMedicine.sell_price,
+        total_price,
+        expire_date: parsedExpireDate ?? existingMedicine.expire_date,
+        required_prescription:
+          required_prescription !== undefined
+            ? Boolean(required_prescription)
+            : existingMedicine.required_prescription,
+        payment_method: payment_method ?? existingMedicine.payment_method,
+        Payment_file:
+          payment_file !== undefined
+            ? payment_file
+            : existingMedicine.Payment_file,
+        details: details ?? existingMedicine.details,
+        invoice_number: invoice_number ?? existingMedicine.invoice_number,
+      });
+
       const medicine = await prisma.medicines.update({
         where: { id },
         data: {
@@ -352,19 +402,15 @@ export const medicineController = {
           .json({ error: { message: "Medicine not found" } });
       }
 
-      // Wrap all deletions in a transaction to ensure atomicity
       await prisma.$transaction(async (tx) => {
-        // Delete related Sales records
         await tx.sales.deleteMany({
           where: { medicine_id: id },
         });
 
-        // Delete related Returns records
         await tx.returns.deleteMany({
           where: { medicine_id: id },
         });
 
-        // Delete the medicine
         await tx.medicines.delete({
           where: { id },
         });
@@ -377,7 +423,7 @@ export const medicineController = {
         message: error.message,
         code: error.code,
         stack: error.stack,
-        meta: error.meta, // Include Prisma-specific metadata if available
+        meta: error.meta,
       });
       res.status(500).json({
         error: { message: "Error deleting medicine", details: error.message },
@@ -405,189 +451,193 @@ export const medicineController = {
     }
   },
 
-generateMedicineReport: async (req, res) => {
-  console.log("Generating medicine report...");
-  try {
-    const medicines = await prisma.medicines.findMany({
-      include: {
-        Sales: true,
-        category: true,
-        dosage_form: true,
-        createdBy: { select: { username: true } },
-      },
-    });
-
-    console.log("Medicines fetched:", medicines.length);
-    if (!medicines.length) {
-      console.log("No medicines found, returning empty report");
-      return res.json({
-        generatedAt: getEthiopianTime(),
-        winningProducts: [],
-        worstPerformingProducts: [],
-        stockLevels: [],
-        categoryDistribution: [],
-        totalStockLevel: 0,
-        totalAssetValue: 0,
-        stockLevelChange: 0,
-        assetValueChange: 0,
-        stockLevelChangeMessage: "No medicines available",
-        assetValueChangeMessage: "No medicines available",
+  generateMedicineReport: async (req, res) => {
+    console.log("Generating medicine report...");
+    try {
+      const medicines = await prisma.medicines.findMany({
+        include: {
+          Sales: true,
+          category: true,
+          dosage_form: true,
+          createdBy: { select: { username: true } },
+        },
       });
-    }
 
-    // Calculate total sales across all medicines
-    const medicineSales = medicines.map((med) => {
-      const totalSales = med.Sales.reduce(
-        (sum, sale) => sum + sale.quantity,
+      console.log("Medicines fetched:", medicines.length);
+      if (!medicines.length) {
+        console.log("No medicines found, returning empty report");
+        return res.json({
+          generatedAt: getEthiopianTime(),
+          winningProducts: [],
+          worstPerformingProducts: [],
+          stockLevels: [],
+          categoryDistribution: [],
+          totalStockLevel: 0,
+          totalAssetValue: 0,
+          stockLevelChange: 0,
+          assetValueChange: 0,
+          stockLevelChangeMessage: "No medicines available",
+          assetValueChangeMessage: "No medicines available",
+        });
+      }
+
+      // Step 1: Calculate Total Sales and Turnover Ratio
+      const medicineSales = medicines.map((med) => {
+        const totalSales = med.Sales.reduce(
+          (sum, sale) => sum + sale.quantity,
+          0
+        );
+        const turnoverRatio =
+          med.quantity === 0
+            ? totalSales > 0
+              ? Infinity
+              : 0
+            : totalSales / med.quantity;
+        return { ...med, totalSales, turnoverRatio };
+      });
+
+      // Step 2: Calculate Sales Percentage for Winning Products
+      const totalOverallSales = medicineSales.reduce(
+        (sum, med) => sum + med.totalSales,
         0
       );
-      return { ...med, totalSales };
-    });
 
-    const totalOverallSales = medicineSales.reduce(
-      (sum, med) => sum + med.totalSales,
-      0
-    );
-
-    // Calculate percentages for each medicine
-    const medicineSalesWithPercent = medicineSales.map((med) => ({
-      ...med,
-      salesPercent:
-        totalOverallSales > 0
-          ? (med.totalSales / totalOverallSales) * 100
-          : 0,
-    }));
-
-    // Sort by sales percentage for winning and worst products
-    const sortedBySales = [...medicineSalesWithPercent].sort(
-      (a, b) => b.salesPercent - a.salesPercent
-    );
-
-    // Winning Products (Top 5 by percentage)
-    const winningProducts = sortedBySales
-      .slice(0, Math.min(5, sortedBySales.length))
-      .map((med) => ({
-        id: med.id,
-        medicine_name: med.medicine_name,
-        totalSales: med.totalSales,
-        salesPercent: med.salesPercent.toFixed(2),
-        unit_price: med.unit_price,
-        dosage_form: med.dosage_form,
-        category: med.category,
+      const medicineSalesWithPercent = medicineSales.map((med) => ({
+        ...med,
+        salesPercent:
+          totalOverallSales > 0
+            ? (med.totalSales / totalOverallSales) * 100
+            : 0,
       }));
 
-    // Worst-Performing Products (Bottom 5 with sales > 0)
-    const salesAboveZero = sortedBySales.filter((med) => med.totalSales > 0);
-    const worstPerformingProducts = salesAboveZero.length > 0
-      ? salesAboveZero
-          .slice(-Math.min(5, salesAboveZero.length))
-          .reverse()
-          .map((med) => ({
-            id: med.id,
-            medicine_name: med.medicine_name,
-            totalSales: med.totalSales,
-            salesPercent: med.salesPercent.toFixed(2),
-            unit_price: med.unit_price,
-            dosage_form: med.dosage_form,
-            category: med.category,
-          }))
-      : [];
+      // Step 3: Winning Products (based on Sales Percentage)
+      const sortedBySales = [...medicineSalesWithPercent].sort(
+        (a, b) => b.salesPercent - a.salesPercent
+      );
 
-    // Stock Levels (individual medicines, for reference in PDF)
-    const stockLevels = medicines.map((med) => ({
-      id: med.id,
-      medicine_name: med.medicine_name,
-      quantity: med.quantity,
-      expire_date: med.expire_date,
-      createdBy: med.createdBy.username,
-    }));
+      const winningProducts = sortedBySales
+        .slice(0, Math.min(5, sortedBySales.length))
+        .map((med) => ({
+          id: med.id,
+          medicine_name: med.medicine_name,
+          totalSales: med.totalSales,
+          salesPercent: med.salesPercent.toFixed(2),
+          unit_price: med.unit_price,
+          dosage_form: med.dosage_form,
+          category: med.category,
+        }));
 
-    // Calculate Total Stock Level (sum of quantities)
-    const totalStockLevel = medicines.reduce(
-      (sum, med) => sum + med.quantity,
-      0
-    );
+      // Step 4: Worst Performing Products (based on Turnover Ratio)
+      const sortedByTurnover = [...medicineSalesWithPercent]
+        .filter((med) => med.totalSales > 0 || med.quantity > 0) // Include medicines with stock or sales
+        .sort((a, b) => a.turnoverRatio - b.turnoverRatio); // Ascending (lowest turnover = worst)
 
-    // Calculate Total Asset Value (sum of total_price)
-    const totalAssetValue = medicines.reduce(
-      (sum, med) => sum + med.total_price,
-      0
-    );
+      const worstPerformingProducts = sortedByTurnover
+        .slice(0, Math.min(5, sortedByTurnover.length))
+        .map((med) => ({
+          id: med.id,
+          medicine_name: med.medicine_name,
+          totalSales: med.totalSales,
+          turnoverRatio: isFinite(med.turnoverRatio)
+            ? med.turnoverRatio.toFixed(2)
+            : "Infinity",
+          quantityInStock: med.quantity,
+          unit_price: med.unit_price,
+          dosage_form: med.dosage_form,
+          category: med.category,
+        }));
 
-    // Calculate Category Distribution for Pie Chart
-    const categoryCounts = medicines.reduce((acc, med) => {
-      const categoryName = med.category?.name || "Uncategorized";
-      acc[categoryName] = (acc[categoryName] || 0) + 1;
-      return acc;
-    }, {});
+      // Step 5: Rest of the Report
+      const stockLevels = medicines.map((med) => ({
+        id: med.id,
+        medicine_name: med.medicine_name,
+        quantity: med.quantity,
+        expire_date: med.expire_date,
+        createdBy: med.createdBy.username,
+      }));
 
-    const categoryDistribution = Object.entries(categoryCounts).map(
-      ([name, count]) => ({
-        category_name: name,
-        count,
-        percent: ((count / medicines.length) * 100).toFixed(2),
-      })
-    );
+      const totalStockLevel = medicines.reduce(
+        (sum, med) => sum + med.quantity,
+        0
+      );
 
-    // New Logic: Percentage of stock/value from medicines added in the last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const totalAssetValue = medicines.reduce(
+        (sum, med) => sum + med.total_price,
+        0
+      );
 
-    const recentMedicines = await prisma.medicines.findMany({
-      where: {
-        createdAt: { gte: sevenDaysAgo },
-      },
-      select: {
-        quantity: true,
-        total_price: true,
-      },
-    });
+      const categoryCounts = medicines.reduce((acc, med) => {
+        const categoryName = med.category?.name || "Uncategorized";
+        acc[categoryName] = (acc[categoryName] || 0) + 1;
+        return acc;
+      }, {});
 
-    const recentStockLevel = recentMedicines.reduce(
-      (sum, med) => sum + med.quantity,
-      0
-    );
-    const recentAssetValue = recentMedicines.reduce(
-      (sum, med) => sum + med.total_price,
-      0
-    );
+      const categoryDistribution = Object.entries(categoryCounts).map(
+        ([name, count]) => ({
+          category_name: name,
+          count,
+          percent: ((count / medicines.length) * 100).toFixed(2),
+        })
+      );
 
-    const stockLevelChange =
-      totalStockLevel > 0
-        ? (recentStockLevel / totalStockLevel) * 100
-        : 0;
-    const assetValueChange =
-      totalAssetValue > 0
-        ? (recentAssetValue / totalAssetValue) * 100
-        : 0;
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const report = {
-      generatedAt: getEthiopianTime(),
-      winningProducts,
-      worstPerformingProducts,
-      stockLevels,
-      categoryDistribution,
-      totalStockLevel,
-      totalAssetValue,
-      stockLevelChange: stockLevelChange.toFixed(2),
-      assetValueChange: assetValueChange.toFixed(2),
-      stockLevelChangeMessage:
-        recentStockLevel === 0
-          ? "No medicines added in the last 7 days"
-          : `${stockLevelChange.toFixed(2)}% of current stock was added in the last 7 days`,
-      assetValueChangeMessage:
-        recentAssetValue === 0
-          ? "No medicines added in the last 7 days"
-          : `${assetValueChange.toFixed(2)}% of current asset value was added in the last 7 days`,
-    };
+      const recentMedicines = await prisma.medicines.findMany({
+        where: {
+          createdAt: { gte: sevenDaysAgo },
+        },
+        select: {
+          quantity: true,
+          total_price: true,
+        },
+      });
 
-    console.log("Report generated successfully");
-    res.json(report);
-  } catch (error) {
-    console.error("Error generating medicine report:", error);
-    res.status(500).json({
-      error: { message: "Error generating report", details: error.message },
-    });
-  }
-},
+      const recentStockLevel = recentMedicines.reduce(
+        (sum, med) => sum + med.quantity,
+        0
+      );
+      const recentAssetValue = recentMedicines.reduce(
+        (sum, med) => sum + med.total_price,
+        0
+      );
+
+      const stockLevelChange =
+        totalStockLevel > 0 ? (recentStockLevel / totalStockLevel) * 100 : 0;
+      const assetValueChange =
+        totalAssetValue > 0 ? (recentAssetValue / totalAssetValue) * 100 : 0;
+
+      const report = {
+        generatedAt: getEthiopianTime(),
+        winningProducts,
+        worstPerformingProducts,
+        stockLevels,
+        categoryDistribution,
+        totalStockLevel,
+        totalAssetValue,
+        stockLevelChange: stockLevelChange.toFixed(2),
+        assetValueChange: assetValueChange.toFixed(2),
+        stockLevelChangeMessage:
+          recentStockLevel === 0
+            ? "No medicines added in the last 7 days"
+            : `${stockLevelChange.toFixed(
+                2
+              )}% of current stock was added in the last 7 days`,
+        assetValueChangeMessage:
+          recentAssetValue === 0
+            ? "No medicines added in the last 7 days"
+            : `${assetValueChange.toFixed(
+                2
+              )}% of current asset value was added in the last 7 days`,
+      };
+
+      console.log("Report generated successfully");
+      res.json(report);
+    } catch (error) {
+      console.error("Error generating medicine report:", error);
+      res.status(500).json({
+        error: { message: "Error generating report", details: error.message },
+      });
+    }
+  },
 };

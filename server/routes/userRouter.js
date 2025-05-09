@@ -1,4 +1,3 @@
-// backend/routes/userRouter.js
 import express from "express";
 import {
   createUser,
@@ -6,21 +5,24 @@ import {
   getUserById,
   updateUser,
   deleteUser,
+  checkEmail,
 } from "../controllers/userController.js";
-import { authMiddleware, roleMiddleware } from "../middlewares/auth.js";
+import { login } from "../controllers/authController.js";
+import { authMiddleware } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
+// Public route (no authentication required)
+router.post("/login", login);
+
+// Protected routes
 router.use(authMiddleware);
 
-// Manager-only routes
-router.post("/", roleMiddleware(["MANAGER"]), createUser);
-router.get("/", roleMiddleware(["MANAGER"]), getAllUsers);
-router.delete("/:id", roleMiddleware(["MANAGER"]), deleteUser);
-
-// Manager and Employee-accessible routes
+router.post("/", createUser);
+router.get("/", getAllUsers);
 router.get("/:id", getUserById);
 router.put("/:id", updateUser);
+router.delete("/:id", deleteUser);
+router.get("/check-email", checkEmail);
 
 export default router;

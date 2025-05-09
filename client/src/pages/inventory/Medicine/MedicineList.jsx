@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { getAllMedicines, deleteMedicine } from "../../../api/medicineApi";
 import { useAuth } from "../../../context/AuthContext";
 import { useTheme } from "../../../context/ThemeContext";
+import { useNotification } from "../../../context/NotificationContext.jsx";
 import {
   HiEye,
   HiPencil,
@@ -29,6 +30,9 @@ const MedicineList = () => {
   const itemsPerPage = 10;
   const { user } = useAuth();
   const { theme } = useTheme();
+  const notification = useNotification();
+  const syncNotifications = notification?.syncNotifications || (() => {});
+
   const location = useLocation();
 
   const formatEAT = (date) => {
@@ -50,8 +54,7 @@ const MedicineList = () => {
         now.getUTCDate(),
         now.getUTCHours(),
         now.getUTCMinutes(),
-        now.getUTCSeconds(),
-        now.getUTCMinutes()
+        now.getUTCSeconds()
       )
     );
     const etOffset = 3 * 60 * 60 * 1000;
@@ -62,9 +65,10 @@ const MedicineList = () => {
     const now = getCurrentEAT();
     const expiry = new Date(expireDate);
     const monthsDiff = (expiry - now) / (1000 * 60 * 60 * 24 * 30);
-    if (monthsDiff <= 3) return "red";
-    if (monthsDiff <= 6) return "yellow";
-    return "green";
+
+    if (expiry <= now) return "red"; // Expired (red)
+    if (monthsDiff <= 6) return "yellow"; // Within 6 months (yellow)
+    return "green"; // More than 6 months (green)
   };
 
   useEffect(() => {
@@ -80,6 +84,7 @@ const MedicineList = () => {
       }));
       setMedicines(sanitizedData);
       setError(null);
+      syncNotifications();
     } catch (err) {
       setError(
         "Failed to fetch medicines: " +
@@ -88,7 +93,6 @@ const MedicineList = () => {
     }
   };
 
-  // Handle medicine selection from Navbar
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const medicineId = params.get("medicineId");
@@ -121,8 +125,9 @@ const MedicineList = () => {
   const handleDelete = async (id) => {
     try {
       await deleteMedicine(id);
-      fetchMedicines();
+      await fetchMedicines();
       setError(null);
+      syncNotifications();
     } catch (err) {
       setError(
         "Failed to delete medicine: " +
@@ -202,7 +207,7 @@ const MedicineList = () => {
   };
 
   const truncateDetails = (text) => {
-    if (!text) return ["N/A"];
+    if (!text || typeof text !== "string") return ["N/A"];
     const words = text.trim().split(/\s+/);
     const chunks = [];
     for (let i = 0; i < words.length; i += 5) {
@@ -308,7 +313,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.invoice_number}
+                    {medicineToView.invoice_number || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -324,7 +329,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.medicine_name}
+                    {medicineToView.medicine_name || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -372,7 +377,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.category.name}
+                    {medicineToView.category?.name || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -388,14 +393,14 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.dosage_form.name}
+                    {medicineToView.dosage_form?.name || "N/A"}
                   </span>
                 </div>
               </div>
             </div>
             <div className="border-b-2 border-gray-300 pb-8">
               <h4
-                className={`text-lg sm:text-xl font-semibold mb-6`}
+                className="text-lg sm:text-xl font-semibold mb-6"
                 style={{ color: "#5DB5B5" }}
               >
                 Pricing and Expiry
@@ -414,7 +419,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.unit_price}
+                    {medicineToView.unit_price || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -446,7 +451,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.total_price}
+                    {medicineToView.total_price || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -462,7 +467,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {formatEAT(medicineToView.expire_date)}
+                    {formatEAT(medicineToView.expire_date) || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -471,14 +476,30 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-300" : "text-gray-700"
                     }`}
                   >
-                    Quantity
+                    Initial Quantity
                   </span>
                   <span
                     className={`text-sm sm:text-base ${
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.quantity}
+                    {medicineToView.initial_quantity || "N/A"}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span
+                    className={`font-semibold text-sm sm:text-base ${
+                      theme === "dark" ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Current Quantity
+                  </span>
+                  <span
+                    className={`text-sm sm:text-base ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    {medicineToView.quantity || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -501,7 +522,7 @@ const MedicineList = () => {
             </div>
             <div className="pb-8">
               <h4
-                className={`text-lg sm:text-xl font-semibold mb-6`}
+                className="text-lg sm:text-xl font-semibold mb-6"
                 style={{ color: "#5DB5B5" }}
               >
                 Additional Details
@@ -520,7 +541,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.supplier.supplier_name}
+                    {medicineToView.supplier?.supplier_name || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -552,7 +573,7 @@ const MedicineList = () => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {medicineToView.payment_method}
+                    {medicineToView.payment_method || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -563,9 +584,9 @@ const MedicineList = () => {
                   >
                     Payment File
                   </span>
-                  {medicineToView.Payment_file ? (
+                  {medicineToView.payment_file ? (
                     <a
-                      href={`http://localhost:8080/${medicineToView.Payment_file}`}
+                      href={`http://localhost:8080/${medicineToView.payment_file}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`text-sm sm:text-base text-teal-500 hover:underline transition-colors duration-200 ${
@@ -599,7 +620,7 @@ const MedicineList = () => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {medicineToView.createdBy.username}
+                        {medicineToView.createdBy?.username || "N/A"}
                       </span>
                     </div>
                     <div className="flex flex-col">
@@ -615,7 +636,7 @@ const MedicineList = () => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        Apr 27, 2025
+                        {formatEAT(medicineToView.created_at) || "N/A"}
                       </span>
                     </div>
                     <div className="flex flex-col">
@@ -631,7 +652,7 @@ const MedicineList = () => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        Apr 27, 2025
+                        {formatEAT(medicineToView.updated_at) || "N/A"}
                       </span>
                     </div>
                   </>
@@ -751,7 +772,7 @@ const MedicineList = () => {
                       theme === "dark" ? "border-gray-700" : "border-gray-200"
                     }`}
                   >
-                    Quantity
+                    Current Quantity
                   </th>
                   <th
                     className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell ${
@@ -792,175 +813,175 @@ const MedicineList = () => {
               </thead>
               <tbody>
                 {currentMedicines.length > 0 ? (
-                  currentMedicines.map((med, index) => {
-                    const rowNumber = startIndex + index + 1;
-                    return (
-                      <tr
-                        key={med.id || `row-${index}`}
-                        className={`${
-                          index % 2 === 0
-                            ? theme === "dark"
-                              ? "bg-gray-900"
-                              : "bg-gray-50"
-                            : theme === "dark"
-                            ? "bg-gray-800"
-                            : "bg-white"
-                        } transition-colors duration-200 ${
+                  currentMedicines.map((med, index) => (
+                    <tr
+                      key={med.id ? `${med.id}` : `row-${index}`}
+                      className={`${
+                        index % 2 === 0
+                          ? theme === "dark"
+                            ? "bg-gray-900"
+                            : "bg-gray-50"
+                          : theme === "dark"
+                          ? "bg-gray-800"
+                          : "bg-white"
+                      } transition-colors duration-200 ${
+                        theme === "dark"
+                          ? "hover:bg-[#4B5563]"
+                          : "hover:bg-[#f7f7f7]"
+                      }`}
+                      data-row={startIndex + index + 1}
+                    >
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base font-medium ${
                           theme === "dark"
-                            ? "hover:bg-[#4B5563]"
-                            : "hover:bg-[#f7f7f7]"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
                         }`}
-                        data-row={rowNumber}
                       >
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base font-medium ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
+                        {startIndex + index + 1}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.medicine_name || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.batch_number || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.brand_name || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden lg:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.category?.name || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden xl:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.dosage_form?.name || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.quantity || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden lg:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.supplier?.supplier_name || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.unit_price || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        {med.sell_price || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block w-3 h-3 rounded-full mr-2 ${
+                            getExpiryStatus(med.expire_date) === "red"
+                              ? "bg-red-500"
+                              : getExpiryStatus(med.expire_date) === "yellow"
+                              ? "bg-yellow-500"
+                              : getExpiryStatus(med.expire_date) === "green"
+                              ? "bg-green-500"
+                              : ""
                           }`}
-                        >
-                          {rowNumber}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.medicine_name}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.batch_number || "N/A"}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.brand_name || "N/A"}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden lg:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.category.name}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden xl:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.dosage_form.name}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.quantity}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden lg:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.supplier.supplier_name}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.unit_price}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {med.sell_price || "N/A"}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {formatEAT(med.expire_date)}
-                        </td>
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 flex flex-wrap gap-2 items-center justify-start ${
-                            theme === "dark"
-                              ? "border-gray-700"
-                              : "border-gray-200"
-                          }`}
-                        >
+                        ></span>
+                        {formatEAT(med.expire_date) || "N/A"}
+                      </td>
+                      <td
+                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
+                          theme === "dark"
+                            ? "text-gray-300 border-gray-700"
+                            : "text-gray-700 border-gray-200"
+                        }`}
+                      >
+                        <div className="flex space-x-2">
                           <button
-                            key={`view-${med.id || index}`}
                             onClick={() => handleView(med)}
                             className={actionButtonClass}
                             title="View"
-                            aria-label={`View medicine ${med.medicine_name}`}
                           >
                             <HiEye size={18} />
                           </button>
-                          {user?.role === "MANAGER" && (
-                            <>
-                              <button
-                                key={`edit-${med.id || index}`}
-                                onClick={() => handleEdit(med)}
-                                className={actionButtonClass}
-                                title="Edit"
-                                aria-label={`Edit medicine ${med.medicine_name}`}
-                              >
-                                <HiPencil size={18} />
-                              </button>
-                              <button
-                                key={`delete-${med.id || index}`}
-                                onClick={() => openDeleteModal(med.id)}
-                                className={actionButtonClass}
-                                title="Delete"
-                                aria-label={`Delete medicine ${med.medicine_name}`}
-                              >
-                                <HiTrash size={18} />
-                              </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
+                          <button
+                            onClick={() => handleEdit(med)}
+                            className={actionButtonClass}
+                            title="Edit"
+                          >
+                            <HiPencil size={18} />
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(med.id)}
+                            className={actionButtonClass}
+                            title="Delete"
+                          >
+                            <HiTrash size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td
-                      colSpan="12"
+                      colSpan={12}
                       className={`border-b border-gray-300 px-4 py-3 text-center text-sm sm:text-base ${
                         theme === "dark"
-                          ? "text-gray-300 border-gray-700 bg-gray-900"
-                          : "text-gray-600 border-gray-200 bg-white"
+                          ? "text-gray-400 border-gray-700"
+                          : "text-gray-600 border-gray-200"
                       }`}
                     >
                       No medicines found
@@ -971,45 +992,66 @@ const MedicineList = () => {
             </table>
           </div>
 
-          <div className="mt-6 flex flex-wrap justify-center items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`p-2 rounded-md transition-colors duration-200 ${
-                theme === "dark"
-                  ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
-                  : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              <HiChevronLeft size={20} />
-            </button>
-            {getPageNumbers().map((page, index) => (
-              <button
-                key={index}
-                onClick={() => handlePageChange(page)}
-                className={`px-3 sm:px-4 py-2 rounded-md font-medium text-sm sm:text-base transition-colors duration-200 ${
-                  currentPage === page
-                    ? "bg-teal-600 text-white"
-                    : theme === "dark"
-                    ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
-                    : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-6">
+              <div
+                className={`text-sm sm:text-base ${
+                  theme === "dark" ? "text-gray-400" : "text-gray-600"
                 }`}
               >
-                {page}
-              </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`p-2 rounded-md transition-colors duration-200 ${
-                theme === "dark"
-                  ? "bg-gray-800 text-teal-400 hover:bg-[#4B5563]"
-                  : "bg-gray-100 text-teal-600 hover:bg-[#f7f7f7]"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              <HiChevronRight size={20} />
-            </button>
-          </div>
+                Showing {startIndex + 1} to{" "}
+                {Math.min(startIndex + itemsPerPage, filteredMedicines.length)}{" "}
+                of {filteredMedicines.length} medicines
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-md ${
+                    currentPage === 1
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-[#4B5563]"
+                  } ${
+                    theme === "dark"
+                      ? "text-gray-300 bg-gray-800"
+                      : "text-gray-600 bg-gray-100"
+                  }`}
+                >
+                  <HiChevronLeft size={18} />
+                </button>
+                {getPageNumbers().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === page
+                        ? "bg-teal-600 text-white"
+                        : theme === "dark"
+                        ? "text-gray-300 bg-gray-800 hover:bg-[#4B5563]"
+                        : "text-gray-600 bg-gray-100 hover:bg-[#f7f7f7]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 rounded-md ${
+                    currentPage === totalPages
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-[#4B5563]"
+                  } ${
+                    theme === "dark"
+                      ? "text-gray-300 bg-gray-800"
+                      : "text-gray-600 bg-gray-100"
+                  }`}
+                >
+                  <HiChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 

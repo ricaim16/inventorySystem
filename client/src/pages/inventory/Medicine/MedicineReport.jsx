@@ -115,11 +115,20 @@ const MedicineReport = () => {
 
     let yPosition = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(16);
-    doc.text("Worst Products", 10, yPosition);
+    doc.text("Worst Performing Products", 10, yPosition);
     autoTable(doc, {
       startY: yPosition + 5,
       head: [
-        ["NO", "Medicine Name", "Price", "Amount Sold", "Category", "Dosage"],
+        [
+          "NO",
+          "Medicine Name",
+          "Price",
+          "Amount Sold",
+          "Stock",
+          "Turnover Ratio",
+          "Category",
+          "Dosage",
+        ],
       ],
       body: report.worstPerformingProducts
         .slice(0, 5)
@@ -128,6 +137,8 @@ const MedicineReport = () => {
           med.medicine_name,
           med.unit_price || "N/A",
           med.totalSales.toString(),
+          med.quantityInStock.toString(),
+          med.turnoverRatio,
           med.category?.name || "N/A",
           med.dosage_form?.name || "N/A",
         ]),
@@ -416,14 +427,14 @@ const MedicineReport = () => {
                 </div>
               </div>
 
-              {/* Worst Products */}
+              {/* Worst Performing Products */}
               <div className="mb-6">
                 <h3
                   className={`text-xl font-semibold mb-2 font-sans ${
                     theme === "dark" ? "text-gray-100" : "text-gray-900"
                   }`}
                 >
-                  Worst Products
+                  Worst Performing Products
                 </h3>
                 <div className="overflow-x-auto">
                   <table
@@ -464,6 +475,20 @@ const MedicineReport = () => {
                           }`}
                         >
                           Amount Sold
+                        </th>
+                        <th
+                          className={`border p-2 text-left w-[80px] font-medium text-lg font-sans ${
+                            theme === "dark" ? "text-gray-200" : "text-gray-800"
+                          }`}
+                        >
+                          Stock
+                        </th>
+                        <th
+                          className={`border p-2 text-left w-[100px] font-medium text-lg font-sans ${
+                            theme === "dark" ? "text-gray-200" : "text-gray-800"
+                          }`}
+                        >
+                          Turnover Ratio
                         </th>
                         <th
                           className={`border p-2 text-left w-[120px] font-medium text-lg font-sans ${
@@ -537,6 +562,24 @@ const MedicineReport = () => {
                                     : "text-gray-600"
                                 }`}
                               >
+                                {med.quantityInStock}
+                              </td>
+                              <td
+                                className={`border p-2 text-base font-sans ${
+                                  theme === "dark"
+                                    ? "text-gray-200"
+                                    : "text-gray-600"
+                                }`}
+                              >
+                                {med.turnoverRatio}
+                              </td>
+                              <td
+                                className={`border p-2 text-base font-sans ${
+                                  theme === "dark"
+                                    ? "text-gray-200"
+                                    : "text-gray-600"
+                                }`}
+                              >
                                 {med.category?.name || "N/A"}
                               </td>
                               <td
@@ -553,14 +596,14 @@ const MedicineReport = () => {
                       ) : (
                         <tr>
                           <td
-                            colSpan="6"
+                            colSpan="8"
                             className={`border p-2 text-center text-base font-sans ${
                               theme === "dark"
                                 ? "text-gray-200"
                                 : "text-gray-600"
                             }`}
                           >
-                            No sales recorded
+                            No relevant products recorded
                           </td>
                         </tr>
                       )}

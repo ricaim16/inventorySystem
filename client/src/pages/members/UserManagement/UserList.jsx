@@ -94,6 +94,13 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
                   theme === "dark" ? "text-gray-200" : "text-gray-800"
                 }`}
               >
+                Email
+              </th>
+              <th
+                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
+                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                }`}
+              >
                 Role
               </th>
               <th
@@ -140,6 +147,13 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
                   }`}
                 >
                   {user.username}
+                </td>
+                <td
+                  className={`py-2 px-3 text-xs sm:text-sm ${
+                    theme === "dark" ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  {user.email || "-"}
                 </td>
                 <td
                   className={`py-2 px-3 text-xs sm:text-sm ${
@@ -240,4 +254,3 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
 };
 
 export default UserList;
-

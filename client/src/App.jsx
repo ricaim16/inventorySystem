@@ -32,6 +32,9 @@ import OkrGenerateReport from "./pages/okr/OkrGenerateReport";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import VerifyOtp from "./pages/VerifyOtp.jsx";
+import NewPassword from "./pages/NewPassword.jsx";
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -292,6 +295,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/change-password" element={<NewPassword />} />
+            
             <Route path="/logout" element={<Logout />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -46,7 +46,9 @@ model Users {
   FirstName              String
   LastName               String
   username               String            @unique
+  email                  String?           @unique // Add this line (optional and unique)
   password               String
+  otp                    Int?
   role                   Role
   status                 Status            @default(ACTIVE)
   member                 Members?
@@ -55,8 +57,8 @@ model Users {
   customerCredits        CustomerCredit[]  @relation("CreatedBy")
   updatedCustomerCredits CustomerCredit[]  @relation("UpdatedBy")
   updatedSupplierCredits SupplierCredits[] @relation("UpdatedBy")
-  createdSales           Sales[]           @relation("CreatedBy") // Matches "CreatedBy" in Sales
-  updatedSales           Sales[]           @relation("UpdatedSales") // Matches "UpdatedSales" in Sales
+  createdSales           Sales[]           @relation("CreatedBy")
+  updatedSales           Sales[]           @relation("UpdatedSales")
 }
 
 // Members table
@@ -122,6 +124,7 @@ model Medicines {
   dosage_form_id        String
   medicine_weight       Float?
   quantity              Int
+  initial_quantity      Int
   supplier_id           String
   invoice_number        String        @unique
   unit_price            Float

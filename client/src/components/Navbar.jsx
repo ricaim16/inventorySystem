@@ -1,8 +1,13 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect } from "react";
-import { getAllMedicines } from "../api/medicineApi";
+import {
+  getAllMedicines,
+  getLowStockMedicines,
+  getExpiredMedicines,
+  getExpirationAlerts,
+} from "../api/medicineApi";
 import {
   Bars3Icon,
   MagnifyingGlassIcon,
@@ -14,6 +19,24 @@ import {
   ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
+// Helper to get current time in EAT (East Africa Time)
+const getCurrentEAT = () => {
+  const now = new Date();
+  const utcDate = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMinutes()
+    )
+  );
+  const etOffset = 3 * 60 * 60 * 1000; // EAT is UTC+3
+  return new Date(utcDate.getTime() + etOffset);
+};
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -22,21 +45,39 @@ const Navbar = () => {
   const [medicines, setMedicines] = useState([]);
   const [filteredMedicines, setFilteredMedicines] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [seenNotificationIds, setSeenNotificationIds] = useState(
+    new Set(JSON.parse(localStorage.getItem("seenNotificationIds")) || [])
+  );
+  const [deletedIds, setDeletedIds] = useState(
+    new Set(JSON.parse(localStorage.getItem("deletedNotificationIds")) || [])
+  );
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Sync seenNotificationIds with localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(
+      "seenNotificationIds",
+      JSON.stringify(Array.from(seenNotificationIds))
+    );
+  }, [seenNotificationIds]);
+
+  // Sync deletedIds with localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(
+      "deletedNotificationIds",
+      JSON.stringify(Array.from(deletedIds))
+    );
+  }, [deletedIds]);
 
   // Fetch medicines for autocomplete
   useEffect(() => {
     const fetchMedicines = async () => {
       try {
         const data = await getAllMedicines();
-        console.log("Fetched Medicines for Search:", data); // Debug log
-        // Ensure data is an array
-        if (Array.isArray(data)) {
-          setMedicines(data);
-        } else {
-          console.error("getAllMedicines did not return an array:", data);
-          setMedicines([]);
-        }
+        console.log("Fetched Medicines for Search:", data);
+        setMedicines(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch medicines:", err);
         setMedicines([]);
@@ -45,32 +86,174 @@ const Navbar = () => {
     fetchMedicines();
   }, []);
 
+  // Fetch notifications and update count
+  useEffect(() => {
+    let isMounted = true;
+    const fetchNotifications = async () => {
+      try {
+        const allMedicines = await getAllMedicines();
+        const now = getCurrentEAT();
+
+        // Low Stock Medicines (quantity < 10)
+        const lowStockData = allMedicines.filter(
+          (med) => med.quantity < 10 && med.quantity >= 0
+        );
+
+        // Expired Medicines (past expiry date)
+        const expiredData = {
+          medicines: allMedicines.filter(
+            (med) => new Date(med.expire_date) < now
+          ),
+        };
+
+        // Expiring Soon Medicines (within 3 months OR within 1 week)
+        const oneWeekFromNow = new Date(
+          now.getTime() + 7 * 24 * 60 * 60 * 1000
+        );
+        const threeMonthsFromNow = new Date(
+          now.getTime() + 90 * 24 * 60 * 60 * 1000
+        );
+        const expiringSoonData = allMedicines.filter((med) => {
+          const expiryDate = new Date(med.expire_date);
+          return (
+            (expiryDate >= now && expiryDate <= threeMonthsFromNow) || // Within 3 months
+            (expiryDate >= now && expiryDate <= oneWeekFromNow) // OR within 1 week
+          );
+        });
+
+        // Filter out deleted notifications
+        const filteredLowStock = Array.isArray(lowStockData)
+          ? lowStockData.filter((med) => !deletedIds.has(med.id))
+          : [];
+        const filteredExpired = expiredData?.medicines
+          ? expiredData.medicines.filter((med) => !deletedIds.has(med.id))
+          : [];
+        const filteredExpiringSoon = Array.isArray(expiringSoonData)
+          ? expiringSoonData.filter((med) => !deletedIds.has(med.id))
+          : [];
+
+        const lowStockIds = filteredLowStock.map((med) => med.id);
+        const expiredIds = filteredExpired.map((med) => med.id);
+        const expiringSoonIds = filteredExpiringSoon.map((med) => med.id);
+
+        const allCurrentIds = [
+          ...new Set([...lowStockIds, ...expiredIds, ...expiringSoonIds]),
+        ];
+
+        if (isMounted) {
+          // Calculate notification count (notifications not seen)
+          const newNotificationCount = allCurrentIds.filter(
+            (id) => !seenNotificationIds.has(id)
+          ).length;
+
+          console.log("Notification Counts:", {
+            lowStockCount: lowStockIds.length,
+            expiredCount: expiredIds.length,
+            expiringSoonCount: expiringSoonIds.length,
+            totalCount: allCurrentIds.length,
+            newNotificationCount,
+            seenNotificationIds: Array.from(seenNotificationIds),
+            deletedIds: Array.from(deletedIds),
+          });
+
+          setNotificationCount(newNotificationCount);
+        }
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
+        if (isMounted) {
+          setNotificationCount(0);
+        }
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [seenNotificationIds, deletedIds]);
+
+  // Mark notifications as seen when viewing the notifications page
+  useEffect(() => {
+    if (location.pathname === "/notifications") {
+      const markNotificationsAsSeen = async () => {
+        try {
+          const allMedicines = await getAllMedicines();
+          const now = getCurrentEAT();
+
+          // Low Stock Medicines (quantity < 10)
+          const lowStockData = allMedicines.filter(
+            (med) => med.quantity < 10 && med.quantity >= 0
+          );
+
+          // Expired Medicines (past expiry date)
+          const expiredData = {
+            medicines: allMedicines.filter(
+              (med) => new Date(med.expire_date) < now
+            ),
+          };
+
+          // Expiring Soon Medicines (within 3 months OR within 1 week)
+          const oneWeekFromNow = new Date(
+            now.getTime() + 7 * 24 * 60 * 60 * 1000
+          );
+          const threeMonthsFromNow = new Date(
+            now.getTime() + 90 * 24 * 60 * 60 * 1000
+          );
+          const expiringSoonData = allMedicines.filter((med) => {
+            const expiryDate = new Date(med.expire_date);
+            return (
+              (expiryDate >= now && expiryDate <= threeMonthsFromNow) ||
+              (expiryDate >= now && expiryDate <= oneWeekFromNow)
+            );
+          });
+
+          // Filter out deleted notifications
+          const filteredLowStock = Array.isArray(lowStockData)
+            ? lowStockData.filter((med) => !deletedIds.has(med.id))
+            : [];
+          const filteredExpired = expiredData?.medicines
+            ? expiredData.medicines.filter((med) => !deletedIds.has(med.id))
+            : [];
+          const filteredExpiringSoon = Array.isArray(expiringSoonData)
+            ? expiringSoonData.filter((med) => !deletedIds.has(med.id))
+            : [];
+
+          const lowStockIds = filteredLowStock.map((med) => med.id);
+          const expiredIds = filteredExpired.map((med) => med.id);
+          const expiringSoonIds = filteredExpiringSoon.map((med) => med.id);
+
+          const allCurrentIds = [
+            ...new Set([...lowStockIds, ...expiredIds, ...expiringSoonIds]),
+          ];
+
+          // Mark all current notifications as seen
+          const newSeenIds = new Set([
+            ...seenNotificationIds,
+            ...allCurrentIds,
+          ]);
+          setSeenNotificationIds(newSeenIds);
+          setNotificationCount(0); // Reset count when viewing notifications
+          console.log("Updated Seen Notification IDs:", Array.from(newSeenIds));
+        } catch (err) {
+          console.error("Failed to update seen notification IDs:", err);
+        }
+      };
+      markNotificationsAsSeen();
+    }
+  }, [location.pathname, deletedIds]);
+
   // Filter medicines based on search term
   useEffect(() => {
     if (searchTerm.trim()) {
       const cleanedSearchTerm = searchTerm.trim().toLowerCase();
       const filtered = medicines
-        .filter((med) => {
-          // Handle cases where medicine_name might be missing or not a string
-          const name =
-            typeof med.medicine_name === "string"
-              ? med.medicine_name.toLowerCase()
-              : "";
-          console.log("Filtering:", {
-            id: med.id,
-            name,
-            searchTerm: cleanedSearchTerm,
-            matches: name.includes(cleanedSearchTerm),
-          }); // Detailed debug log
-          return name.includes(cleanedSearchTerm);
-        })
-        .slice(0, 5); // Limit to 5 suggestions
-      console.log(
-        "Search Term:",
-        cleanedSearchTerm,
-        "Filtered Medicines:",
-        filtered
-      ); // Debug log
+        .filter((med) =>
+          (med.medicine_name || "").toLowerCase().includes(cleanedSearchTerm)
+        )
+        .slice(0, 5);
       setFilteredMedicines(filtered);
       setShowDropdown(true);
     } else {
@@ -212,14 +395,21 @@ const Navbar = () => {
           </button>
           <Link
             to="/notifications"
-            className={`flex items-center text-base font-medium ${
+            className={`flex items-center text-base font-medium relative ${
               theme === "dark"
                 ? "text-gray-200 hover:text-[#5DB5B5]"
                 : "text-white hover:text-[#5DB5B5]"
             } transition-colors duration-200`}
             aria-label="Notifications"
           >
-            <BellIcon className="w-5 h-5 mr-1.5" />
+            <div className="relative">
+              <BellIcon className="w-6 h-6 mr-1.5" />
+              {notificationCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-sm font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {notificationCount}
+                </span>
+              )}
+            </div>
             Notifications
           </Link>
           <Link
@@ -232,7 +422,7 @@ const Navbar = () => {
             aria-label="Profile"
           >
             <UserIcon className="w-5 h-5 mr-1.5" />
-            {user?.username || "User"}
+            {user?.username || "Admin"}
           </Link>
           <button
             onClick={logout}
@@ -289,14 +479,21 @@ const Navbar = () => {
             </button>
             <Link
               to="/notifications"
-              className={`flex items-center text-base font-medium ${
+              className={`flex items-center text-base font-medium relative ${
                 theme === "dark"
                   ? "text-gray-200 hover:text-[#5DB5B5]"
                   : "text-white hover:text-[#5DB5B5]"
               } transition-colors duration-200`}
               onClick={() => setIsMenuOpen(false)}
             >
-              <BellIcon className="w-5 h-5 mr-1.5" />
+              <div className="relative">
+                <BellIcon className="w-6 h-6 mr-1.5" />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-sm font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {notificationCount}
+                  </span>
+                )}
+              </div>
               Notifications
             </Link>
             <Link
@@ -309,7 +506,7 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               <UserIcon className="w-5 h-5 mr-1.5" />
-              {user?.username || "User"}
+              {user?.username || "Admin"}
             </Link>
             <button
               onClick={() => {

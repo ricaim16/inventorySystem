@@ -2,8 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { getUserById, updateUser } from "../api/userApi";
+import { getUserById, updateUser, checkEmail } from "../api/userApi";
 import Sidebar from "../components/Sidebar";
+
+// Custom debounce function
+const debounce = (func, wait) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
 
 const Profile = () => {
   const { user } = useAuth();
@@ -15,6 +24,7 @@ const Profile = () => {
     FirstName: "",
     LastName: "",
     username: "",
+    email: "",
   });
   const [passwordData, setPasswordData] = useState({
     oldPassword: "",
@@ -29,6 +39,7 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [emailStatus, setEmailStatus] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -38,6 +49,7 @@ const Profile = () => {
           FirstName: userData.FirstName || "",
           LastName: userData.LastName || "",
           username: userData.username || "",
+          email: userData.email || "",
         });
       } catch (err) {
         console.error("Fetch user error:", err);
@@ -51,9 +63,37 @@ const Profile = () => {
     fetchUser();
   }, [id, user.id]);
 
+  // Debounced email check
+  const checkEmailAvailability = debounce(async (email) => {
+    setEmailStatus(""); // Reset status
+    if (!email || (formData.email && email === formData.email)) {
+      return; // No need to check if email is empty or unchanged
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailStatus("Invalid email format");
+      return;
+    }
+    try {
+      const result = await checkEmail(email);
+      setEmailStatus(
+        result.exists ? "Email already exists" : "Email available"
+      );
+    } catch (err) {
+      console.error("Email check error:", err);
+      if (err.response?.status === 400) {
+        setEmailStatus(err.response.data.error);
+      } else {
+        setEmailStatus("Error checking email");
+      }
+    }
+  }, 500);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "email") {
+      checkEmailAvailability(value);
+    }
   };
 
   const handlePasswordChange = (e) => {
@@ -67,6 +107,7 @@ const Profile = () => {
       FirstName: "",
       LastName: "",
       username: "",
+      email: "",
     });
     setPasswordData({
       oldPassword: "",
@@ -74,6 +115,7 @@ const Profile = () => {
       confirmPassword: "",
     });
     setShowPasswordForm(false);
+    setEmailStatus("");
     setError("");
     setSuccess("");
     setPasswordError("");
@@ -88,6 +130,27 @@ const Profile = () => {
     setSuccess("");
     setPasswordError("");
     setIsLoading(true);
+
+    // Validate required fields
+    if (!formData.FirstName || !formData.LastName || !formData.username) {
+      setError("Please fill all required fields.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate email
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError("Invalid email format");
+      setIsLoading(false);
+      return;
+    }
+
+    // Check email availability
+    if (emailStatus === "Email already exists") {
+      setError("Email already exists");
+      setIsLoading(false);
+      return;
+    }
 
     if (showPasswordForm) {
       if (!passwordData.oldPassword) {
@@ -122,6 +185,7 @@ const Profile = () => {
         FirstName: formData.FirstName,
         LastName: formData.LastName,
         username: formData.username,
+        email: formData.email || null,
       };
 
       if (showPasswordForm && passwordData.newPassword) {
@@ -140,6 +204,7 @@ const Profile = () => {
       setShowOldPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
+      setEmailStatus("");
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
       if (err.response?.data?.error.includes("password")) {
@@ -147,6 +212,8 @@ const Profile = () => {
           err.response?.data?.error ||
             "Failed to update password. Please check your current password."
         );
+      } else if (err.response?.data?.error.includes("email")) {
+        setError("Email already exists or is invalid.");
       } else {
         setError(
           err.response?.data?.error ||
@@ -242,6 +309,36 @@ const Profile = () => {
                 placeholder="Enter your username"
                 required
               />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full p-2 border rounded-md ${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
+                    : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
+                } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                placeholder="Enter your email"
+              />
+              {emailStatus && (
+                <p
+                  className={`mt-1 text-xs ${
+                    emailStatus === "Email available"
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {emailStatus}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

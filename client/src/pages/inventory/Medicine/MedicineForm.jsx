@@ -17,6 +17,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     dosage_form_id: "",
     medicine_weight: "",
     quantity: "",
+    initial_quantity: "",
     supplier_id: "",
     unit_price: "",
     sell_price: "",
@@ -47,6 +48,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         dosage_form_id: medicine.dosage_form_id || "",
         medicine_weight: medicine.medicine_weight || "",
         quantity: medicine.quantity || "",
+        initial_quantity: medicine.initial_quantity || "",
         supplier_id: medicine.supplier_id || "",
         unit_price: medicine.unit_price || "",
         sell_price: medicine.sell_price || "",
@@ -69,6 +71,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
       "category_id",
       "dosage_form_id",
       "quantity",
+      "initial_quantity",
       "supplier_id",
       "unit_price",
       "expire_date",
@@ -106,7 +109,13 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
       newValue = value === "" ? "" : parseFloat(value) || "";
     }
 
-    if (name === "details") {
+    if (name === "quantity") {
+      setFormData((prev) => ({
+        ...prev,
+        quantity: newValue,
+        initial_quantity: newValue, // Set initial_quantity to same as quantity
+      }));
+    } else if (name === "details") {
       const words = value.trim().split(/\s+/);
       if (words.length > 20) {
         setErrors((prev) => ({
@@ -115,12 +124,16 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         }));
         return;
       }
+      setFormData((prev) => ({
+        ...prev,
+        [name]: newValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : files ? files[0] : newValue,
+      }));
     }
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : files ? files[0] : newValue,
-    }));
 
     setErrors((prev) => ({ ...prev, [name]: null }));
   };
@@ -131,6 +144,8 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
       newErrors.medicine_name = "Medicine name is required";
     if (formData.quantity === "" || formData.quantity === null)
       newErrors.quantity = "Quantity is required";
+    if (formData.initial_quantity === "" || formData.initial_quantity === null)
+      newErrors.initial_quantity = "Initial quantity is required";
     if (formData.unit_price === "" || formData.unit_price === null)
       newErrors.unit_price = "Unit price is required";
     if (!formData.category_id) newErrors.category_id = "Category is required";
@@ -144,6 +159,11 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
 
     if (formData.quantity !== "" && isNaN(parseInt(formData.quantity)))
       newErrors.quantity = "Quantity must be a valid number";
+    if (
+      formData.initial_quantity !== "" &&
+      isNaN(parseInt(formData.initial_quantity))
+    )
+      newErrors.initial_quantity = "Initial quantity must be a valid number";
     if (formData.unit_price !== "" && isNaN(parseFloat(formData.unit_price)))
       newErrors.unit_price = "Unit price must be a valid number";
     if (formData.sell_price !== "" && isNaN(parseFloat(formData.sell_price)))
@@ -180,6 +200,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
       const submissionData = new FormData();
       const numericFields = [
         "quantity",
+        "initial_quantity",
         "unit_price",
         "sell_price",
         "medicine_weight",

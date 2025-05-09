@@ -1,4 +1,5 @@
 import prisma from "../config/db.js";
+import { notificationService } from "./notificationService.js";
 
 function getEthiopianTime(date = new Date()) {
   const utcDate = new Date(date);
@@ -174,9 +175,19 @@ export const salesController = {
         }),
         prisma.medicines.update({
           where: { id: medicine_id },
-          data: { quantity: { decrement: parsedQuantity } },
+          data: {
+            quantity: { decrement: parsedQuantity },
+            total_price: { decrement: parsedQuantity * medicine.sell_price },
+          },
         }),
       ]);
+
+      // Trigger low stock notification
+      await notificationService.handleSaleNotification(
+        medicine_id,
+        parsedQuantity,
+        medicine.medicine_name
+      );
 
       console.log(`Created sale by user ${req.user.id}:`, sale);
       res.status(201).json({ message: "Sale created successfully", sale });
@@ -199,7 +210,7 @@ export const salesController = {
       product_name,
       product_batch_number,
       payment_method,
-      sealed_date, // Optional: only update if provided
+      sealed_date,
     } = req.body;
 
     console.log(`Starting editSale for ID ${id}`, {
@@ -331,11 +342,26 @@ export const salesController = {
                     quantityDifference >= 0
                       ? { decrement: quantityDifference }
                       : { increment: -quantityDifference },
+                  total_price:
+                    quantityDifference >= 0
+                      ? { decrement: quantityDifference * medicine.sell_price }
+                      : {
+                          increment: -quantityDifference * medicine.sell_price,
+                        },
                 },
               }),
             ]
           : []),
       ]);
+
+      // Trigger low stock notification if quantity changed
+      if (quantityDifference !== 0) {
+        await notificationService.handleSaleNotification(
+          medicineIdToUse,
+          Math.abs(quantityDifference),
+          medicine.medicine_name
+        );
+      }
 
       console.log(`Updated sale ${id} successfully:`, updatedSale);
       res
@@ -360,13 +386,30 @@ export const salesController = {
       const sale = await prisma.sales.findUnique({ where: { id } });
       if (!sale) return res.status(404).json({ message: "Sale not found" });
 
+      const medicine = await prisma.medicines.findUnique({
+        where: { id: sale.medicine_id },
+        select: { sell_price: true, medicine_name: true },
+      });
+
       await prisma.$transaction([
         prisma.sales.delete({ where: { id } }),
         prisma.medicines.update({
           where: { id: sale.medicine_id },
-          data: { quantity: { increment: sale.quantity } },
+          data: {
+            quantity: { increment: sale.quantity },
+            total_price: {
+              increment: sale.quantity * (medicine.sell_price || 0),
+            },
+          },
         }),
       ]);
+
+      // Trigger low stock notification
+      await notificationService.handleSaleNotification(
+        sale.medicine_id,
+        -sale.quantity,
+        medicine.medicine_name
+      );
 
       console.log(`Deleted sale ${id} by user ${req.user?.id || "unknown"}`);
       res.json({ message: "Sale deleted successfully" });
@@ -502,3 +545,5 @@ export const salesController = {
     }
   },
 };
+
+export { getEthiopianTime };

@@ -344,8 +344,12 @@ const Dashboard = () => {
       {
         label: "Daily Sales (ETB)",
         data: weeklySalesData.length ? weeklySalesData : [0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: theme === "dark" ? "rgba(54, 162, 235, 0.7)" : "rgba(54, 162, 235, 0.5)",
-        borderColor: theme === "dark" ? "rgba(54, 162, 235, 1)" : "rgba(54, 162, 235, 1)",
+        backgroundColor:
+          theme === "dark"
+            ? "rgba(54, 162, 235, 0.7)"
+            : "rgba(54, 162, 235, 0.5)",
+        borderColor:
+          theme === "dark" ? "rgba(54, 162, 235, 1)" : "rgba(54, 162, 235, 1)",
         borderWidth: 1,
       },
     ],
@@ -356,13 +360,16 @@ const Dashboard = () => {
     scales: {
       y: {
         beginAtZero: true,
-        max: 10000,
+        max: 100000, // Set maximum to 100,000 Birr
         title: { display: true, text: "Sales (ETB)" },
         ticks: {
           color: theme === "dark" ? "#D1D5DB" : "#4B5563",
         },
         grid: {
-          color: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          color:
+            theme === "dark"
+              ? "rgba(255, 255, 255, 0.1)"
+              : "rgba(0, 0, 0, 0.1)",
         },
       },
       x: {
@@ -371,12 +378,18 @@ const Dashboard = () => {
           color: theme === "dark" ? "#D1D5DB" : "#4B5563",
         },
         grid: {
-          color: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          color:
+            theme === "dark"
+              ? "rgba(255, 255, 255, 0.1)"
+              : "rgba(0, 0, 0, 0.1)",
         },
       },
     },
     plugins: {
-      legend: { display: true, labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" } },
+      legend: {
+        display: true,
+        labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
+      },
       title: {
         display: true,
         text: `Weekly Sales (${weekDisplay || "Current Week"})`,
@@ -408,8 +421,12 @@ const Dashboard = () => {
         label: "Monthly Sales (ETB)",
         data: yearlySalesData.length ? yearlySalesData : Array(12).fill(0),
         fill: false,
-        borderColor: theme === "dark" ? "rgba(54, 162, 235, 1)" : "rgba(54, 162, 235, 1)",
-        backgroundColor: theme === "dark" ? "rgba(54, 162, 235, 0.7)" : "rgba(54, 162, 235, 0.5)",
+        borderColor:
+          theme === "dark" ? "rgba(54, 162, 235, 1)" : "rgba(54, 162, 235, 1)",
+        backgroundColor:
+          theme === "dark"
+            ? "rgba(54, 162, 235, 0.7)"
+            : "rgba(54, 162, 235, 0.5)",
         tension: 0.1,
         pointRadius: 5,
         pointHoverRadius: 7,
@@ -422,13 +439,16 @@ const Dashboard = () => {
     scales: {
       y: {
         beginAtZero: true,
-        max: 100000,
+        max: 500000, // Set maximum to 500,000 Birr
         title: { display: true, text: "Sales (ETB)" },
         ticks: {
           color: theme === "dark" ? "#D1D5DB" : "#4B5563",
         },
         grid: {
-          color: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          color:
+            theme === "dark"
+              ? "rgba(255, 255, 255, 0.1)"
+              : "rgba(0, 0, 0, 0.1)",
         },
       },
       x: {
@@ -437,12 +457,18 @@ const Dashboard = () => {
           color: theme === "dark" ? "#D1D5DB" : "#4B5563",
         },
         grid: {
-          color: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+          color:
+            theme === "dark"
+              ? "rgba(255, 255, 255, 0.1)"
+              : "rgba(0, 0, 0, 0.1)",
         },
       },
     },
     plugins: {
-      legend: { display: true, labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" } },
+      legend: {
+        display: true,
+        labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
+      },
       title: {
         display: true,
         text: `Yearly Sales (${
@@ -719,7 +745,8 @@ const Dashboard = () => {
                 theme === "dark" ? "bg-gray-800" : "bg-[#F7F7F7]"
               } h-96`} // Set explicit height for chart
             >
-              {weeklySalesData.length && weeklySalesData.some((val) => val > 0) ? (
+              {weeklySalesData.length &&
+              weeklySalesData.some((val) => val > 0) ? (
                 <Bar data={weeklyChartData} options={weeklyChartOptions} />
               ) : (
                 <div className="flex items-center justify-center h-full">
@@ -728,7 +755,8 @@ const Dashboard = () => {
                       theme === "dark" ? "text-gray-300" : "text-gray-600"
                     }`}
                   >
-                    No weekly sales data available for {weekDisplay || "this week"}
+                    No weekly sales data available for{" "}
+                    {weekDisplay || "this week"}
                   </p>
                 </div>
               )}
@@ -739,7 +767,8 @@ const Dashboard = () => {
                 theme === "dark" ? "bg-gray-800" : "bg-[#F7F7F7]"
               } h-96`} // Set explicit height for chart
             >
-              {yearlySalesData.length && yearlySalesData.some((val) => val > 0) ? (
+              {yearlySalesData.length &&
+              yearlySalesData.some((val) => val > 0) ? (
                 <Line data={yearlyChartData} options={yearlyChartOptions} />
               ) : (
                 <div className="flex items-center justify-center h-full">
@@ -801,6 +830,14 @@ const Dashboard = () => {
                     >
                       Total Sales
                     </th>
+                    <th
+                      className={`border p-2 text-left ${
+                        theme === "dark" ? "text-gray-200" : "text-gray-800"
+                      }`}
+                      style={{ color: "#10B981" }}
+                    >
+                      Sales %
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -809,7 +846,9 @@ const Dashboard = () => {
                       <tr
                         key={index}
                         className={`${
-                          theme === "dark" ? "hover:bg-gray-700" : "hover:bg-[#E0E0E0]"
+                          theme === "dark"
+                            ? "hover:bg-gray-700"
+                            : "hover:bg-[#E0E0E0]"
                         }`}
                       >
                         <td
@@ -833,12 +872,19 @@ const Dashboard = () => {
                         >
                           {product.totalSales || 0} ETB
                         </td>
+                        <td
+                          className={`border p-2 ${
+                            theme === "dark" ? "text-gray-300" : "text-gray-600"
+                          }`}
+                        >
+                          {product.salesPercent || 0}%
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
-                        colSpan="3"
+                        colSpan="4"
                         className={`border p-2 text-center ${
                           theme === "dark" ? "text-gray-300" : "text-gray-600"
                         }`}
