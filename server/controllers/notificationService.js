@@ -23,8 +23,7 @@ const mailTransporter = nodemailer.createTransport({
 });
 
 // Test email sending on startup
-async function testEmail()
-{
+async function testEmail() {
   try {
     const info = await mailTransporter.sendMail({
       from: `"Pharmacy System" <${process.env.EMAIL_USER}>`,
@@ -39,8 +38,7 @@ async function testEmail()
 }
 
 // Function to get manager's email from database
-async function getManagerEmail()
-{
+async function getManagerEmail() {
   try {
     const manager = await prisma.users.findFirst({
       where: { role: "MANAGER" },
@@ -59,11 +57,9 @@ async function getManagerEmail()
 }
 
 // Function to send email
-function sendNotificationEmail(subject, textMessage, htmlMessage, callback)
-{
+function sendNotificationEmail(subject, textMessage, htmlMessage, callback) {
   getManagerEmail()
-    .then((managerEmail) =>
-    {
+    .then((managerEmail) => {
       if (!managerEmail) {
         const error = new Error("No manager email available");
         console.error(error.message);
@@ -82,8 +78,7 @@ function sendNotificationEmail(subject, textMessage, htmlMessage, callback)
       };
 
       console.log(`Sending email to ${managerEmail} with subject: ${subject}`);
-      mailTransporter.sendMail(mailDetails, (err, info) =>
-      {
+      mailTransporter.sendMail(mailDetails, (err, info) => {
         if (err) {
           console.error(`Error sending email to ${managerEmail}:`, err.message);
           callback(err);
@@ -93,16 +88,14 @@ function sendNotificationEmail(subject, textMessage, htmlMessage, callback)
         }
       });
     })
-    .catch((error) =>
-    {
+    .catch((error) => {
       console.error("Error getting manager email:", error.message);
       callback(error);
     });
 }
 
 // Function to check low stock
-async function checkLowStock()
-{
+async function checkLowStock() {
   const LOW_STOCK_THRESHOLD = 10;
   try {
     console.log("Checking low stock medicines...");
@@ -126,9 +119,12 @@ async function checkLowStock()
         lowStockMedicines
           .map(
             (med, index) =>
-              `${index + 1} | ${med.medicine_name} | ${med.batch_no || "N/A"
-              } | ${med.expire_date?.toISOString().split("T")[0] || "N/A"} | ${med.quantity
-              } | ${med.category?.name || "N/A"} | ${med.supplier?.name || "N/A"
+              `${index + 1} | ${med.medicine_name} | ${
+                med.batch_no || "N/A"
+              } | ${med.expire_date?.toISOString().split("T")[0] || "N/A"} | ${
+                med.quantity
+              } | ${med.category?.name || "N/A"} | ${
+                med.supplier?.name || "N/A"
               } | Low Stock`
           )
           .join("\n") +
@@ -155,28 +151,35 @@ async function checkLowStock()
             </thead>
             <tbody>
               ${lowStockMedicines
-          .map(
-            (med, index) => `
+                .map(
+                  (med, index) => `
                   <tr>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${index + 1
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.medicine_name
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.batch_no || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.expire_date?.toISOString().split("T")[0] || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.quantity
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.category?.name || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.supplier?.name || "N/A"
-              }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      index + 1
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.medicine_name
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.batch_no || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.expire_date?.toISOString().split("T")[0] || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.quantity
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.category?.name || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.supplier?.name || "N/A"
+                    }</td>
                     <td style="border: 1px solid #ddd; padding: 12px; color: #e74c3c;">Low Stock</td>
                   </tr>
                 `
-          )
-          .join("")}
+                )
+                .join("")}
             </tbody>
           </table>
           <p style="color: #34495e;">Please restock these items.</p>
@@ -192,8 +195,7 @@ async function checkLowStock()
         "Low Stock Alert",
         textMessage,
         htmlMessage,
-        (err) =>
-        {
+        (err) => {
           if (err) {
             console.error("Failed to send low stock email:", err.message);
           } else {
@@ -210,8 +212,7 @@ async function checkLowStock()
 }
 
 // Function to check expiring medicines
-async function checkExpiringMedicines()
-{
+async function checkExpiringMedicines() {
   const now = getEthiopianTime();
   if (!(now instanceof Date) || isNaN(now)) {
     console.error("Invalid date from getEthiopianTime:", now);
@@ -235,11 +236,11 @@ async function checkExpiringMedicines()
         threshold.weeks === 0
           ? { expire_date: { lte: now } }
           : {
-            expire_date: {
-              gt: now,
-              lte: thresholdDate,
-            },
-          };
+              expire_date: {
+                gt: now,
+                lte: thresholdDate,
+              },
+            };
 
       const expiringMedicines = await prisma.medicines.findMany({
         where: whereClause,
@@ -271,9 +272,12 @@ async function checkExpiringMedicines()
         allExpiringMedicines
           .map(
             (med, index) =>
-              `${index + 1} | ${med.medicine_name} | ${med.batch_no || "N/A"
-              } | ${med.expire_date?.toISOString().split("T")[0] || "N/A"} | ${med.quantity
-              } | ${med.category?.name || "N/A"} | ${med.supplier?.name || "N/A"
+              `${index + 1} | ${med.medicine_name} | ${
+                med.batch_no || "N/A"
+              } | ${med.expire_date?.toISOString().split("T")[0] || "N/A"} | ${
+                med.quantity
+              } | ${med.category?.name || "N/A"} | ${
+                med.supplier?.name || "N/A"
               } | ${med.status}`
           )
           .join("\n") +
@@ -300,29 +304,37 @@ async function checkExpiringMedicines()
             </thead>
             <tbody>
               ${allExpiringMedicines
-          .map(
-            (med, index) => `
+                .map(
+                  (med, index) => `
                   <tr>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${index + 1
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.medicine_name
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.batch_no || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.expire_date?.toISOString().split("T")[0] || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.quantity
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.category?.name || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${med.supplier?.name || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px; color: ${med.status === "Expired" ? "#e74c3c" : "#f39c12"
-              };">${med.status}</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      index + 1
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.medicine_name
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.batch_no || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.expire_date?.toISOString().split("T")[0] || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.quantity
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.category?.name || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      med.supplier?.name || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px; color: ${
+                      med.status === "Expired" ? "#e74c3c" : "#f39c12"
+                    };">${med.status}</td>
                   </tr>
                 `
-          )
-          .join("")}
+                )
+                .join("")}
             </tbody>
           </table>
           <p style="color: #34495e;">Please take action.</p>
@@ -338,8 +350,7 @@ async function checkExpiringMedicines()
         "Expiration Alert",
         textMessage,
         htmlMessage,
-        (err) =>
-        {
+        (err) => {
           if (err) {
             console.error("Failed to send expiration email:", err.message);
           } else {
@@ -356,8 +367,7 @@ async function checkExpiringMedicines()
 }
 
 // Function to handle stock updates after sales
-async function handleSaleNotification(medicineId, quantitySold, medicineName)
-{
+async function handleSaleNotification(medicineId, quantitySold, medicineName) {
   try {
     console.log(`Handling sale notification for medicine ID: ${medicineId}`);
     const medicine = await prisma.medicines.findUnique({
@@ -383,8 +393,10 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName)
         `A recent sale has updated the stock level:\n\n` +
         `No. | Medicine Name | Batch No. | Expire Date | Quantity | Category | Supplier | Status\n` +
         `------------------------------------------------------------\n` +
-        `1 | ${medicineName} | ${medicine.batch_no || "N/A"} | ${medicine.expire_date?.toISOString().split("T")[0] || "N/A"
-        } | ${newQuantity} | ${medicine.category?.name || "N/A"} | ${medicine.supplier?.name || "N/A"
+        `1 | ${medicineName} | ${medicine.batch_no || "N/A"} | ${
+          medicine.expire_date?.toISOString().split("T")[0] || "N/A"
+        } | ${newQuantity} | ${medicine.category?.name || "N/A"} | ${
+          medicine.supplier?.name || "N/A"
         } | Low Stock\n\n` +
         `The stock is now at or below the threshold (10 units).\n\nBest regards,\nPharmacy Management System`;
 
@@ -411,15 +423,19 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName)
               <tr>
                 <td style="border: 1px solid #ddd; padding: 12px;">1</td>
                 <td style="border: 1px solid #ddd; padding: 12px;">${medicineName}</td>
-                <td style="border: 1px solid #ddd; padding: 12px;">${medicine.batch_no || "N/A"
-        }</td>
-                <td style="border: 1px solid #ddd; padding: 12px;">${medicine.expire_date?.toISOString().split("T")[0] || "N/A"
-        }</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">${
+                  medicine.batch_no || "N/A"
+                }</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">${
+                  medicine.expire_date?.toISOString().split("T")[0] || "N/A"
+                }</td>
                 <td style="border: 1px solid #ddd; padding: 12px;">${newQuantity}</td>
-                <td style="border: 1px solid #ddd; padding: 12px;">${medicine.category?.name || "N/A"
-        }</td>
-                <td style="border: 1px solid #ddd; padding: 12px;">${medicine.supplier?.name || "N/A"
-        }</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">${
+                  medicine.category?.name || "N/A"
+                }</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">${
+                  medicine.supplier?.name || "N/A"
+                }</td>
                 <td style="border: 1px solid #ddd; padding: 12px; color: #e74c3c;">Low Stock</td>
               </tr>
             </tbody>
@@ -437,8 +453,7 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName)
         "Low Stock After Sale",
         textMessage,
         htmlMessage,
-        (err) =>
-        {
+        (err) => {
           if (err) {
             console.error(
               "Failed to send sale notification email:",
@@ -456,8 +471,7 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName)
 }
 
 // Function to check unpaid supplier credits
-async function checkSupplierCredits()
-{
+async function checkSupplierCredits() {
   const now = getEthiopianTime();
   if (!(now instanceof Date) || isNaN(now)) {
     console.error("Invalid date from getEthiopianTime:", now);
@@ -510,8 +524,10 @@ async function checkSupplierCredits()
         allUnpaidCredits
           .map(
             (credit, index) =>
-              `${index + 1} | ${credit.supplier?.supplier_name || "N/A"} | ${credit.credit_amount
-              } | ${credit.paid_amount || 0} | ${credit.unpaid_amount || 0} | ${credit.credit_date?.toISOString().split("T")[0] || "N/A"
+              `${index + 1} | ${credit.supplier?.supplier_name || "N/A"} | ${
+                credit.credit_amount
+              } | ${credit.paid_amount || 0} | ${credit.unpaid_amount || 0} | ${
+                credit.credit_date?.toISOString().split("T")[0] || "N/A"
               } | ${credit.overduePeriod} | ${credit.payment_status}`
           )
           .join("\n") +
@@ -538,29 +554,37 @@ async function checkSupplierCredits()
             </thead>
             <tbody>
               ${allUnpaidCredits
-          .map(
-            (credit, index) => `
+                .map(
+                  (credit, index) => `
                   <tr>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${index + 1
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.supplier?.supplier_name || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.credit_amount
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.paid_amount || 0
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.unpaid_amount || 0
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.credit_date?.toISOString().split("T")[0] || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.overduePeriod
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px; color: ${credit.payment_status === "UNPAID" ? "#e74c3c" : "#f39c12"
-              };">${credit.payment_status}</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      index + 1
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.supplier?.supplier_name || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.credit_amount
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.paid_amount || 0
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.unpaid_amount || 0
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.credit_date?.toISOString().split("T")[0] || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.overduePeriod
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px; color: ${
+                      credit.payment_status === "UNPAID" ? "#e74c3c" : "#f39c12"
+                    };">${credit.payment_status}</td>
                   </tr>
                 `
-          )
-          .join("")}
+                )
+                .join("")}
             </tbody>
           </table>
           <p style="color: #34495e;">Please settle these amounts.</p>
@@ -576,8 +600,7 @@ async function checkSupplierCredits()
         "Unpaid Supplier Credits Alert",
         textMessage,
         htmlMessage,
-        (err) =>
-        {
+        (err) => {
           if (err) {
             console.error(
               "Failed to send supplier credits email:",
@@ -597,8 +620,7 @@ async function checkSupplierCredits()
 }
 
 // Function to check unpaid customer credits
-async function checkCustomerCredits()
-{
+async function checkCustomerCredits() {
   const now = getEthiopianTime();
   if (!(now instanceof Date) || isNaN(now)) {
     console.error("Invalid date from getEthiopianTime:", now);
@@ -651,8 +673,10 @@ async function checkCustomerCredits()
         allUnpaidCredits
           .map(
             (credit, index) =>
-              `${index + 1} | ${credit.customer?.name || "N/A"} | ${credit.credit_amount
-              } | ${credit.paid_amount || 0} | ${credit.unpaid_amount || 0} | ${credit.credit_date?.toISOString().split("T")[0] || "N/A"
+              `${index + 1} | ${credit.customer?.name || "N/A"} | ${
+                credit.credit_amount
+              } | ${credit.paid_amount || 0} | ${credit.unpaid_amount || 0} | ${
+                credit.credit_date?.toISOString().split("T")[0] || "N/A"
               } | ${credit.overduePeriod} | ${credit.status}`
           )
           .join("\n") +
@@ -679,29 +703,37 @@ async function checkCustomerCredits()
             </thead>
             <tbody>
               ${allUnpaidCredits
-          .map(
-            (credit, index) => `
+                .map(
+                  (credit, index) => `
                   <tr>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${index + 1
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.customer?.name || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.credit_amount
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.paid_amount || 0
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.unpaid_amount || 0
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.credit_date?.toISOString().split("T")[0] || "N/A"
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px;">${credit.overduePeriod
-              }</td>
-                    <td style="border: 1px solid #ddd; padding: 12px; color: ${credit.status === "UNPAID" ? "#e74c3c" : "#f39c12"
-              };">${credit.status}</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      index + 1
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.customer?.name || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.credit_amount
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.paid_amount || 0
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.unpaid_amount || 0
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.credit_date?.toISOString().split("T")[0] || "N/A"
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">${
+                      credit.overduePeriod
+                    }</td>
+                    <td style="border: 1px solid #ddd; padding: 12px; color: ${
+                      credit.status === "UNPAID" ? "#e74c3c" : "#f39c12"
+                    };">${credit.status}</td>
                   </tr>
                 `
-          )
-          .join("")}
+                )
+                .join("")}
             </tbody>
           </table>
           <p style="color: #34495e;">Please collect these amounts.</p>
@@ -717,8 +749,7 @@ async function checkCustomerCredits()
         "Unpaid Customer Credits Alert",
         textMessage,
         htmlMessage,
-        (err) =>
-        {
+        (err) => {
           if (err) {
             console.error(
               "Failed to send customer credits email:",
@@ -738,8 +769,7 @@ async function checkCustomerCredits()
 }
 
 // Initialize database with test data
-async function initializeTestData()
-{
+async function initializeTestData() {
   try {
     // Check for existing manager
     const manager = await prisma.users.findFirst({
@@ -870,15 +900,9 @@ async function initializeTestData()
 //   }
 // );
 
-<<<<<<< HEAD
 cron.schedule(
   "0 1 * * *", //   async () => {
   async () => {
-=======
-cron.schedule('0 1 * * *', //   async () => {
-  async () =>
-  {
->>>>>>> b43891ae60ded19ddc43b4918fb5c9d1ed9a6bb4
     console.log("Running scheduled notification checks...");
     await checkLowStock();
     await checkExpiringMedicines();
@@ -890,10 +914,8 @@ cron.schedule('0 1 * * *', //   async () => {
   }
 );
 
-
 // Run initialization and test email on startup
-async function start()
-{
+async function start() {
   await initializeTestData();
   await testEmail();
   // Run checks immediately for testing
