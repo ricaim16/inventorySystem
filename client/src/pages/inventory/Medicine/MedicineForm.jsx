@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 
 const MedicineForm = ({ medicine, onSave, onCancel }) => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+
   const initialFormData = {
     medicine_name: "",
     brand_name: "",
@@ -21,6 +23,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     supplier_id: "",
     unit_price: "",
     sell_price: "",
+    total_price: "",
     expire_date: new Date().toISOString().slice(0, 10),
     required_prescription: false,
     payment_method: "NONE",
@@ -35,10 +38,23 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
-  const { theme } = useTheme();
+
+  const paymentMethods = [
+    { value: "AWASH", label: "Awash" },
+    { value: "CASH", label: "Cash" },
+    { value: "CBE", label: "CBE" },
+    { value: "COOP", label: "COOP" },
+    { value: "CREDIT", label: "Credit" },
+    { value: "EBIRR", label: "Ebirr" },
+    { value: "NONE", label: "None" },
+  ].sort((a, b) => a.label.localeCompare(b.label));
 
   useEffect(() => {
     if (medicine) {
+      const calculatedTotalPrice = (
+        (parseFloat(medicine.unit_price) || 0) *
+        (parseInt(medicine.quantity) || 0)
+      ).toFixed(2);
       setFormData({
         medicine_name: medicine.medicine_name || "",
         brand_name: medicine.brand_name || "",
@@ -52,6 +68,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         supplier_id: medicine.supplier_id || "",
         unit_price: medicine.unit_price || "",
         sell_price: medicine.sell_price || "",
+        total_price: calculatedTotalPrice,
         expire_date: medicine.expire_date
           ? new Date(medicine.expire_date).toISOString().slice(0, 10)
           : new Date().toISOString().slice(0, 10),
@@ -67,13 +84,14 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
   useEffect(() => {
     const requiredFields = [
       "medicine_name",
-      "invoice_number",
+      "batch_number",
       "category_id",
       "dosage_form_id",
       "quantity",
       "initial_quantity",
       "supplier_id",
       "unit_price",
+      "sell_price",
       "expire_date",
     ];
     const filledFields = requiredFields.filter(
@@ -84,6 +102,16 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     setProgress(progressPercentage);
   }, [formData]);
 
+  useEffect(() => {
+    const unitPrice = parseFloat(formData.unit_price) || 0;
+    const quantity = parseInt(formData.quantity) || 0;
+    const totalPrice = (unitPrice * quantity).toFixed(2);
+    setFormData((prev) => ({
+      ...prev,
+      total_price: totalPrice === "0.00" ? "" : totalPrice,
+    }));
+  }, [formData.unit_price, formData.quantity]);
+
   const fetchDropdownData = async () => {
     try {
       const [catRes, dosRes, supRes] = await Promise.all([
@@ -91,10 +119,21 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         getAllDosageForms(),
         getAllSuppliers(),
       ]);
-      setCategories(catRes);
-      setDosageForms(dosRes);
-      setSuppliers(supRes);
+      console.log("Dropdown data:", {
+        categories: catRes,
+        dosageForms: dosRes,
+        suppliers: supRes,
+      });
+      setCategories(catRes.sort((a, b) => a.name.localeCompare(b.name)));
+      setDosageForms(dosRes.sort((a, b) => a.name.localeCompare(b.name)));
+      setSuppliers(
+        supRes.sort((a, b) => a.supplier_name.localeCompare(b.supplier_name))
+      );
     } catch (err) {
+      console.error("Error fetching dropdown data:", {
+        message: err.message,
+        stack: err.stack,
+      });
       setErrors({ general: "Failed to load dropdown data" });
     }
   };
@@ -107,13 +146,19 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
       ["quantity", "unit_price", "sell_price", "medicine_weight"].includes(name)
     ) {
       newValue = value === "" ? "" : parseFloat(value) || "";
+    } else if (name === "batch_number") {
+      newValue = value.trim().toUpperCase();
+    } else if (
+      ["category_id", "dosage_form_id", "supplier_id"].includes(name)
+    ) {
+      newValue = value === "" ? "" : value.toString();
     }
 
     if (name === "quantity") {
       setFormData((prev) => ({
         ...prev,
         quantity: newValue,
-        initial_quantity: newValue, // Set initial_quantity to same as quantity
+        initial_quantity: newValue,
       }));
     } else if (name === "details") {
       const words = value.trim().split(/\s+/);
@@ -142,20 +187,22 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     const newErrors = {};
     if (!formData.medicine_name)
       newErrors.medicine_name = "Medicine name is required";
+    if (!formData.batch_number)
+      newErrors.batch_number = "Batch number is required";
     if (formData.quantity === "" || formData.quantity === null)
       newErrors.quantity = "Quantity is required";
     if (formData.initial_quantity === "" || formData.initial_quantity === null)
       newErrors.initial_quantity = "Initial quantity is required";
     if (formData.unit_price === "" || formData.unit_price === null)
       newErrors.unit_price = "Unit price is required";
+    if (formData.sell_price === "" || formData.sell_price === null)
+      newErrors.sell_price = "Sell price is required";
     if (!formData.category_id) newErrors.category_id = "Category is required";
     if (!formData.dosage_form_id)
       newErrors.dosage_form_id = "Dosage form is required";
     if (!formData.supplier_id) newErrors.supplier_id = "Supplier is required";
     if (!formData.expire_date)
       newErrors.expire_date = "Expire date is required";
-    if (!formData.invoice_number)
-      newErrors.invoice_number = "Invoice number is required";
 
     if (formData.quantity !== "" && isNaN(parseInt(formData.quantity)))
       newErrors.quantity = "Quantity must be a valid number";
@@ -174,10 +221,29 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     )
       newErrors.medicine_weight = "Medicine weight must be a valid number";
 
+    if (
+      formData.unit_price !== "" &&
+      formData.sell_price !== "" &&
+      parseFloat(formData.sell_price) < parseFloat(formData.unit_price)
+    ) {
+      newErrors.sell_price =
+        "Sell price must be equal to or greater than unit price";
+    }
+
     if (formData.details) {
       const wordCount = formData.details.trim().split(/\s+/).length;
       if (wordCount > 20) {
         newErrors.details = "Details cannot exceed 20 words";
+      }
+    }
+
+    if (formData.Payment_file) {
+      const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+      if (!allowedTypes.includes(formData.Payment_file.type)) {
+        newErrors.Payment_file = "File must be JPEG, PNG, or PDF";
+      }
+      if (formData.Payment_file.size > 5 * 1024 * 1024) {
+        newErrors.Payment_file = "File size must not exceed 5MB";
       }
     }
 
@@ -205,29 +271,34 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         "sell_price",
         "medicine_weight",
       ];
+      const optionalFields = [
+        "brand_name",
+        "batch_number",
+        "invoice_number",
+        "details",
+      ];
 
       for (const key in formData) {
         if (formData[key] === null || formData[key] === undefined) {
           continue;
         }
         if (numericFields.includes(key)) {
-          const value = formData[key];
-          if (value === "") continue;
-          submissionData.append(key, parseFloat(value));
+          const value = parseFloat(formData[key]);
+          if (!isNaN(value)) {
+            submissionData.append(key, value.toString());
+          }
         } else if (key === "required_prescription") {
           submissionData.append(key, formData[key].toString());
-        } else if (key === "Payment_file") {
-          if (formData[key] instanceof File) {
-            submissionData.append(key, formData[key]);
-          }
-        } else {
+        } else if (key === "Payment_file" && formData[key] instanceof File) {
           submissionData.append(key, formData[key]);
+        } else if (optionalFields.includes(key)) {
+          submissionData.append(key, formData[key] || "");
+        } else {
+          submissionData.append(key, formData[key].toString());
         }
       }
 
-      for (const [key, value] of submissionData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
+      console.log("FormData payload:", [...submissionData.entries()]);
 
       let response;
       if (medicine) {
@@ -239,10 +310,27 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
       onSave(savedMedicine);
       navigate("/inventory/medicine/list");
     } catch (err) {
+      console.error("Submit error:", {
+        message: err.message,
+        details: err.details,
+        response: err.response?.data,
+        stack: err.stack,
+      });
+      const errorMessage = err.message || "Failed to save medicine";
+      const errorDetails =
+        err.details || err.response?.data?.error?.details || null;
+      // Sanitize error details to ensure strings
+      const sanitizedDetails = errorDetails
+        ? Object.fromEntries(
+            Object.entries(errorDetails).map(([key, value]) => [
+              key,
+              typeof value === "string" ? value : JSON.stringify(value),
+            ])
+          )
+        : null;
       setErrors({
-        general:
-          err.response?.data?.error?.message || "Failed to save medicine",
-        details: err.response?.data?.error?.details || null,
+        general: errorMessage,
+        ...sanitizedDetails,
       });
     } finally {
       setIsSubmitting(false);
@@ -298,7 +386,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
 
           .medicine-form input::placeholder,
           .medicine-form textarea::placeholder {
-            color: ${theme === "dark" ? "#9CA3AF" : "#9CA3AF"}22 !important;
+            color: ${theme === "dark" ? "#9CA3AF" : "#9CA3AF"} !important;
           }
 
           .medicine-form input:-webkit-autofill,
@@ -368,37 +456,6 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
           .medicine-form input[type="file"] {
             color: ${theme === "dark" ? "#FFFFFF" : "#4B5563"} !important;
           }
-
-          .navbar input,
-          .navbar textarea,
-          .navbar select {
-            background-color: ${
-              theme === "dark" ? "#1F2937" : "#FFFFFF"
-            } !important;
-            color: ${theme === "dark" ? "#FFFFFF" : "#1F2937"} !important;
-            border-color: ${
-              theme === "dark" ? "#4B5563" : "#D1D5DB"
-            } !important;
-          }
-
-          .navbar input:-webkit-autofill,
-          .navbar input:-webkit-autofill:hover,
-          .navbar input:-webkit-autofill:focus,
-          .navbar input:-webkit-autofill:active {
-            -webkit-box-shadow: 0 0 0 1000px ${
-              theme === "dark" ? "#1F2937" : "#FFFFFF"
-            } inset !important;
-            -webkit-text-fill-color: ${
-              theme === "dark" ? "#FFFFFF" : "#1F2937"
-            } !important;
-            background-color: ${
-              theme === "dark" ? "#1F2937" : "#FFFFFF"
-            } !important;
-            border-color: ${
-              theme === "dark" ? "#4B5563" : "#D1D5DB"
-            } !important;
-            transition: background-color 5000s ease-in-out 0s !important;
-          }
         `}
       </style>
 
@@ -430,7 +487,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         {errors.general && (
           <div className="text-[#5DB5B5] mb-4">
             {errors.general}
-            {errors.details && (
+            {errors.details && typeof errors.details === "object" && (
               <ul className="list-disc ml-4">
                 {Object.entries(errors.details).map(([key, value]) => (
                   <li key={key}>{`${key}: ${value}`}</li>
@@ -460,11 +517,12 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               }`}
               disabled={isSubmitting}
             />
-            {errors.medicine_name && (
-              <p className="text-[#5DB5B5] text-sm mt-1">
-                {errors.medicine_name}
-              </p>
-            )}
+            {errors.medicine_name &&
+              typeof errors.medicine_name === "string" && (
+                <p className="text-[#5DB5B5] text-sm mt-1">
+                  {errors.medicine_name}
+                </p>
+              )}
           </div>
           <div>
             <label
@@ -491,7 +549,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Batch Number
+              Batch Number <span className="text-[#EF4444]">*</span>
             </label>
             <input
               type="text"
@@ -500,9 +558,16 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               onChange={handleChange}
               className={`w-full p-2 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400`}
+              } rounded focus:outline-none hover:border-gray-400 ${
+                errors.batch_number ? "border-[#5DB5B5]" : ""
+              }`}
               disabled={isSubmitting}
             />
+            {errors.batch_number && typeof errors.batch_number === "string" && (
+              <p className="text-[#5DB5B5] text-sm mt-1">
+                {errors.batch_number}
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -510,7 +575,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Invoice Number <span className="text-[#EF4444]">*</span>
+              Invoice Number
             </label>
             <input
               type="text"
@@ -519,16 +584,9 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               onChange={handleChange}
               className={`w-full p-2 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
-                errors.invoice_number ? "border-[#5DB5B5]" : ""
-              }`}
+              } rounded focus:outline-none hover:border-gray-400`}
               disabled={isSubmitting}
             />
-            {errors.invoice_number && (
-              <p className="text-[#5DB5B5] text-sm mt-1">
-                {errors.invoice_number}
-              </p>
-            )}
           </div>
           <div>
             <label
@@ -556,7 +614,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
                 </option>
               ))}
             </select>
-            {errors.category_id && (
+            {errors.category_id && typeof errors.category_id === "string" && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.category_id}
               </p>
@@ -588,11 +646,12 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
                 </option>
               ))}
             </select>
-            {errors.dosage_form_id && (
-              <p className="text-[#5DB5B5] text-sm mt-1">
-                {errors.dosage_form_id}
-              </p>
-            )}
+            {errors.dosage_form_id &&
+              typeof errors.dosage_form_id === "string" && (
+                <p className="text-[#5DB5B5] text-sm mt-1">
+                  {errors.dosage_form_id}
+                </p>
+              )}
           </div>
           <div>
             <label
@@ -615,11 +674,12 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               step="0.01"
               disabled={isSubmitting}
             />
-            {errors.medicine_weight && (
-              <p className="text-[#5DB5B5] text-sm mt-1">
-                {errors.medicine_weight}
-              </p>
-            )}
+            {errors.medicine_weight &&
+              typeof errors.medicine_weight === "string" && (
+                <p className="text-[#5DB5B5] text-sm mt-1">
+                  {errors.medicine_weight}
+                </p>
+              )}
           </div>
           <div>
             <label
@@ -641,7 +701,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               }`}
               disabled={isSubmitting}
             />
-            {errors.quantity && (
+            {errors.quantity && typeof errors.quantity === "string" && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.quantity}</p>
             )}
           </div>
@@ -671,7 +731,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
                 </option>
               ))}
             </select>
-            {errors.supplier_id && (
+            {errors.supplier_id && typeof errors.supplier_id === "string" && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.supplier_id}
               </p>
@@ -698,7 +758,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               step="0.01"
               disabled={isSubmitting}
             />
-            {errors.unit_price && (
+            {errors.unit_price && typeof errors.unit_price === "string" && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.unit_price}</p>
             )}
           </div>
@@ -708,7 +768,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Sell Price
+              Sell Price <span className="text-[#EF4444]">*</span>
             </label>
             <input
               type="number"
@@ -723,9 +783,28 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               step="0.01"
               disabled={isSubmitting}
             />
-            {errors.sell_price && (
+            {errors.sell_price && typeof errors.sell_price === "string" && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.sell_price}</p>
             )}
+          </div>
+          <div>
+            <label
+              className={`block text-sm font-medium ${
+                theme === "dark" ? "text-white" : "text-gray-600"
+              } mb-1`}
+            >
+              Total Price
+            </label>
+            <input
+              type="number"
+              name="total_price"
+              value={formData.total_price}
+              className={`w-full p-2 border ${
+                theme === "dark" ? "border-gray-500" : "border-black"
+              } rounded focus:outline-none hover:border-gray-400 bg-gray-100 cursor-not-allowed`}
+              step="0.01"
+              disabled
+            />
           </div>
           <div>
             <label
@@ -747,7 +826,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               }`}
               disabled={isSubmitting}
             />
-            {errors.expire_date && (
+            {errors.expire_date && typeof errors.expire_date === "string" && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.expire_date}
               </p>
@@ -770,12 +849,12 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               } rounded focus:outline-none hover:border-gray-400`}
               disabled={isSubmitting}
             >
-              <option value="NONE">None</option>
-              <option value="CASH">Cash</option>
-              <option value="CBE">CBE</option>
-              <option value="COOP">COOP</option>
-              <option value="AWASH">Awash</option>
-              <option value="EBIRR">Ebirr</option>
+              <option value="">Select Payment Method</option>
+              {paymentMethods.map((method) => (
+                <option key={method.value} value={method.value}>
+                  {method.label}
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex items-center">
@@ -790,7 +869,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               disabled={isSubmitting}
             />
             <label
-              className={`text-sm font-medium ${
+              className={`text-base font-medium ${
                 theme === "dark" ? "text-white" : "text-gray-600"
               }`}
             >
@@ -830,7 +909,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               disabled={isSubmitting}
               rows={4}
             />
-            {errors.details && (
+            {errors.details && typeof errors.details === "string" && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.details}</p>
             )}
           </div>
@@ -855,6 +934,25 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
             >
               Payment File
             </label>
+            {medicine && medicine.Payment_file && (
+              <div className="mb-2">
+                <p
+                  className={`text-sm ${
+                    theme === "dark" ? "text-gray-300" : "text-gray-600"
+                  }`}
+                >
+                  Current File:
+                  <a
+                    href={medicine.Payment_file}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-teal-500 hover:underline ml-1"
+                  >
+                    View Current File
+                  </a>
+                </p>
+              </div>
+            )}
             <input
               type="file"
               name="Payment_file"
@@ -865,7 +963,13 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
                 theme === "dark" ? "white" : "gray-600"
               }`}
               disabled={isSubmitting}
+              accept="image/jpeg,image/png,application/pdf"
             />
+            {errors.Payment_file && typeof errors.Payment_file === "string" && (
+              <p className="text-[#5DB5B5] text-sm mt-1">
+                {errors.Payment_file}
+              </p>
+            )}
           </div>
         </div>
       </div>

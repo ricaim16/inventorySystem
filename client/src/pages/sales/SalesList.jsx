@@ -823,27 +823,29 @@ const SalesList = ({ showToast }) => {
                           >
                             <HiEye size={18} />
                           </button>
+                          {["MANAGER", "EMPLOYEE"].includes(
+                            user?.role.toUpperCase()
+                          ) && (
+                            <button
+                              key={`edit-${sale.id || index}`}
+                              onClick={() => handleEdit(sale)}
+                              className={actionButtonClass}
+                              title="Edit"
+                              aria-label={`Edit sale ${sale.id}`}
+                            >
+                              <HiPencil size={18} />
+                            </button>
+                          )}
                           {user?.role.toUpperCase() === "MANAGER" && (
-                            <>
-                              <button
-                                key={`edit-${sale.id || index}`}
-                                onClick={() => handleEdit(sale)}
-                                className={actionButtonClass}
-                                title="Edit"
-                                aria-label={`Edit sale ${sale.id}`}
-                              >
-                                <HiPencil size={18} />
-                              </button>
-                              <button
-                                key={`delete-${sale.id || index}`}
-                                onClick={() => handleDelete(sale.id)}
-                                className={actionButtonClass}
-                                title="Delete"
-                                aria-label={`Delete sale ${sale.id}`}
-                              >
-                                <HiTrash size={18} />
-                              </button>
-                            </>
+                            <button
+                              key={`delete-${sale.id || index}`}
+                              onClick={() => handleDelete(sale.id)}
+                              className={actionButtonClass}
+                              title="Delete"
+                              aria-label={`Delete sale ${sale.id}`}
+                            >
+                              <HiTrash size={18} />
+                            </button>
                           )}
                         </td>
                       </tr>
@@ -852,7 +854,13 @@ const SalesList = ({ showToast }) => {
                 ) : (
                   <tr>
                     <td
-                      colSpan={user?.role.toUpperCase() === "MANAGER" ? 10 : 8}
+                      colSpan={
+                        ["MANAGER", "EMPLOYEE"].includes(
+                          user?.role.toUpperCase()
+                        )
+                          ? 10
+                          : 9
+                      }
                       className={`border-b border-gray-300 px-4 py-3 sm:px-6 sm:py-4 text-center text-sm md:text-base ${
                         theme === "dark"
                           ? "text-gray-200 border-gray-700 bg-gray-900"

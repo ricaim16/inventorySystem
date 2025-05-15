@@ -68,11 +68,7 @@ const ExpenseEntryForm = ({
 
   useEffect(() => {
     const requiredFields = ["reason", "amount", "date", "payment_method"];
-    if (!expense) requiredFields.push("receipt");
     const filledFields = requiredFields.filter((field) => {
-      if (field === "receipt") {
-        return formData.receipt || existingReceipt;
-      }
       return (
         formData[field] !== "" &&
         formData[field] !== null &&
@@ -82,7 +78,7 @@ const ExpenseEntryForm = ({
     const progressPercentage =
       (filledFields.length / requiredFields.length) * 100;
     setProgress(progressPercentage);
-  }, [formData, existingReceipt, expense]);
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -107,8 +103,6 @@ const ExpenseEntryForm = ({
     if (!formData.date) newErrors.date = "Date is required";
     if (formData.payment_method === "NONE")
       newErrors.payment_method = "Payment method is required";
-    if (!expense && !formData.receipt && !existingReceipt)
-      newErrors.receipt = "Receipt is required for new expenses";
 
     if (formData.amount && isNaN(parseFloat(formData.amount)))
       newErrors.amount = "Amount must be a valid number";
@@ -473,12 +467,7 @@ const ExpenseEntryForm = ({
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Receipt (Image){" "}
-              {expense ? (
-                "(Optional)"
-              ) : (
-                <span className="text-[#EF4444]">*</span>
-              )}
+              Receipt (Image)
             </label>
             <div
               className={`border p-2 rounded bg-opacity-50 ${
@@ -541,9 +530,7 @@ const ExpenseEntryForm = ({
               >
                 {existingReceipt
                   ? "Upload a new file to replace the current receipt."
-                  : expense
-                  ? "Upload a new receipt if needed (optional)."
-                  : "Required for new expenses. Accepted formats: JPG, JPEG, PNG."}
+                  : "Upload a receipt if available (optional). Accepted formats: JPG, JPEG, PNG."}
               </p>
             </div>
             {errors.receipt && (

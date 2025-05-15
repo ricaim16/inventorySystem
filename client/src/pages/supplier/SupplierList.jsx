@@ -3,13 +3,13 @@ import { getAllSuppliers, deleteSupplier } from "../../api/supplierApi";
 import SupplierAdd from "./SupplierAdd";
 import { useTheme } from "../../context/ThemeContext";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ExclamationCircleIcon,
-  PencilIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+  HiChevronLeft,
+  HiChevronRight,
+  HiExclamationCircle,
+  HiPencil,
+  HiTrash,
+  HiSearch,
+} from "react-icons/hi";
 
 const SupplierList = ({ showToast }) => {
   const [suppliers, setSuppliers] = useState([]);
@@ -141,6 +141,10 @@ const SupplierList = ({ showToast }) => {
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
+    if (totalPages === 0) {
+      return [1];
+    }
+
     if (endPage - startPage + 1 < maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
@@ -152,22 +156,28 @@ const SupplierList = ({ showToast }) => {
     return pages;
   };
 
+  const actionButtonClass = `p-2 rounded-md transition-colors duration-200 ${
+    theme === "dark"
+      ? "text-gray-300 hover:bg-[#4B5563]"
+      : "text-gray-600 hover:bg-[#f7f7f7]"
+  }`;
+
   if (loading) {
     return (
-      <p
-        className={`text-center text-sm sm:text-base md:text-lg ${
-          theme === "dark" ? "text-gray-300" : "text-gray-700"
+      <div
+        className={`text-sm sm:text-base text-center ${
+          theme === "dark" ? "text-gray-400" : "text-gray-600"
         }`}
       >
-        Loading...
-      </p>
+        Loading suppliers...
+      </div>
     );
   }
 
   return (
     <div
-      className={`p-3 sm:p-4 md:p-6 rounded-lg shadow-lg w-full max-w-[100vw] mx-auto ${
-        theme === "dark" ? "bg-gray-900" : "bg-[#F7F7F7]"
+      className={`p-4 sm:p-6 md:p-8 rounded-xl shadow-lg w-full font-sans transition-all duration-300 ${
+        theme === "dark" ? "bg-gray-900" : "bg-white"
       }`}
     >
       <h2
@@ -181,16 +191,16 @@ const SupplierList = ({ showToast }) => {
 
       {error && (
         <div
-          className={`mb-4 flex flex-col sm:flex-row items-center justify-between p-3 rounded ${
+          className={`${
             theme === "dark"
-              ? "bg-red-900 text-red-200 border border-red-700"
-              : "bg-red-100 text-red-700 border border-red-400"
-          }`}
+              ? "text-red-400 bg-red-900/20"
+              : "text-red-600 bg-red-100"
+          } mb-6 flex items-center justify-between text-base p-4 rounded-lg`}
         >
-          <span className="text-sm sm:text-base">{error}</span>
+          <span>{error}</span>
           <button
             onClick={fetchSuppliers}
-            className={`mt-2 sm:mt-0 px-4 py-1 rounded text-white text-sm sm:text-base ${
+            className={`px-4 py-1 rounded text-white text-sm sm:text-base ${
               theme === "dark"
                 ? "bg-blue-700 hover:bg-blue-600"
                 : "bg-blue-500 hover:bg-blue-600"
@@ -201,9 +211,7 @@ const SupplierList = ({ showToast }) => {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-4 sm:mb-6">
-        
-        
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative w-full sm:w-64">
           <input
             type="text"
@@ -213,14 +221,14 @@ const SupplierList = ({ showToast }) => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className={`w-full p-2 pl-8 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#10B981] ${
+            className={`w-full p-2 pl-10 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-teal-500 ${
               theme === "dark"
                 ? "bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400"
                 : "bg-white border-gray-300 text-gray-600 placeholder-gray-500"
             }`}
           />
-          <MagnifyingGlassIcon
-            className={`absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
+          <HiSearch
+            className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
               theme === "dark" ? "text-gray-400" : "text-gray-500"
             }`}
           />
@@ -239,70 +247,70 @@ const SupplierList = ({ showToast }) => {
       )}
 
       {currentSuppliers.length === 0 && !error && (
-        <p
-          className={`text-center text-sm sm:text-base md:text-lg ${
-            theme === "dark" ? "text-gray-300" : "text-gray-700"
+        <div
+          className={`text-sm sm:text-base text-center ${
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
           }`}
         >
           No suppliers found.
-        </p>
+        </div>
       )}
 
       {currentSuppliers.length > 0 && !showForm && (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-w-full rounded-lg shadow-sm border border-gray-200">
             <table
-              className={`w-full border-collapse text-sm sm:text-base ${
-                theme === "dark" ? "border-gray-700" : "border-gray-200"
+              className={`w-full border-collapse text-sm sm:text-base font-sans table-auto ${
+                theme === "dark" ? "bg-gray-900" : "bg-white"
               }`}
             >
               <thead>
                 <tr
                   className={`${
-                    theme === "dark" ? "bg-gray-800" : "bg-gray-300"
-                  }`}
+                    theme === "dark" ? "bg-teal-700" : "bg-teal-600"
+                  } text-white`}
                 >
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[60px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
                     No.
                   </th>
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[200px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
                     Name
                   </th>
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[150px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
                     Contact Info
                   </th>
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[150px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
                     Location
                   </th>
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider hidden sm:table-cell ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[200px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden sm:table-cell ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
                     Email
                   </th>
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[120px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
-                    Action
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -310,76 +318,90 @@ const SupplierList = ({ showToast }) => {
                 {currentSuppliers.map((supplier, index) => (
                   <tr
                     key={supplier.id || `row-${index}`}
-                    className={`border-b ${
+                    className={`${
+                      index % 2 === 0
+                        ? theme === "dark"
+                          ? "bg-gray-900"
+                          : "bg-gray-50"
+                        : theme === "dark"
+                        ? "bg-gray-800"
+                        : "bg-white"
+                    } transition-colors duration-200 ${
                       theme === "dark"
-                        ? `border-gray-700 ${
-                            index % 2 === 0 ? "bg-gray-800" : "bg-gray-900"
-                          } hover:bg-gray-700`
-                        : `border-gray-200 ${
-                            index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                          } hover:bg-[#EAEAEA]`
+                        ? "hover:bg-[#4B5563]"
+                        : "hover:bg-[#f7f7f7]"
                     }`}
                   >
                     <td
-                      className={`border p-2 sm:p-3 ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base font-medium ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
                       {startIndex + index + 1}
                     </td>
                     <td
-                      className={`border p-2 sm:p-3 truncate ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base truncate ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
                       {supplier.supplier_name || "N/A"}
                     </td>
                     <td
-                      className={`border p-2 sm:p-3 truncate ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base truncate ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
                       {supplier.contact_info || "N/A"}
                     </td>
                     <td
-                      className={`border p-2 sm:p-3 truncate ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base truncate ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
                       {supplier.location || "N/A"}
                     </td>
                     <td
-                      className={`border p-2 sm:p-3 truncate hidden sm:table-cell ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base truncate hidden sm:table-cell ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
                       {supplier.email || "N/A"}
                     </td>
                     <td
-                      className={`border p-2 sm:p-3 ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
-                      <button
-                        onClick={() => handleEdit(supplier)}
-                        className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base bg-[#5DB5B5] hover:bg-[#4A8F8F] mr-2`}
-                        title="Edit"
-                        aria-label={`Edit supplier ${supplier.supplier_name}`}
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(supplier.id)}
-                        className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base ${
-                          theme === "dark"
-                            ? "bg-red-700 hover:bg-red-600"
-                            : "bg-red-500 hover:bg-red-600"
-                        }`}
-                        title="Delete"
-                        aria-label={`Delete supplier ${supplier.supplier_name}`}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEdit(supplier)}
+                          className={actionButtonClass}
+                          title="Edit"
+                          aria-label={`Edit supplier ${supplier.supplier_name}`}
+                        >
+                          <HiPencil size={18} />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(supplier.id)}
+                          className={actionButtonClass}
+                          title="Delete"
+                          aria-label={`Delete supplier ${supplier.supplier_name}`}
+                        >
+                          <HiTrash size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -388,91 +410,104 @@ const SupplierList = ({ showToast }) => {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-4 flex justify-center items-center space-x-1 flex-wrap gap-1">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-2 py-1 border rounded text-sm sm:text-base ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+            <div className="flex justify-between items-center mt-6">
+              <div
+                className={`text-sm sm:text-base ${
+                  theme === "dark" ? "text-gray-400" : "text-gray-600"
+                }`}
               >
-                <ChevronLeftIcon className="h-4 w-4" />
-              </button>
-              {getPageNumbers().map((page, index) => (
+                Showing {startIndex + 1} to{" "}
+                {Math.min(startIndex + itemsPerPage, filteredSuppliers.length)}{" "}
+                of {filteredSuppliers.length} suppliers
+              </div>
+              <div className="flex space-x-2">
                 <button
-                  key={index}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-3 py-1 border rounded text-sm sm:text-base ${
-                    currentPage === page
-                      ? "bg-[#10B981] text-white"
-                      : theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600"
-                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-md ${
+                    currentPage === 1
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-[#4B5563]"
+                  } ${
+                    theme === "dark"
+                      ? "text-gray-300 bg-gray-800"
+                      : "text-gray-600 bg-gray-100"
                   }`}
                 >
-                  {page}
+                  <HiChevronLeft size={18} />
                 </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-2 py-1 border rounded text-sm sm:text-base ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <ChevronRightIcon className="h-4 w-4" />
-              </button>
+                {getPageNumbers().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1 rounded-md ${
+                      currentPage === page
+                        ? "bg-teal-600 text-white"
+                        : theme === "dark"
+                        ? "text-gray-300 bg-gray-800 hover:bg-[#4B5563]"
+                        : "text-gray-600 bg-gray-100 hover:bg-[#f7f7f7]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 rounded-md ${
+                    currentPage === totalPages
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-[#4B5563]"
+                  } ${
+                    theme === "dark"
+                      ? "text-gray-300 bg-gray-800"
+                      : "text-gray-600 bg-gray-100"
+                  }`}
+                >
+                  <HiChevronRight size={18} />
+                </button>
+              </div>
             </div>
           )}
         </>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50">
           <div
-            className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${
+            className={`p-6 rounded-xl shadow-lg w-11/12 max-w-md ${
               theme === "dark"
-                ? "bg-gray-800 text-gray-200"
-                : "bg-[#F7F7F7] text-gray-800"
-            }`}
+                ? "bg-gray-800 text-gray-200 border-gray-700"
+                : "bg-white text-gray-800 border-gray-200"
+            } border transition-all duration-300`}
           >
             <div className="flex flex-col items-center">
-              <div className="mb-3">
-                <ExclamationCircleIcon
-                  className={`h-6 w-6 ${
-                    theme === "dark" ? "text-gray-400" : "text-gray-500"
-                  }`}
+              <div className="mb-4">
+                <HiExclamationCircle
+                  size={36}
+                  className={theme === "dark" ? "text-red-400" : "text-red-500"}
                 />
               </div>
               <p
-                className={`text-sm sm:text-base mb-4 text-center font-semibold ${
+                className={`text-sm sm:text-base mb-6 text-center font-semibold ${
                   theme === "dark" ? "text-gray-200" : "text-gray-800"
                 }`}
               >
                 Are you sure you want to delete this supplier?
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center w-full">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
                 <button
                   onClick={() => handleDelete(supplierIdToDelete)}
-                  className={`py-2 px-4 rounded text-white text-sm sm:text-base font-semibold ${
-                    theme === "dark"
-                      ? "bg-red-700 hover:bg-red-600"
-                      : "bg-red-500 hover:bg-red-600"
-                  }`}
+                  className={`py-2 px-6 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 text-sm sm:text-base font-semibold w-full sm:w-auto`}
                 >
                   Yes, I'm sure
                 </button>
                 <button
                   onClick={closeDeleteModal}
-                  className={`py-2 px-4 font-semibold text-sm sm:text-base ${
+                  className={`py-2 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto ${
                     theme === "dark"
-                      ? "text-gray-200 hover:text-gray-100"
-                      : "text-gray-600 hover:text-gray-800"
+                      ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
+                      : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
                   }`}
                 >
                   No, cancel

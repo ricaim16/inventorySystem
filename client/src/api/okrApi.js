@@ -1,32 +1,53 @@
 import { axiosInstance } from "./axiosInstance";
 
 export const okrApi = {
-  // Add a new objective (for OkrAdd)
   addObjective: async (objectiveData) => {
     try {
       const response = await axiosInstance.post(
         "/okr/objectives",
         objectiveData
       );
+      console.log("Objective creation response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Error adding objective:", error);
-      throw error.response?.data || error;
+      console.error("Error adding objective:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error.response?.data || { error: error.message };
     }
   },
 
-  // Fetch all objectives with key results (for OkrGenerateReport)
   getAllObjectives: async () => {
     try {
       const response = await axiosInstance.get("/okr/objectives");
       return response.data;
     } catch (error) {
-      console.error("Error fetching objectives:", error);
-      throw error.response?.data || error;
+      console.error("Error fetching objectives:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error.response?.data || { error: error.message };
     }
   },
 
-  // Update an objective (for OkrTrackProgress)
+  getObjectiveById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/okr/objectives/${id}`);
+      console.log("Objective by ID response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching objective by ID:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error.response?.data || { error: error.message };
+    }
+  },
+
   updateObjective: async (id, objectiveData) => {
     try {
       const response = await axiosInstance.put(
@@ -35,58 +56,77 @@ export const okrApi = {
       );
       return response.data;
     } catch (error) {
-      console.error("Error updating objective:", error);
-      throw error.response?.data || error;
+      console.error("Error updating objective:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error.response?.data || { error: error.message };
     }
   },
 
-  // Delete an objective
   deleteObjective: async (id) => {
     try {
       const response = await axiosInstance.delete(`/okr/objectives/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Error deleting objective:", error);
-      throw error.response?.data || error;
+      console.error("Error deleting objective:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error.response?.data || { error: error.message };
     }
   },
 
-  // Add a new key result (for OkrAdd)
   addKeyResult: async (keyResultData) => {
     try {
+      console.log("Sending key result payload:", keyResultData);
       const response = await axiosInstance.post(
-        "/okr/keyresults",
+        "/okr/key-results",
         keyResultData
       );
+      console.log("Key result creation response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Error adding key result:", error);
-      throw error.response?.data || error;
+      console.error("Error adding key result:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        keyResultData,
+      });
+      throw error.response?.data || { error: error.message };
     }
   },
 
-  // Update a key result (for OkrTrackProgress)
   updateKeyResult: async (id, keyResultData) => {
     try {
       const response = await axiosInstance.put(
-        `/okr/keyresults/${id}`,
+        `/okr/key-results/${id}`,
         keyResultData
       );
       return response.data;
     } catch (error) {
-      console.error("Error updating key result:", error);
-      throw error.response?.data || error;
+      console.error("Error updating key result:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error.response?.data || { error: error.message };
     }
   },
 
-  // Delete a key result
   deleteKeyResult: async (id) => {
     try {
-      const response = await axiosInstance.delete(`/okr/keyresults/${id}`);
+      const response = await axiosInstance.delete(`/okr/key-results/${id}`);
       return response.data;
     } catch (error) {
-      console.error("Error deleting key result:", error);
-      throw error.response?.data || error;
+      console.error("Error deleting key result:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error.response?.data || { error: error.message };
     }
   },
 };

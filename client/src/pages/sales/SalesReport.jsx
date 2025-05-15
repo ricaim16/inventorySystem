@@ -6,6 +6,11 @@ import autoTable from "jspdf-autotable";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  CurrencyDollarIcon,
+  HomeIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
 
 const SalesReport = () => {
   const [report, setReport] = useState(null);
@@ -52,52 +57,51 @@ const SalesReport = () => {
       setError("Failed to load customers: " + (err.message || "Unknown error"));
     }
   };
-const fetchReport = async () => {
-  setLoading(true);
-  setError(null);
-  setCurrentPage(1);
-  try {
-    const cleanedFilters = Object.fromEntries(
-      Object.entries(filters).filter(([_, v]) => v !== "")
-    );
-    // Validate and adjust dates
-    if (cleanedFilters.start_date && cleanedFilters.end_date) {
-      const startDate = new Date(cleanedFilters.start_date);
-      const endDate = new Date(cleanedFilters.end_date);
-      if (startDate > endDate) {
-        throw new Error("Start date cannot be after end date.");
+
+  const fetchReport = async () => {
+    setLoading(true);
+    setError(null);
+    setCurrentPage(1);
+    try {
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, v]) => v !== "")
+      );
+      if (cleanedFilters.start_date && cleanedFilters.end_date) {
+        const startDate = new Date(cleanedFilters.start_date);
+        const endDate = new Date(cleanedFilters.end_date);
+        if (startDate > endDate) {
+          throw new Error("Start date cannot be after end date.");
+        }
+        endDate.setHours(23, 59, 59, 999);
+        cleanedFilters.end_date = endDate.toISOString();
+        cleanedFilters.start_date = startDate.toISOString();
       }
-      // Extend end_date to end of day
-      endDate.setHours(23, 59, 59, 999);
-      cleanedFilters.end_date = endDate.toISOString();
-      cleanedFilters.start_date = startDate.toISOString();
-    }
-    console.log("Filters sent to API:", cleanedFilters);
-    const data = await generateSalesReport(cleanedFilters);
-    console.log("API Response:", data);
-    if (!data || !data.summary || !Array.isArray(data.sales)) {
-      throw new Error("Invalid report data structure");
-    }
-    if (data.sales.length === 0) {
-      setError("No sales found for the selected date range.");
+      console.log("Filters sent to API:", cleanedFilters);
+      const data = await generateSalesReport(cleanedFilters);
+      console.log("API Response:", data);
+      if (!data || !data.summary || !Array.isArray(data.sales)) {
+        throw new Error("Invalid report data structure");
+      }
+      if (data.sales.length === 0) {
+        setError("No sales found for the selected date range.");
+        setReport(null);
+        setShowReport(false);
+        return false;
+      }
+      setReport(data);
+      setShowReport(true);
+      return true;
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Failed to fetch report: " + err.message
+      );
       setReport(null);
       setShowReport(false);
       return false;
+    } finally {
+      setLoading(false);
     }
-    setReport(data);
-    setShowReport(true);
-    return true;
-  } catch (err) {
-    setError(
-      err.response?.data?.message || "Failed to fetch report: " + err.message
-    );
-    setReport(null);
-    setShowReport(false);
-    return false;
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -437,7 +441,7 @@ const fetchReport = async () => {
               }`}
               disabled={loading}
             >
-              <option Elementsvalue="">All Customers</option>
+              <option value="">All Customers</option>
               {customers.map((cust) => (
                 <option key={cust.id} value={cust.id}>
                   {cust.name}
@@ -466,12 +470,12 @@ const fetchReport = async () => {
               }}
             >
               <div className="flex items-center mb-2">
-                <span className="text-blue-500 mr-3 text-xl">⏰</span>
-                <h3 className="text-base sm:text-lg font-semibold">
+                <CurrencyDollarIcon className="h-6 w-6 text-white mr-3" />
+                <h3 className="text-base sm:text-lg font-semibold text-white">
                   Total Sales
                 </h3>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">
+              <p className="text-xl sm:text-2xl font-bold text-white">
                 {report.summary.totalSales || 0} ETB
               </p>
             </div>
@@ -484,12 +488,12 @@ const fetchReport = async () => {
               }}
             >
               <div className="flex items-center mb-2">
-                <span className="text-blue-500 mr-3 text-xl">💵</span>
-                <h3 className="text-base sm:text-lg font-semibold">
+                <HomeIcon className="h-6 w-6 text-white mr-3" />
+                <h3 className="text-base sm:text-lg font-semibold text-white">
                   Total Quantity
                 </h3>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">
+              <p className="text-xl sm:text-2xl font-bold text-white">
                 {report.summary.totalQuantity || 0}
               </p>
             </div>
@@ -502,12 +506,12 @@ const fetchReport = async () => {
               }}
             >
               <div className="flex items-center mb-2">
-                <span className="text-green-500 mr-3">⚠️</span>
-                <h3 className="text-base sm:text-lg font-semibold">
+                <ChartBarIcon className="h-6 w-6 text-white mr-3" />
+                <h3 className="text-base sm:text-lg font-semibold text-white">
                   Sales Count
                 </h3>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">
+              <p className="text-xl sm:text-2xl font-bold text-white">
                 {report.summary.salesCount || 0}
               </p>
             </div>

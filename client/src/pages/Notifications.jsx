@@ -59,6 +59,7 @@ const Notifications = () => {
   }, [deletedIds]);
 
   const formatDate = (dateString) => {
+    if (!dateString || isNaN(new Date(dateString).getTime())) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -71,7 +72,7 @@ const Notifications = () => {
     if (medicine.supplier?.supplier_name)
       return medicine.supplier.supplier_name;
     if (medicine.supplier_name) return medicine.supplier_name;
-    return "No supplier data";
+    return "N/A";
   };
 
   const handleDelete = (type, id) => {
@@ -127,18 +128,29 @@ const Notifications = () => {
               >
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {medicine.medicine_name} ({medicine.category?.name || "N/A"}
-                    )
+                    {medicine.medicine_name || "N/A"} (
+                    {medicine.category?.name || "N/A"})
                   </p>
-                  <p className="text-gray-600">Quantity: {medicine.quantity}</p>
+                  <p className="text-gray-600">
+                    Batch Number: {medicine.batch_number || "N/A"}
+                  </p>
+                  <p className="text-gray-600">
+                    Dosage Form: {medicine.dosage_form?.name || "N/A"}
+                  </p>
+                  <p className="text-gray-600">
+                    Current Quantity: {medicine.quantity || 0}
+                  </p>
                   <p className="text-gray-600">
                     Supplier: {getSupplierName(medicine)}
+                  </p>
+                  <p className="text-gray-600">
+                    Total Value: ETB {(medicine.total_price || 0).toFixed(2)}
                   </p>
                 </div>
                 <button
                   onClick={() => handleDelete("lowStock", medicine.id)}
                   className="text-red-500 hover:text-red-700 transition-colors duration-200"
-                  aria-label="Delete notification"
+                  aria-label="Delete low stock notification"
                 >
                   <TrashIcon className="w-5 h-5" />
                 </button>
@@ -164,11 +176,17 @@ const Notifications = () => {
               >
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {medicine.medicine_name} ({medicine.category?.name || "N/A"}
-                    )
+                    {medicine.medicine_name || "N/A"} (
+                    {medicine.category?.name || "N/A"})
                   </p>
                   <p className="text-gray-600">
-                    Expired: {formatDate(medicine.expire_date)}
+                    Batch Number: {medicine.batch_number || "N/A"}
+                  </p>
+                  <p className="text-gray-600">
+                    Dosage Form: {medicine.dosage_form?.name || "N/A"}
+                  </p>
+                  <p className="text-gray-600">
+                    Current Quantity: {medicine.quantity || 0}
                   </p>
                   <p className="text-gray-600">
                     Supplier: {getSupplierName(medicine)}
@@ -176,11 +194,14 @@ const Notifications = () => {
                   <p className="text-gray-600">
                     Total Value: ETB {(medicine.total_price || 0).toFixed(2)}
                   </p>
+                  <p className="text-gray-600">
+                    Expired: {formatDate(medicine.expire_date)}
+                  </p>
                 </div>
                 <button
                   onClick={() => handleDelete("expired", medicine.id)}
                   className="text-red-500 hover:text-red-700 transition-colors duration-200"
-                  aria-label="Delete notification"
+                  aria-label="Delete expired notification"
                 >
                   <TrashIcon className="w-5 h-5" />
                 </button>
@@ -206,21 +227,32 @@ const Notifications = () => {
               >
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {medicine.medicine_name} ({medicine.category?.name || "N/A"}
-                    )
+                    {medicine.medicine_name || "N/A"} (
+                    {medicine.category?.name || "N/A"})
+                  </p>
+                  <p className="text-gray-600">
+                    Batch Number: {medicine.batch_number || "N/A"}
+                  </p>
+                  <p className="text-gray-600">
+                    Dosage Form: {medicine.dosage_form?.name || "N/A"}
+                  </p>
+                  <p className="text-gray-600">
+                    Current Quantity: {medicine.quantity || 0}
+                  </p>
+                  <p className="text-gray-600">
+                    Supplier: {getSupplierName(medicine)}
+                  </p>
+                  <p className="text-gray-600">
+                    Total Value: ETB {(medicine.total_price || 0).toFixed(2)}
                   </p>
                   <p className="text-gray-600">
                     Expires: {formatDate(medicine.expire_date)}
-                  </p>
-                  <p className="text-gray-600">Quantity: {medicine.quantity}</p>
-                  <p className="text-gray-600">
-                    Supplier: {getSupplierName(medicine)}
                   </p>
                 </div>
                 <button
                   onClick={() => handleDelete("expiringSoon", medicine.id)}
                   className="text-red-500 hover:text-red-700 transition-colors duration-200"
-                  aria-label="Delete notification"
+                  aria-label="Delete expiring soon notification"
                 >
                   <TrashIcon className="w-5 h-5" />
                 </button>

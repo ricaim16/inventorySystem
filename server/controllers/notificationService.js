@@ -886,8 +886,22 @@ async function initializeTestData() {
 }
 
 // Schedule notifications
+// cron.schedule(
+//   "*/5 * * * *", // Every 5 minutes
+//   async () => {
+//     console.log("Running scheduled notification checks...");
+//     await checkLowStock();
+//     await checkExpiringMedicines();
+//     await checkSupplierCredits();
+//     await checkCustomerCredits();
+//   },
+//   {
+//     timezone: "Africa/Addis_Ababa",
+//   }
+// );
+
 cron.schedule(
-  "*/5 * * * *", // Every 5 minutes
+  "0 1 * * *", //   async () => {
   async () => {
     console.log("Running scheduled notification checks...");
     await checkLowStock();

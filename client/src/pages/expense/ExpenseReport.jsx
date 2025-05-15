@@ -39,31 +39,61 @@ const ExpenseReport = ({ showToast }) => {
       const cleanedFilters = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== "")
       );
+
       if (cleanedFilters.start_date && cleanedFilters.end_date) {
         const startDate = new Date(cleanedFilters.start_date);
         const endDate = new Date(cleanedFilters.end_date);
+
         if (startDate > endDate) {
           throw new Error("Start date cannot be after end date.");
         }
+        if (isNaN(startDate.getTime())) {
+          throw new Error("Invalid start date format.");
+        }
+        if (isNaN(endDate.getTime())) {
+          throw new Error("Invalid end date format.");
+        }
+
+        cleanedFilters.start_date = startDate.toISOString();
         endDate.setHours(23, 59, 59, 999);
         cleanedFilters.end_date = endDate.toISOString();
-        cleanedFilters.start_date = startDate.toISOString();
       }
+
+      console.log("Filters sent to API:", cleanedFilters);
       const data = await expenseApi.getAllExpenses(cleanedFilters);
+      console.log("API response:", data);
+
       if (!Array.isArray(data)) {
         throw new Error("Invalid report data structure");
       }
-      if (data.length === 0) {
-        setError("No expenses found for the selected date range.");
+
+      // Client-side filtering as a fallback
+      const filteredData = data.filter((expense) => {
+        if (!cleanedFilters.start_date || !cleanedFilters.end_date) return true;
+        const expenseDate = new Date(expense.date);
+        const startDate = new Date(cleanedFilters.start_date);
+        const endDate = new Date(cleanedFilters.end_date);
+        return expenseDate >= startDate && expenseDate <= endDate;
+      });
+
+      if (filteredData.length === 0) {
+        setError("No expenses found for the selected filters");
         setReport(null);
         setShowReport(false);
         return false;
       }
+
       const summary = {
-        expenseCount: data.length,
-        totalAmount: data.reduce((sum, e) => sum + (e.amount || 0), 0),
+        expenseCount: filteredData.length,
+        totalAmount: filteredData.reduce((sum, e) => sum + (e.amount || 0), 0),
       };
-      setReport({ summary, expenses: data });
+
+      setReport({
+        summary,
+        expenses: filteredData.sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        ),
+      });
       setShowReport(true);
       showToast("Expense report generated successfully!");
       return true;
@@ -365,7 +395,6 @@ const ExpenseReport = ({ showToast }) => {
       {showReport && report && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-            {/* Total Amount Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-blue-900" : "bg-blue-200"
@@ -384,7 +413,6 @@ const ExpenseReport = ({ showToast }) => {
                 ETB {report.summary.totalAmount || 0}
               </p>
             </div>
-            {/* Expense Count Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-orange-900" : "bg-orange-200"
@@ -560,8 +588,26 @@ const ExpenseReport = ({ showToast }) => {
               )}
             </div>
           ) : (
-            <div className="text-center mb-4 text-sm sm:text-base">
-              {report.message || "No expenses found"}
+            <div
+              className={`border px-4 py-3 rounded mb-4 flex flex-col sm:flex-row items-center justify-between ${
+                theme === "dark"
+                  ? "bg-red-900 border-red-700 text-red-200"
+                  : "bg-red-100 border-red-400 text-red-700"
+              }`}
+            >
+              <span className="text-center sm:text-left">
+                No expenses found for the selected filters
+              </span>
+              <button
+                onClick={fetchReport}
+                className={`mt-2 sm:mt-0 px-3 py-1 rounded text-white text-sm ${
+                  theme === "dark"
+                    ? "bg-blue-700 hover:bg-blue-600"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }`}
+              >
+                Retry
+              </button>
             </div>
           )}
         </>

@@ -6,16 +6,22 @@ import {
 } from "../../api/medicineApi";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { HiX, HiExclamationCircle, HiEye, HiTrash } from "react-icons/hi";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  HiChevronLeft,
+  HiChevronRight,
+  HiExclamationCircle,
+  HiEye,
+  HiTrash,
+  HiX,
+} from "react-icons/hi";
 
-const ExpireAlert = ({ onSelectMedicine }) => {
+const ExpireAlert = ({ onSelectMedicine, showToast }) => {
   const { theme } = useTheme();
   const { user } = useAuth();
   const [expiringMedicines, setExpiringMedicines] = useState([]);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [medicineToView, setMedicineToView] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -23,6 +29,7 @@ const ExpireAlert = ({ onSelectMedicine }) => {
   const itemsPerPage = 10;
 
   const formatEAT = (date) => {
+    if (!date || isNaN(new Date(date).getTime())) return "N/A";
     const options = {
       timeZone: "Africa/Addis_Ababa",
       year: "numeric",
@@ -59,39 +66,27 @@ const ExpireAlert = ({ onSelectMedicine }) => {
 
   const getStatus = (daysRemaining) => {
     if (daysRemaining <= 90) return "Expiring Soon";
-    return "Expiring in 3-6 Months";
+    return ""; // No other status since we only want "Expiring Soon"
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Expiring in 3-6 Months":
-        return "#065f46"; // Dark green
-      case "Expiring Soon":
-        return "#b45309"; // Dark yellow
-      default:
-        return theme === "dark" ? "#D1D5DB" : "#4B5563";
-    }
+  const getStatusColor = (daysRemaining) => {
+    if (daysRemaining <= 90) return "#F59E0B"; // Amber for Expiring Soon
+    return "#000000"; // Default color (black) since no other status is shown
   };
 
   const getRowBackground = (status) => {
-    switch (status) {
-      case "Expiring in 3-6 Months":
-        return theme === "dark"
-          ? "bg-green-800/50 border-gray-600 hover:bg-green-700/50"
-          : "bg-green-100/50 border-gray-300 hover:bg-green-200/50";
-      case "Expiring Soon":
-        return theme === "dark"
-          ? "bg-yellow-800/50 border-gray-600 hover:bg-yellow-700/50"
-          : "bg-yellow-100/50 border-gray-300 hover:bg-yellow-200/50";
-      default:
-        return theme === "dark"
-          ? "bg-gray-800 border-gray-600 hover:bg-gray-700"
-          : "bg-[#F7F7F7] border-gray-300 hover:bg-gray-100";
+    if (status === "Expiring Soon") {
+      return theme === "dark"
+        ? "bg-amber-900/20 hover:bg-amber-800/30"
+        : "bg-amber-50 hover:bg-amber-100";
     }
+    return theme === "dark"
+      ? "bg-gray-900 hover:bg-[#4B5563]"
+      : "bg-white hover:bg-[#f7f7f7]";
   };
 
   const truncateDetails = (text) => {
-    if (!text) return ["N/A"];
+    if (!text || typeof text !== "string") return ["N/A"];
     const words = text.trim().split(/\s+/);
     const chunks = [];
     for (let i = 0; i < words.length; i += 5) {
@@ -110,33 +105,42 @@ const ExpireAlert = ({ onSelectMedicine }) => {
     setError(null);
     try {
       let data = await getExpirationAlerts();
-      console.log("Data from /api/expire/alerts:", data);
       if (!data || data.length === 0) {
-        console.warn(
-          "No data from /api/expire/alerts, falling back to /api/medicines"
-        );
         data = await getAllMedicines();
-        console.log("Data from /api/medicines:", data);
         const now = getCurrentEAT();
-        const sixMonthsFromNow = new Date(
-          now.getTime() + 180 * 24 * 60 * 60 * 1000
+        const ninetyDaysFromNow = new Date(
+          now.getTime() + 90 * 24 * 60 * 60 * 1000
         );
         data = data.filter((med) => {
           const expiry = new Date(med.expire_date);
-          return expiry > now && expiry <= sixMonthsFromNow;
+          return expiry > now && expiry <= ninetyDaysFromNow;
+        });
+      } else {
+        const now = getCurrentEAT();
+        const ninetyDaysFromNow = new Date(
+          now.getTime() + 90 * 24 * 60 * 60 * 1000
+        );
+        data = data.filter((med) => {
+          const expiry = new Date(med.expire_date);
+          return expiry > now && expiry <= ninetyDaysFromNow;
         });
       }
-      setExpiringMedicines(data);
+      setExpiringMedicines(
+        data.sort((a, b) => new Date(a.expire_date) - new Date(b.expire_date))
+      );
+      setLoading(false);
     } catch (err) {
-      setError(
+      const errorMessage =
         err.response?.status === 404
-          ? "Expiration alerts endpoint not found. Please check the backend."
+          ? "Expiration alerts endpoint not found."
           : `Failed to fetch expiration alerts: ${
               err.response?.data?.error?.message || err.message
-            }`
-      );
-    } finally {
+            }`;
+      setError(errorMessage);
       setLoading(false);
+      if (typeof showToast === "function") {
+        showToast(errorMessage, "error");
+      }
     }
   };
 
@@ -155,11 +159,16 @@ const ExpireAlert = ({ onSelectMedicine }) => {
       await deleteMedicine(id);
       setExpiringMedicines(expiringMedicines.filter((med) => med.id !== id));
       setError(null);
+      if (typeof showToast === "function") {
+        showToast("Medicine deleted successfully!");
+      }
     } catch (err) {
-      setError(
-        "Failed to delete medicine: " +
-          (err.response?.data?.error?.message || err.message)
-      );
+      const errorMessage =
+        err.response?.data?.error?.message || "Failed to delete medicine";
+      setError(errorMessage);
+      if (typeof showToast === "function") {
+        showToast(errorMessage, "error");
+      }
     }
     setShowDeleteModal(false);
     setMedicineIdToDelete(null);
@@ -167,7 +176,12 @@ const ExpireAlert = ({ onSelectMedicine }) => {
 
   const handleView = (medicine) => {
     setMedicineToView(medicine);
-    setIsViewOpen(true);
+    setShowViewModal(true);
+  };
+
+  const closeViewModal = () => {
+    setShowViewModal(false);
+    setMedicineToView(null);
   };
 
   const totalPages = Math.ceil(expiringMedicines.length / itemsPerPage);
@@ -198,10 +212,6 @@ const ExpireAlert = ({ onSelectMedicine }) => {
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
-    if (totalPages === 0) {
-      return [1];
-    }
-
     if (endPage - startPage + 1 < maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
@@ -213,14 +223,32 @@ const ExpireAlert = ({ onSelectMedicine }) => {
     return pages;
   };
 
+  const actionButtonClass = `p-2 rounded-md transition-colors duration-200 ${
+    theme === "dark"
+      ? "text-gray-300 hover:bg-[#4B5563]"
+      : "text-gray-600 hover:bg-[#f7f7f7]"
+  }`;
+
+  if (loading) {
+    return (
+      <div
+        className={`text-sm sm:text-base text-center ${
+          theme === "dark" ? "text-gray-400" : "text-gray-600"
+        }`}
+      >
+        Loading expiration alerts...
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`p-3 sm:p-4 md:p-6 rounded-lg shadow-lg w-full max-w-[100vw] mx-auto ${
-        theme === "dark" ? "bg-gray-800" : "bg-[#F7F7F7]"
+      className={`p-4 sm:p-6 md:p-8 rounded-xl shadow-lg w-full font-sans transition-all duration-300 ${
+        theme === "dark" ? "bg-gray-900" : "bg-white"
       }`}
     >
       <h2
-        className={`text-xl sm:text-2xl md:text-3xl font-semibold mb-6 ${
+        className={`text-2xl sm:text-3xl font-semibold mb-6 ${
           theme === "dark" ? "text-gray-100" : "text-gray-900"
         }`}
         style={{ color: "#10B981" }}
@@ -230,65 +258,52 @@ const ExpireAlert = ({ onSelectMedicine }) => {
 
       {error && (
         <div
-          className={`mb-4 flex flex-col sm:flex-row items-center justify-between p-3 rounded ${
+          className={`${
             theme === "dark"
-              ? "bg-red-900 text-red-200 border border-red-700"
-              : "bg-red-100 text-red-700 border border-red-400"
-          }`}
+              ? "text-red-400 bg-red-900/20"
+              : "text-red-600 bg-red-100"
+          } mb-6 flex items-center text-base p-4 rounded-lg`}
         >
-          <span className="text-sm sm:text-base">{error}</span>
-          <button
-            onClick={fetchExpirationAlerts}
-            className={`mt-2 sm:mt-0 px-4 py-1 rounded text-white text-sm sm:text-base ${
-              theme === "dark"
-                ? "bg-blue-700 hover:bg-blue-600"
-                : "bg-blue-500 hover:bg-blue-600"
-            }`}
-          >
-            Retry
-          </button>
+          {error}
         </div>
       )}
 
-      {isViewOpen && medicineToView && (
+      {showViewModal && medicineToView && (
         <div
-          className={`mb-8 p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl relative max-w-6xl mx-auto transition-all duration-300 border-2 ${
+          className={`mb-8 p-6 sm:p-8 md:p-10 rounded-2xl shadow-xl relative max-w-6xl mx-auto transition-all duration-300 border-2 ${
             theme === "dark"
               ? "bg-gray-800 border-teal-600/50"
               : "bg-white border-teal-200/50"
           }`}
         >
           <button
-            onClick={() => {
-              setIsViewOpen(false);
-              setMedicineToView(null);
-            }}
-            className={`absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-md transition-all duration-300 transform hover:scale-105 ${
+            onClick={closeViewModal}
+            className={`absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-md transition-all duration-300 transform hover:scale-105 ${
               theme === "dark"
                 ? "text-gray-300 bg-gray-700/50 hover:bg-red-600/80 hover:text-white"
                 : "text-gray-600 bg-gray-100/50 hover:bg-red-500 hover:text-white"
             }`}
             aria-label="Close medicine details"
           >
-            <HiX size={20} />
+            <HiX size={24} />
           </button>
           <h3
-            className={`text-xl sm:text-2xl md:text-3xl font-semibold mb-6 text-left ${
+            className={`text-2xl sm:text-3xl font-semibold mb-8 text-left ${
               theme === "dark" ? "text-gray-100" : "text-gray-900"
             }`}
             style={{ color: "#10B981" }}
           >
             Medicine Details
           </h3>
-          <div className="space-y-8">
-            <div className="border-b-2 border-gray-300 pb-6">
+          <div className="space-y-10">
+            <div className="border-b-2 border-gray-300 pb-8">
               <h4
-                className={`text-base sm:text-lg md:text-xl font-semibold mb-4`}
+                className={`text-lg sm:text-xl font-semibold mb-6`}
                 style={{ color: "#5DB5B5" }}
               >
                 General Information
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
                 <div className="flex flex-col">
                   <span
                     className={`font-semibold text-sm sm:text-base ${
@@ -387,15 +402,14 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                 </div>
               </div>
             </div>
-
-            <div className="border-b-2 border-gray-300 pb-6">
+            <div className="border-b-2 border-gray-300 pb-8">
               <h4
-                className={`text-base sm:text-lg md:text-xl font-semibold mb-4`}
+                className="text-lg sm:text-xl font-semibold mb-6"
                 style={{ color: "#5DB5B5" }}
               >
                 Pricing and Expiry
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
                 <div className="flex flex-col">
                   <span
                     className={`font-semibold text-sm sm:text-base ${
@@ -457,7 +471,7 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                       theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {formatEAT(medicineToView.expire_date)}
+                    {formatEAT(medicineToView.expire_date) || "N/A"}
                   </span>
                 </div>
                 <div className="flex flex-col">
@@ -466,7 +480,23 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                       theme === "dark" ? "text-gray-300" : "text-gray-700"
                     }`}
                   >
-                    Quantity
+                    Initial Quantity
+                  </span>
+                  <span
+                    className={`text-sm sm:text-base ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    {medicineToView.initial_quantity || "N/A"}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span
+                    className={`font-semibold text-sm sm:text-base ${
+                      theme === "dark" ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Current Quantity
                   </span>
                   <span
                     className={`text-sm sm:text-base ${
@@ -494,15 +524,14 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                 </div>
               </div>
             </div>
-
-            <div className="pb-6">
+            <div className="pb-8">
               <h4
-                className={`text-base sm:text-lg md:text-xl font-semibold mb-4`}
+                className="text-lg sm:text-xl font-semibold mb-6"
                 style={{ color: "#5DB5B5" }}
               >
                 Additional Details
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
                 <div className="flex flex-col">
                   <span
                     className={`font-semibold text-sm sm:text-base ${
@@ -576,7 +605,7 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                         theme === "dark" ? "text-gray-400" : "text-gray-600"
                       }`}
                     >
-                      N/A
+                      No file uploaded
                     </span>
                   )}
                 </div>
@@ -611,9 +640,7 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {medicineToView.created_at
-                          ? formatEAT(medicineToView.created_at)
-                          : "N/A"}
+                        {formatEAT(medicineToView.created_at) || "N/A"}
                       </span>
                     </div>
                     <div className="flex flex-col">
@@ -629,9 +656,7 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {medicineToView.updated_at
-                          ? formatEAT(medicineToView.updated_at)
-                          : "N/A"}
+                        {formatEAT(medicineToView.updated_at) || "N/A"}
                       </span>
                     </div>
                   </>
@@ -665,108 +690,121 @@ const ExpireAlert = ({ onSelectMedicine }) => {
         </div>
       )}
 
-      {!isViewOpen && (
+      {!showViewModal && (
         <>
-          {loading && (
+          {expiringMedicines.length === 0 && !error && (
             <div
-              className={`mt-4 text-center text-sm sm:text-base ${
-                theme === "dark" ? "text-gray-300" : "text-gray-700"
+              className={`text-sm sm:text-base text-center ${
+                theme === "dark" ? "text-gray-400" : "text-gray-600"
               }`}
             >
-              Loading expiration alerts...
+              No medicines are expiring within the next 90 days.
             </div>
           )}
-          {!loading && expiringMedicines.length === 0 && !error && (
-            <p
-              className={`text-center text-sm sm:text-base ${
-                theme === "dark" ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              No medicines are nearing expiration within the next 6 months.
-            </p>
-          )}
 
-          {!loading && expiringMedicines.length > 0 && (
+          {expiringMedicines.length > 0 && (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse table-fixed">
+              <div className="overflow-x-auto min-w-full rounded-lg shadow-sm border border-gray-200">
+                <table
+                  className={`w-full border-collapse text-sm sm:text-base font-sans table-auto ${
+                    theme === "dark" ? "bg-gray-900" : "bg-white"
+                  }`}
+                >
                   <thead>
                     <tr
-                      className={`h-[2.5rem] ${
-                        theme === "dark"
-                          ? "bg-gray-700 border-gray-600"
-                          : "bg-gray-200 border-gray-300"
-                      }`}
+                      className={`${
+                        theme === "dark" ? "bg-teal-700" : "bg-teal-600"
+                      } text-white`}
                     >
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         No.
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         Medicine Name
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden sm:table-cell ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
-                        Batch No.
+                        Batch Number
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden md:table-cell ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         Expire Date
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden sm:table-cell ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         Quantity
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         Category
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         Supplier
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden md:table-cell ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         Days Remaining
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden sm:table-cell ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
                         Status
                       </th>
                       <th
-                        className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-left font-bold uppercase tracking-wider text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
+                        className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                          theme === "dark"
+                            ? "border-gray-700"
+                            : "border-gray-200"
                         }`}
                       >
-                        Action
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -778,116 +816,122 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                       return (
                         <tr
                           key={med.id}
-                          className={`border-b h-[2.5rem] ${getRowBackground(
+                          className={`${
+                            index % 2 === 0
+                              ? theme === "dark"
+                                ? "bg-gray-900"
+                                : "bg-gray-50"
+                              : theme === "dark"
+                              ? "bg-gray-800"
+                              : "bg-white"
+                          } transition-colors duration-200 ${getRowBackground(
                             status
                           )}`}
                         >
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base font-medium ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {rowNumber}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {med.medicine_name || "N/A"}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {med.batch_number || "N/A"}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {formatEAT(med.expire_date)}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {med.quantity || 0}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden lg:table-cell ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {med.category?.name || "N/A"}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden lg:table-cell ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {med.supplier?.supplier_name || "N/A"}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden md:table-cell ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
                             {daysRemaining}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base hidden sm:table-cell ${
                               theme === "dark"
-                                ? "border-gray-600"
-                                : "border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
-                            style={{ color: getStatusColor(status) }}
+                            style={{ color: getStatusColor(daysRemaining) }}
                           >
                             {status}
                           </td>
                           <td
-                            className={`border p-1 sm:p-1.5 md:p-2 min-w-[3rem] text-[0.75rem] sm:text-sm md:text-[0.9rem] ${
+                            className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
                               theme === "dark"
-                                ? "text-gray-300 border-gray-600"
-                                : "text-gray-600 border-gray-300"
+                                ? "text-gray-300 border-gray-700"
+                                : "text-gray-700 border-gray-200"
                             }`}
                           >
-                            <div className="flex gap-2">
+                            <div className="flex space-x-2">
                               <button
                                 onClick={() => handleView(med)}
-                                className="transition-colors duration-200 hover:text-teal-500"
+                                className={actionButtonClass}
                                 title="View"
-                                aria-label={`View medicine ${med.medicine_name}`}
                               >
-                                <HiEye className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px] md:w-[18px] md:h-[18px]" />
+                                <HiEye size={18} />
                               </button>
                               {user?.role === "MANAGER" && (
                                 <button
                                   onClick={() => openDeleteModal(med.id)}
-                                  className="transition-colors duration-200 hover:text-teal-500"
+                                  className={actionButtonClass}
                                   title="Delete"
-                                  aria-label={`Delete medicine ${med.medicine_name}`}
                                 >
-                                  <HiTrash className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px] md:w-[18px] md:h-[18px]" />
+                                  <HiTrash size={18} />
                                 </button>
                               )}
                             </div>
@@ -899,89 +943,113 @@ const ExpireAlert = ({ onSelectMedicine }) => {
                 </table>
               </div>
 
-              <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`p-1.5 rounded-md transition-colors duration-200 text-sm sm:text-base ${
-                    theme === "dark"
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <FiChevronLeft size={16} />
-                </button>
-                {getPageNumbers().map((page, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-2 sm:px-3 py-1 rounded-md font-medium text-sm sm:text-base transition-colors duration-200 ${
-                      currentPage === page
-                        ? "bg-teal-600 text-white"
-                        : theme === "dark"
-                        ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center mt-6">
+                  <div
+                    className={`text-sm sm:text-base ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
-                    {page}
-                  </button>
-                ))}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`p-1.5 rounded-md transition-colors duration-200 text-sm sm:text-base ${
-                    theme === "dark"
-                      ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  <FiChevronRight size={16} />
-                </button>
-              </div>
+                    Showing {startIndex + 1} to{" "}
+                    {Math.min(
+                      startIndex + itemsPerPage,
+                      expiringMedicines.length
+                    )}{" "}
+                    of {expiringMedicines.length} medicines
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`p-2 rounded-md ${
+                        currentPage === 1
+                          ? "cursor-not-allowed opacity-50"
+                          : "hover:bg-[#4B5563]"
+                      } ${
+                        theme === "dark"
+                          ? "text-gray-300 bg-gray-800"
+                          : "text-gray-600 bg-gray-100"
+                      }`}
+                    >
+                      <HiChevronLeft size={18} />
+                    </button>
+                    {getPageNumbers().map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === page
+                            ? "bg-teal-600 text-white"
+                            : theme === "dark"
+                            ? "text-gray-300 bg-gray-800 hover:bg-[#4B5563]"
+                            : "text-gray-600 bg-gray-100 hover:bg-[#f7f7f7]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className={`p-2 rounded-md ${
+                        currentPage === totalPages
+                          ? "cursor-not-allowed opacity-50"
+                          : "hover:bg-[#4B5563]"
+                      } ${
+                        theme === "dark"
+                          ? "text-gray-300 bg-gray-800"
+                          : "text-gray-600 bg-gray-100"
+                      }`}
+                    >
+                      <HiChevronRight size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </>
       )}
 
       {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+        <div className="fixed inset-0 flex items-center justify-center z-50">
           <div
-            className={`p-4 sm:p-6 rounded-xl shadow-lg w-11/12 max-w-sm ${
+            className={`p-6 rounded-xl shadow-lg w-11/12 max-w-md ${
               theme === "dark"
-                ? "bg-gray-900 text-gray-200 border-gray-700"
+                ? "bg-gray-800 text-gray-200 border-gray-700"
                 : "bg-white text-gray-800 border-gray-200"
             } border transition-all duration-300`}
           >
             <div className="flex flex-col items-center">
               <div className="mb-4">
                 <HiExclamationCircle
-                  size={32}
+                  size={36}
                   className={theme === "dark" ? "text-red-400" : "text-red-500"}
                 />
               </div>
               <p
-                className={`text-sm sm:text-base mb-4 text-center font-medium ${
+                className={`text-sm sm:text-base mb-6 text-center font-semibold ${
                   theme === "dark" ? "text-gray-200" : "text-gray-800"
                 }`}
               >
                 Are you sure you want to delete this medicine?
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center w-full">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
                 <button
                   onClick={() => handleDelete(medicineIdToDelete)}
-                  className={`py-1.5 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200 text-sm sm:text-base font-medium w-full sm:w-auto`}
+                  className={`py-2 px-6 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 text-sm sm:text-base font-semibold w-full sm:w-auto`}
                 >
-                  Delete
+                  Yes, I'm sure
                 </button>
                 <button
                   onClick={closeDeleteModal}
-                  className={`py-1.5 px-4 rounded-md font-medium text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto ${
+                  className={`py-2 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto ${
                     theme === "dark"
-                      ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
+                      : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
                   }`}
                 >
-                  Cancel
+                  No, cancel
                 </button>
               </div>
             </div>

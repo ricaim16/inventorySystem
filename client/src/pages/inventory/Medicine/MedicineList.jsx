@@ -36,6 +36,7 @@ const MedicineList = () => {
   const location = useLocation();
 
   const formatEAT = (date) => {
+    if (!date || isNaN(new Date(date).getTime())) return "N/A";
     const options = {
       timeZone: "Africa/Addis_Ababa",
       year: "numeric",
@@ -62,13 +63,31 @@ const MedicineList = () => {
   };
 
   const getExpiryStatus = (expireDate) => {
+    if (!expireDate || isNaN(new Date(expireDate).getTime())) return "gray";
+
     const now = getCurrentEAT();
     const expiry = new Date(expireDate);
-    const monthsDiff = (expiry - now) / (1000 * 60 * 60 * 24 * 30);
 
-    if (expiry <= now) return "red"; // Expired (red)
-    if (monthsDiff <= 6) return "yellow"; // Within 6 months (yellow)
-    return "green"; // More than 6 months (green)
+    // Normalize both dates to midnight to compare only the date part
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const expiryDate = new Date(
+      expiry.getFullYear(),
+      expiry.getMonth(),
+      expiry.getDate()
+    );
+
+    // Check if the medicine has expired
+    if (expiryDate <= nowDate) return "red";
+
+    // Calculate the date exactly 12 months from now
+    const twelveMonthsLater = new Date(nowDate);
+    twelveMonthsLater.setFullYear(nowDate.getFullYear() + 1);
+
+    // If expiry is on or before 12 months from now, it's yellow
+    if (expiryDate <= twelveMonthsLater) return "yellow";
+
+    // Otherwise, it's green
+    return "green";
   };
 
   useEffect(() => {
@@ -584,9 +603,9 @@ const MedicineList = () => {
                   >
                     Payment File
                   </span>
-                  {medicineToView.payment_file ? (
+                  {medicineToView.Payment_file ? (
                     <a
-                      href={`http://localhost:8080/${medicineToView.payment_file}`}
+                      href={medicineToView.Payment_file}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`text-sm sm:text-base text-teal-500 hover:underline transition-colors duration-200 ${
@@ -601,7 +620,7 @@ const MedicineList = () => {
                         theme === "dark" ? "text-gray-400" : "text-gray-600"
                       }`}
                     >
-                      N/A
+                      No file uploaded
                     </span>
                   )}
                 </div>
@@ -636,7 +655,7 @@ const MedicineList = () => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {formatEAT(medicineToView.created_at) || "N/A"}
+                        {formatEAT(medicineToView.createdAt) || "N/A"}
                       </span>
                     </div>
                     <div className="flex flex-col">
@@ -652,7 +671,7 @@ const MedicineList = () => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {formatEAT(medicineToView.updated_at) || "N/A"}
+                        {formatEAT(medicineToView.updatedAt) || "N/A"}
                       </span>
                     </div>
                   </>
@@ -936,10 +955,10 @@ const MedicineList = () => {
                               ? "bg-yellow-500"
                               : getExpiryStatus(med.expire_date) === "green"
                               ? "bg-green-500"
-                              : ""
+                              : "bg-gray-500"
                           }`}
                         ></span>
-                        {formatEAT(med.expire_date) || "N/A"}
+                        {formatEAT(med.expire_date)}
                       </td>
                       <td
                         className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${

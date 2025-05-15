@@ -20,7 +20,7 @@ import Supplier from "./pages/supplier/Supplier";
 import Expire from "./pages/expired-date/Expire";
 import Sales from "./pages/sales/Sales";
 import Return from "./pages/returns/Return";
-import Expense from "./pages/expense/Expense"; // Import the Expense component
+import Expense from "./pages/expense/Expense";
 import Customer from "./pages/customers/Customer";
 import OwedByCustomer from "./pages/credit-management/OwedByCustomer/OwedByCustomer.jsx";
 import OwedToSupplier from "./pages/credit-management/OwedToSupplier/OwedToSupplier";
@@ -93,6 +93,9 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/change-password" element={<NewPassword />} />
 
             {/* Protected Routes */}
             <Route
@@ -246,7 +249,7 @@ function App() {
               }
             />
             <Route
-              path="/okr/track-progress"
+              path="/okr/:id" // Add dynamic route for OkrTrackProgress
               element={
                 <ProtectedRoute>
                   <Layout showToast={showToast}>
@@ -295,11 +298,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify-otp" element={<VerifyOtp />} />
-            <Route path="/change-password" element={<NewPassword />} />
-            
             <Route path="/logout" element={<Logout />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

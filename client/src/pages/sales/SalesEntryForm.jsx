@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { addSale, editSale } from "../../api/salesApi";
 import { getAllCustomers } from "../../api/customerApi";
-import { getAllMedicines } from "../../api/medicineApi";
+import { getMedicineByBatchNumber } from "../../api/medicineApi";
 import { getAllDosageForms } from "../../api/dosageApi";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -18,13 +18,15 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
     prescription: false,
     product_name: "",
     product_batch_number: "",
+    dosage_form_name: "",
+    stock_quantity: 0, // Added to store stock level
   });
   const [customers, setCustomers] = useState([]);
-  const [medicines, setMedicines] = useState([]);
   const [dosageForms, setDosageForms] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [batchLoading, setBatchLoading] = useState(false);
   const { theme } = useTheme();
   const navigate = useNavigate();
 
@@ -41,6 +43,8 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
         prescription: sale.prescription || false,
         product_name: sale.product_name || "",
         product_batch_number: sale.product_batch_number || "",
+        dosage_form_name: sale.dosage_form?.name || "",
+        stock_quantity: sale.quantity || 0, // Initialize with sale quantity or fetch from API
       });
     }
     fetchDropdownData();
@@ -64,54 +68,140 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
 
   const fetchDropdownData = async () => {
     try {
-      const [custRes, medRes, doseRes] = await Promise.all([
+      console.log("Fetching dropdown data...");
+      const [custRes, doseRes] = await Promise.all([
         getAllCustomers(),
-        getAllMedicines(),
         getAllDosageForms(),
       ]);
-      setCustomers(custRes);
-      setMedicines(medRes);
-      setDosageForms(doseRes);
+      console.log("Dropdown data fetched:", {
+        customers: custRes,
+        dosageForms: doseRes,
+      });
+      setCustomers(custRes || []);
+      setDosageForms(doseRes || []);
+      setErrors((prev) => ({ ...prev, generic: null }));
     } catch (err) {
-      setErrors({ generic: "Failed to load dropdown data: " + err.message });
+      console.error("Error fetching dropdown data:", err);
+      setErrors({
+        generic: `Failed to load dropdown data: ${err.message}. Please try again.`,
+      });
     }
   };
 
-  const updateFormFields = (medicineId, dosageFormId) => {
-    if (!medicineId || !dosageFormId) return;
+  const handleBatchNumberChange = async (e) => {
+    const batchNumber = e.target.value.trim();
+    console.log("Batch number entered:", batchNumber);
 
-    const selectedMedicine = medicines.find((med) => med.id === medicineId);
-    if (selectedMedicine) {
-      const quantity = parseInt(formData.quantity) || 0;
-      const price = selectedMedicine.sell_price || 0;
-      const totalAmount = quantity * price;
+    // Validate batch number format (alphanumeric with : or -)
+    const batchNumberRegex = /^[A-Za-z0-9:-]+$/;
+    if (batchNumber && !batchNumberRegex.test(batchNumber)) {
+      setErrors((prev) => ({
+        ...prev,
+        product_batch_number:
+          "Invalid batch number format. Use alphanumeric characters, :, or -.",
+        batch_not_found: null,
+      }));
       setFormData((prev) => ({
         ...prev,
-        price: price,
-        total_amount: totalAmount,
-        product_name: selectedMedicine.medicine_name || prev.product_name,
-        prescription: selectedMedicine.required_prescription
-          ? prev.prescription
-          : false,
+        product_batch_number: batchNumber,
+        medicine_id: "",
+        dosage_form_id: "",
+        price: 0,
+        total_amount: 0,
+        product_name: "",
+        dosage_form_name: "",
+        prescription: false,
+        stock_quantity: 0,
       }));
+      return;
     }
-  };
 
-  const handleMedicineChange = (e) => {
-    const medicineId = e.target.value;
-    setFormData((prev) => ({ ...prev, medicine_id: medicineId }));
-    setErrors((prev) => ({ ...prev, medicine_id: null }));
-    if (formData.dosage_form_id) {
-      updateFormFields(medicineId, formData.dosage_form_id);
+    setFormData((prev) => ({
+      ...prev,
+      product_batch_number: batchNumber,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      product_batch_number: null,
+      batch_not_found: null,
+    }));
+
+    if (!batchNumber) {
+      setFormData((prev) => ({
+        ...prev,
+        medicine_id: "",
+        dosage_form_id: "",
+        price: 0,
+        total_amount: 0,
+        product_name: "",
+        dosage_form_name: "",
+        prescription: false,
+        stock_quantity: 0,
+      }));
+      return;
     }
-  };
 
-  const handleDosageChange = (e) => {
-    const dosageFormId = e.target.value;
-    setFormData((prev) => ({ ...prev, dosage_form_id: dosageFormId }));
-    setErrors((prev) => ({ ...prev, dosage_form_id: null }));
-    if (formData.medicine_id) {
-      updateFormFields(formData.medicine_id, dosageFormId);
+    setBatchLoading(true);
+    try {
+      console.log("Fetching medicine from API...");
+      const medicine = await getMedicineByBatchNumber(batchNumber);
+      console.log("Medicine fetched by batch number:", medicine);
+      if (medicine && medicine.id) {
+        const quantity = parseInt(formData.quantity) || 1;
+        const price = medicine.sell_price || 0;
+        const totalAmount = quantity * price;
+        // Find dosage form name from dosageForms state
+        const dosageForm = dosageForms.find(
+          (dose) => dose.id === medicine.dosage_form_id
+        );
+        setFormData((prev) => ({
+          ...prev,
+          medicine_id: medicine.id,
+          dosage_form_id: medicine.dosage_form_id || "",
+          price,
+          total_amount: totalAmount,
+          product_name: medicine.medicine_name || "",
+          dosage_form_name: dosageForm?.name || "",
+          prescription: medicine.required_prescription || false,
+          stock_quantity: medicine.quantity || 0, // Set stock level
+        }));
+        setErrors((prev) => ({ ...prev, batch_not_found: null }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          batch_not_found:
+            "No medicine found for this batch number. Please check the batch number.",
+        }));
+        setFormData((prev) => ({
+          ...prev,
+          medicine_id: "",
+          dosage_form_id: "",
+          price: 0,
+          total_amount: 0,
+          product_name: "",
+          dosage_form_name: "",
+          prescription: false,
+          stock_quantity: 0,
+        }));
+      }
+    } catch (err) {
+      console.error("Error in handleBatchNumberChange:", err);
+      setErrors({
+        batch_not_found: `Error fetching medicine: ${err.message}. Please try again.`,
+      });
+      setFormData((prev) => ({
+        ...prev,
+        medicine_id: "",
+        dosage_form_id: "",
+        price: 0,
+        total_amount: 0,
+        product_name: "",
+        dosage_form_name: "",
+        prescription: false,
+        stock_quantity: 0,
+      }));
+    } finally {
+      setBatchLoading(false);
     }
   };
 
@@ -129,7 +219,7 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
       }
       return newData;
     });
-    setErrors((prev) => ({ ...prev, [name]: null }));
+    setErrors((prev) => ({ ...prev, [name]: null, batch_not_found: null }));
   };
 
   const validateForm = () => {
@@ -146,16 +236,14 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
     if (formData.quantity && isNaN(parseInt(formData.quantity)))
       newErrors.quantity = "Quantity must be a valid number";
 
-    const selectedMedicine = medicines.find(
-      (med) => med.id === formData.medicine_id
-    );
+    if (formData.quantity && parseInt(formData.quantity) <= 0)
+      newErrors.quantity = "Quantity must be greater than 0";
+
     if (
-      selectedMedicine &&
       formData.quantity &&
-      parseInt(formData.quantity) > selectedMedicine.quantity
-    ) {
-      newErrors.quantity = `Quantity exceeds available stock (${selectedMedicine.quantity}).`;
-    }
+      parseInt(formData.quantity) > formData.stock_quantity
+    )
+      newErrors.quantity = `Quantity cannot exceed stock level (${formData.stock_quantity})`;
 
     const validPaymentMethods = paymentMethods.map((method) => method.value);
     if (
@@ -191,18 +279,21 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
         product_batch_number: formData.product_batch_number,
         payment_method: formData.payment_method,
       };
+      console.log("Submitting sale payload:", payload);
       const response = sale
         ? await editSale(sale.id, payload)
         : await addSale(payload);
+      console.log("Sale response:", response);
       onSave?.(response);
       showToast(
         sale ? "Sale updated successfully!" : "Sale added successfully!"
       );
-      navigate("/sales"); // Navigate to sales list after successful save
+      navigate("/sales");
     } catch (err) {
+      console.error("Error submitting sale:", err);
       setErrors({
         generic:
-          err.response?.data?.message || "Failed to save sale: " + err.message,
+          err.response?.data?.message || `Failed to save sale: ${err.message}`,
       });
     } finally {
       setIsSubmitting(false);
@@ -221,6 +312,8 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
       prescription: false,
       product_name: "",
       product_batch_number: "",
+      dosage_form_name: "",
+      stock_quantity: 0,
     });
     setErrors({});
     setProgress(0);
@@ -229,11 +322,11 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
 
   const paymentMethods = [
     { value: "CASH", label: "Cash" },
-    { value: "CREDIT", label: "Credit Card" },
-    { value: "CBE", label: "CBE Bank Transfer" },
-    { value: "COOP", label: "Cooperative Bank" },
-    { value: "AWASH", label: "Awash Bank" },
-    { value: "EBIRR", label: "eBirr Mobile Payment" },
+    { value: "CREDIT", label: "Credit" },
+    { value: "CBE", label: "CBE" },
+    { value: "COOP", label: "Cooperative" },
+    { value: "AWASH", label: "Awash" },
+    { value: "EBIRR", label: "eBirr" },
   ];
 
   return (
@@ -386,72 +479,79 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
         {errors.generic && (
           <div className="text-[#5DB5B5] mb-4">{errors.generic}</div>
         )}
+        {errors.batch_not_found && (
+          <div className="text-[#5DB5B5] mb-4">{errors.batch_not_found}</div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 1. Batch Number * */}
           <div>
             <label
               className={`block text-sm font-medium ${
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Customer (Optional)
+              Batch Number <span className="text-[#EF4444]">*</span>
             </label>
-            <select
-              name="customer_id"
-              value={formData.customer_id}
-              onChange={handleChange}
+            <input
+              type="text"
+              name="product_batch_number"
+              value={formData.product_batch_number}
+              onChange={handleBatchNumberChange}
               className={`w-full p-2 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
               } rounded focus:outline-none hover:border-gray-400 ${
-                errors.customer_id ? "border-[#5DB5B5]" : ""
+                errors.product_batch_number ? "border-[#5DB5B5]" : ""
               }`}
-              disabled={isSubmitting}
-            >
-              <option value="">Select Customer</option>
-              {customers.map((cust) => (
-                <option key={cust.id} value={cust.id}>
-                  {cust.name}
-                </option>
-              ))}
-            </select>
-            {errors.customer_id && (
+              required
+              disabled={isSubmitting || batchLoading}
+              placeholder="Enter batch number (e.g., TEST123 or 4:1)"
+            />
+            {batchLoading && (
+              <p className="text-gray-500 text-sm mt-1">Searching...</p>
+            )}
+            {errors.product_batch_number && (
               <p className="text-[#5DB5B5] text-sm mt-1">
-                {errors.customer_id}
+                {errors.product_batch_number}
               </p>
             )}
           </div>
+
+          {/* 2. Medicine Name * */}
           <div>
             <label
               className={`block text-sm font-medium ${
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Medicine <span className="text-[#EF4444]">*</span>
+              Medicine Name <span className="text-[#EF4444]">*</span>
             </label>
-            <select
-              name="medicine_id"
-              value={formData.medicine_id}
-              onChange={handleMedicineChange}
+            <input
+              type="text"
+              name="product_name"
+              value={formData.product_name}
               className={`w-full p-2 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
               } rounded focus:outline-none hover:border-gray-400 ${
                 errors.medicine_id ? "border-[#5DB5B5]" : ""
+              } ${theme === "dark" ? "bg-gray-600" : "bg-[#D1D5DB]"}`}
+              disabled
+              placeholder="Enter batch number to populate"
+            />
+            <p
+              className={`text-sm mt-1 ${
+                theme === "dark" ? "text-gray-300" : "text-gray-600"
               }`}
-              required
-              disabled={isSubmitting}
             >
-              <option value="">Select Medicine</option>
-              {medicines.map((med) => (
-                <option key={med.id} value={med.id}>
-                  {med.medicine_name} (Stock: {med.quantity})
-                </option>
-              ))}
-            </select>
+              Stock Level: {formData.stock_quantity || "N/A"}
+            </p>
             {errors.medicine_id && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.medicine_id}
               </p>
             )}
           </div>
+
+          {/* 3. Dosage Form * */}
           <div>
             <label
               className={`block text-sm font-medium ${
@@ -460,31 +560,26 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
             >
               Dosage Form <span className="text-[#EF4444]">*</span>
             </label>
-            <select
-              name="dosage_form_id"
-              value={formData.dosage_form_id}
-              onChange={handleDosageChange}
+            <input
+              type="text"
+              name="dosage_form_name"
+              value={formData.dosage_form_name}
               className={`w-full p-2 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
               } rounded focus:outline-none hover:border-gray-400 ${
                 errors.dosage_form_id ? "border-[#5DB5B5]" : ""
-              }`}
-              required
-              disabled={isSubmitting}
-            >
-              <option value="">Select Dosage Form</option>
-              {dosageForms.map((dose) => (
-                <option key={dose.id} value={dose.id}>
-                  {dose.name}
-                </option>
-              ))}
-            </select>
+              } ${theme === "dark" ? "bg-gray-600" : "bg-[#D1D5DB]"}`}
+              disabled
+              placeholder="Enter batch number to populate"
+            />
             {errors.dosage_form_id && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.dosage_form_id}
               </p>
             )}
           </div>
+
+          {/* 4. Quantity * */}
           <div>
             <label
               className={`block text-sm font-medium ${
@@ -504,29 +599,27 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
                 errors.quantity ? "border-[#5DB5B5]" : ""
               }`}
               required
-              disabled={
-                isSubmitting ||
-                !formData.medicine_id ||
-                !formData.dosage_form_id
-              }
+              disabled={isSubmitting || batchLoading}
               min="1"
               placeholder={
                 formData.medicine_id && formData.dosage_form_id
                   ? "Enter quantity"
-                  : "Select medicine and dosage first"
+                  : "Enter batch number first"
               }
             />
             {errors.quantity && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.quantity}</p>
             )}
           </div>
+
+          {/* 5. Sell Price */}
           <div>
             <label
               className={`block text-sm font-medium ${
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Price (From Medicine)
+              Sell Price
             </label>
             <input
               type="number"
@@ -541,6 +634,8 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
               step="0.01"
             />
           </div>
+
+          {/* 6. Total Amount */}
           <div>
             <label
               className={`block text-sm font-medium ${
@@ -562,6 +657,8 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
               step="0.01"
             />
           </div>
+
+          {/* 7. Payment Method * */}
           <div>
             <label
               className={`block text-sm font-medium ${
@@ -579,7 +676,7 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
               } rounded focus:outline-none hover:border-gray-400 ${
                 errors.payment_method ? "border-[#5DB5B5]" : ""
               }`}
-              disabled={isSubmitting}
+              disabled={isSubmitting || batchLoading}
               required
             >
               <option value="">Select Payment Method</option>
@@ -595,6 +692,8 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
               </p>
             )}
           </div>
+
+          {/* 8. Prescription Provided */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -604,7 +703,7 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
               className={`mr-2 h-5 w-5 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
               } rounded focus:outline-none hover:border-gray-400`}
-              disabled={isSubmitting}
+              disabled={isSubmitting || batchLoading}
             />
             <label
               className={`text-sm font-medium ${
@@ -614,57 +713,37 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
               Prescription Provided
             </label>
           </div>
+
+          {/* 9. Customer (Optional) */}
           <div>
             <label
               className={`block text-sm font-medium ${
                 theme === "dark" ? "text-white" : "text-gray-600"
               } mb-1`}
             >
-              Product Name
+              Customer (Optional)
             </label>
-            <input
-              type="text"
-              name="product_name"
-              value={formData.product_name}
+            <select
+              name="customer_id"
+              value={formData.customer_id}
               onChange={handleChange}
               className={`w-full p-2 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
               } rounded focus:outline-none hover:border-gray-400 ${
-                errors.product_name ? "border-[#5DB5B5]" : ""
+                errors.customer_id ? "border-[#5DB5B5]" : ""
               }`}
-              disabled={isSubmitting}
-            />
-            {errors.product_name && (
-              <p className="text-[#5DB5B5] text-sm mt-1">
-                {errors.product_name}
-              </p>
-            )}
-          </div>
-          <div>
-            <label
-              className={`block text-sm font-medium ${
-                theme === "dark" ? "text-white" : "text-gray-600"
-              } mb-1`}
+              disabled={isSubmitting || batchLoading}
             >
-              Batch Number <span className="text-[#EF4974]">*</span>
-            </label>
-            <input
-              type="text"
-              name="product_batch_number"
-              value={formData.product_batch_number}
-              onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
-                errors.product_batch_number ? "border-[#5DB5B5]" : ""
-              }`}
-              required
-              disabled={isSubmitting}
-              placeholder="Enter batch number"
-            />
-            {errors.product_batch_number && (
+              <option value="">Select Customer</option>
+              {customers.map((cust) => (
+                <option key={cust.id} value={cust.id}>
+                  {cust.name}
+                </option>
+              ))}
+            </select>
+            {errors.customer_id && (
               <p className="text-[#5DB5B5] text-sm mt-1">
-                {errors.product_batch_number}
+                {errors.customer_id}
               </p>
             )}
           </div>
@@ -676,9 +755,9 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
         <button
           type="submit"
           className={`bg-[#10B981] text-white px-4 py-2 rounded hover:bg-[#0E8C6A] transition-colors ${
-            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+            isSubmitting || batchLoading ? "opacity-50 cursor-not-allowed" : ""
           }`}
-          disabled={isSubmitting}
+          disabled={isSubmitting || batchLoading}
         >
           {isSubmitting ? "Saving..." : sale ? "Update" : "Add"}
         </button>
@@ -686,9 +765,9 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
           type="button"
           onClick={handleCancel}
           className={`bg-[#ababab] text-white px-4 py-2 rounded hover:bg-[#dedede] hover:text-black transition-colors ${
-            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+            isSubmitting || batchLoading ? "opacity-50 cursor-not-allowed" : ""
           }`}
-          disabled={isSubmitting}
+          disabled={isSubmitting || batchLoading}
         >
           Cancel
         </button>

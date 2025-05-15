@@ -45,6 +45,7 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         const userData = await getUserById(id || user.id);
+        console.log("Initial fetched user data:", userData); // Debug log
         setFormData({
           FirstName: userData.FirstName || "",
           LastName: userData.LastName || "",
@@ -90,6 +91,7 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Input change - ${name}: ${value}`); // Debug log
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (name === "email") {
       checkEmailAvailability(value);
@@ -193,7 +195,36 @@ const Profile = () => {
         updatedData.password = passwordData.newPassword;
       }
 
+      console.log("Data being sent to updateUser:", updatedData); // Debug log
       await updateUser(id || user.id, updatedData);
+
+      // Store the sent data as a fallback
+      const sentData = { ...updatedData };
+
+      // Re-fetch user data to ensure the form reflects the updated values
+      const userData = await getUserById(id || user.id);
+      console.log("Updated user data from getUserById:", userData); // Debug log
+
+      // Validate fetched data against sent data
+      if (userData.LastName !== sentData.LastName) {
+        console.warn(
+          `Backend returned incorrect LastName. Expected: ${sentData.LastName}, Got: ${userData.LastName}. Using sent data as fallback.`
+        );
+        setFormData({
+          FirstName: sentData.FirstName,
+          LastName: sentData.LastName,
+          username: sentData.username,
+          email: sentData.email || "",
+        });
+      } else {
+        setFormData({
+          FirstName: userData.FirstName || "",
+          LastName: userData.LastName || "",
+          username: userData.username || "",
+          email: userData.email || "",
+        });
+      }
+
       setSuccess("Profile updated successfully!");
       setPasswordData({
         oldPassword: "",
@@ -207,6 +238,7 @@ const Profile = () => {
       setEmailStatus("");
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
+      console.error("Update error:", err);
       if (err.response?.data?.error.includes("password")) {
         setPasswordError(
           err.response?.data?.error ||

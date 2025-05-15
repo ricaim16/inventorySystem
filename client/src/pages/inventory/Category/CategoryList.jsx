@@ -6,7 +6,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationCircleIcon,
-  PencilIcon,
+  PencilSquareIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import CategoryForm from "./CategoryForm";
@@ -46,7 +46,6 @@ const CategoryList = ({ showToast }) => {
   };
 
   const handleDelete = async (id) => {
-    if (user?.role !== "MANAGER") return; // Safety check, though backend enforces this
     try {
       await deleteCategory(id);
       if (typeof showToast === "function") {
@@ -68,7 +67,6 @@ const CategoryList = ({ showToast }) => {
   };
 
   const openDeleteModal = (id) => {
-    if (user?.role !== "MANAGER") return; // Prevent modal for non-managers
     setCategoryIdToDelete(id);
     setShowDeleteModal(true);
   };
@@ -127,14 +125,20 @@ const CategoryList = ({ showToast }) => {
     return pages;
   };
 
+  const actionButtonClass = `p-2 rounded-lg transition-colors duration-200 ${
+    theme === "dark"
+      ? "text-gray-300 hover:bg-gray-700"
+      : "text-gray-600 hover:bg-gray-200"
+  }`;
+
   return (
     <div
-      className={`p-3 sm:p-4 md:p-6 rounded-lg shadow-lg w-full max-w-[100vw] mx-auto ${
-        theme === "dark" ? "bg-gray-900" : "bg-[#F7F7F7]"
+      className={`p-6 rounded-xl shadow-md w-full font-sans transition-all duration-300 ${
+        theme === "dark" ? "bg-gray-900" : "bg-white"
       }`}
     >
       <h2
-        className={`text-2xl sm:text-3xl font-semibold mb-6 ${
+        className={`text-2xl font-bold mb-6 ${
           theme === "dark" ? "text-gray-100" : "text-gray-900"
         }`}
         style={{ color: "#10B981" }}
@@ -144,16 +148,16 @@ const CategoryList = ({ showToast }) => {
 
       {error && (
         <div
-          className={`mb-4 flex flex-col sm:flex-row items-center justify-between p-3 rounded ${
+          className={`${
             theme === "dark"
-              ? "bg-red-900 text-red-200 border border-red-700"
-              : "bg-red-100 text-red-700 border border-red-400"
-          }`}
+              ? "text-red-400 bg-red-900/20"
+              : "text-red-600 bg-red-100"
+          } mb-6 flex items-center text-base p-4 rounded-lg`}
         >
-          <span className="text-sm sm:text-base">{error}</span>
+          {error}
           <button
             onClick={fetchCategories}
-            className={`mt-2 sm:mt-0 px-4 py-1 rounded text-white text-sm sm:text-base ${
+            className={`ml-4 px-4 py-2 rounded-lg text-white text-base ${
               theme === "dark"
                 ? "bg-blue-700 hover:bg-blue-600"
                 : "bg-blue-500 hover:bg-blue-600"
@@ -163,12 +167,14 @@ const CategoryList = ({ showToast }) => {
           </button>
         </div>
       )}
+
       <button
         onClick={() => setIsFormOpen(true)}
-        className={`bg-[#10B981] text-white px-3 py-1.5 rounded mb-4 sm:mb-6 hover:bg-[#0E8C6A] transition duration-300 text-sm sm:text-base md:text-lg`}
+        className={`bg-[#10B981] text-white px-4 py-2 rounded-lg mb-6 hover:bg-[#0E8C6A] transition duration-300 text-base font-semibold`}
       >
         Add Category
       </button>
+
       {isFormOpen && (
         <CategoryForm
           category={selectedCategory}
@@ -176,49 +182,51 @@ const CategoryList = ({ showToast }) => {
           onCancel={() => setIsFormOpen(false)}
         />
       )}
+
       {currentCategories.length === 0 && !error && (
         <p
-          className={`text-center text-sm sm:text-base md:text-lg ${
-            theme === "dark" ? "text-gray-300" : "text-gray-700"
+          className={`text-center text-base ${
+            theme === "dark" ? "text-gray-400" : "text-gray-600"
           }`}
         >
           No categories found.
         </p>
       )}
+
       {currentCategories.length > 0 && (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto min-w-full rounded-lg shadow-sm border border-gray-200">
             <table
-              className={`w-full border-collapse text-sm sm:text-base ${
-                theme === "dark" ? "border-gray-700" : "border-gray-200"
+              className={`w-full border-collapse text-base font-sans table-auto ${
+                theme === "dark" ? "bg-gray-900" : "bg-white"
               }`}
             >
               <thead>
                 <tr
                   className={`${
-                    theme === "dark" ? "bg-gray-800" : "bg-gray-300"
-                  }`}
+                    theme === "dark" ? "bg-teal-700" : "bg-teal-600"
+                  } text-white`}
                 >
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[60px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-bold text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
                     No.
                   </th>
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[200px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-bold text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
                     Name
                   </th>
                   <th
-                    className={`border p-2 sm:p-3 text-left font-semibold uppercase tracking-wider ${
-                      theme === "dark" ? "text-gray-200" : "text-gray-800"
-                    } w-[120px]`}
+                    className={`border-b border-gray-300 px-4 py-3 text-left font-bold text-sm uppercase tracking-wider ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                   >
-                    Action
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -226,57 +234,66 @@ const CategoryList = ({ showToast }) => {
                 {currentCategories.map((cat, index) => (
                   <tr
                     key={cat.id}
-                    className={`border-b ${
+                    className={`${
+                      index % 2 === 0
+                        ? theme === "dark"
+                          ? "bg-gray-900"
+                          : "bg-gray-50"
+                        : theme === "dark"
+                        ? "bg-gray-800"
+                        : "bg-white"
+                    } transition-colors duration-200 ${
                       theme === "dark"
-                        ? `border-gray-700 ${
-                            index % 2 === 0 ? "bg-gray-800" : "bg-gray-900"
-                          } hover:bg-gray-700`
-                        : `border-gray-200 ${
-                            index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                          } hover:bg-[#EAEAEA]`
+                        ? "hover:bg-gray-700"
+                        : "hover:bg-gray-200"
                     }`}
                   >
                     <td
-                      className={`border p-2 sm:p-3 ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-base font-medium ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
                       {startIndex + index + 1}
                     </td>
                     <td
-                      className={`border p-2 sm:p-3 truncate ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-base truncate ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
                       {cat.name || "N/A"}
                     </td>
                     <td
-                      className={`border p-2 sm:p-3 ${
-                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      className={`border-b border-gray-300 px-4 py-3 text-base ${
+                        theme === "dark"
+                          ? "text-gray-300 border-gray-700"
+                          : "text-gray-700 border-gray-200"
                       }`}
                     >
-                      <button
-                        onClick={() => handleEdit(cat)}
-                        className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base bg-[#5DB5B5] hover:bg-[#4A8F8F] mr-2`}
-                        title="Edit"
-                        aria-label={`Edit category ${cat.name}`}
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      {user?.role === "MANAGER" && (
+                      <div className="flex space-x-2">
                         <button
-                          onClick={() => openDeleteModal(cat.id)}
-                          className={`p-1.5 sm:p-2 rounded text-white text-sm sm:text-base ${
-                            theme === "dark"
-                              ? "bg-red-700 hover:bg-red-600"
-                              : "bg-red-500 hover:bg-red-600"
-                          }`}
-                          title="Delete"
-                          aria-label={`Delete category ${cat.name}`}
+                          onClick={() => handleEdit(cat)}
+                          className={actionButtonClass}
+                          title="Edit"
+                          aria-label={`Edit category ${cat.name}`}
                         >
-                          <TrashIcon className="h-4 w-4" />
+                          <PencilSquareIcon className="h-5 w-5" />
                         </button>
-                      )}
+                        {(user?.role === "MANAGER" ||
+                          user?.role === "EMPLOYEE") && (
+                          <button
+                            onClick={() => openDeleteModal(cat.id)}
+                            className={actionButtonClass}
+                            title="Delete"
+                            aria-label={`Delete category ${cat.name}`}
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -285,99 +302,119 @@ const CategoryList = ({ showToast }) => {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-4 flex justify-center items-center space-x-1 flex-wrap gap-1">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-2 py-1 border rounded text-sm sm:text-base ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+            <div className="flex justify-between items-center mt-6">
+              <div
+                className={`text-base ${
+                  theme === "dark" ? "text-gray-400" : "text-gray-600"
+                }`}
               >
-                <ChevronLeftIcon className="h-4 w-4" />
-              </button>
-              {getPageNumbers().map((page, index) => (
+                Showing {startIndex + 1} to{" "}
+                {Math.min(startIndex + itemsPerPage, categories.length)} of{" "}
+                {categories.length} categories
+              </div>
+              <div className="flex space-x-2">
                 <button
-                  key={index}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-3 py-1 border rounded text-sm sm:text-base ${
-                    currentPage === page
-                      ? "bg-[#10B981] text-white"
-                      : theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600"
-                      : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-lg ${
+                    currentPage === 1
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-gray-700"
+                  } ${
+                    theme === "dark"
+                      ? "text-gray-300 bg-gray-800"
+                      : "text-gray-600 bg-gray-100"
                   }`}
                 >
-                  {page}
+                  <ChevronLeftIcon className="h-5 w-5" />
                 </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-2 py-1 border rounded text-sm sm:text-base ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600"
-                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-100"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <ChevronRightIcon className="h-4 w-4" />
-              </button>
+                {getPageNumbers().map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1 rounded-lg ${
+                      currentPage === page
+                        ? "bg-teal-600 text-white"
+                        : theme === "dark"
+                        ? "text-gray-300 bg-gray-800 hover:bg-gray-700"
+                        : "text-gray-600 bg-gray-100 hover:bg-gray-200"
+                    } text-base`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 rounded-lg ${
+                    currentPage === totalPages
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-gray-700"
+                  } ${
+                    theme === "dark"
+                      ? "text-gray-300 bg-gray-800"
+                      : "text-gray-600 bg-gray-100"
+                  }`}
+                >
+                  <ChevronRightIcon className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           )}
         </>
       )}
 
-      {user?.role === "MANAGER" && showDeleteModal && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-          <div
-            className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${
-              theme === "dark"
-                ? "bg-gray-800 text-gray-200"
-                : "bg-[#F7F7F7] text-gray-800"
-            }`}
-          >
-            <div className="flex flex-col items-center">
-              <div className="mb-3">
-                <ExclamationCircleIcon
-                  className={`h-6 w-6 ${
-                    theme === "dark" ? "text-gray-400" : "text-gray-500"
-                  }`}
-                />
-              </div>
-              <p
-                className={`text-sm sm:text-base mb-4 text-center font-semibold ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
-                }`}
-              >
-                Are you sure you want to delete this category?
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center w-full">
-                <button
-                  onClick={() => handleDelete(categoryIdToDelete)}
-                  className={`py-2 px-4 rounded text-white text-sm sm:text-base font-semibold ${
-                    theme === "dark"
-                      ? "bg-red-700 hover:bg-red-600"
-                      : "bg-red-500 hover:bg-red-600"
+      {(user?.role === "MANAGER" || user?.role === "EMPLOYEE") &&
+        showDeleteModal && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+            <div
+              className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${
+                theme === "dark"
+                  ? "bg-gray-800 text-gray-200"
+                  : "bg-[#F7F7F7] text-gray-800"
+              }`}
+            >
+              <div className="flex flex-col items-center">
+                <div className="mb-3">
+                  <ExclamationCircleIcon
+                    className={`h-6 w-6 ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  />
+                </div>
+                <p
+                  className={`text-sm sm:text-base mb-4 text-center font-semibold ${
+                    theme === "dark" ? "text-gray-200" : "text-gray-800"
                   }`}
                 >
-                  Yes, I'm sure
-                </button>
-                <button
-                  onClick={closeDeleteModal}
-                  className={`py-2 px-4 font-semibold text-sm sm:text-base ${
-                    theme === "dark"
-                      ? "text-gray-200 hover:text-gray-100"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                >
-                  No, cancel
-                </button>
+                  Are you sure you want to delete this category?
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center w-full">
+                  <button
+                    onClick={() => handleDelete(categoryIdToDelete)}
+                    className={`py-2 px-4 rounded text-white text-sm sm:text-base font-semibold ${
+                      theme === "dark"
+                        ? "bg-red-700 hover:bg-red-600"
+                        : "bg-red-500 hover:bg-red-600"
+                    }`}
+                  >
+                    Yes, I'm sure
+                  </button>
+                  <button
+                    onClick={closeDeleteModal}
+                    className={`py-2 px-4 font-semibold text-sm sm:text-base ${
+                      theme === "dark"
+                        ? "text-gray-200 hover:text-gray-100"
+                        : "text-gray-600 hover:text-gray-800"
+                    }`}
+                  >
+                    No, cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };
