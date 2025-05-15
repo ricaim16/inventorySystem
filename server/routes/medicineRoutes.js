@@ -14,9 +14,14 @@ const router = express.Router();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "../Uploads");
-    if (!fs.existsSync(uploadPath))
-      fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
+    try {
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
+      cb(null, uploadPath);
+    } catch (error) {
+      cb(new Error(`Failed to create upload directory: ${error.message}`));
+    }
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -51,12 +56,25 @@ router.get(
   medicineController.getLowStockMedicines
 );
 
-// medicineApi.js (router)
 router.get(
   "/report",
   authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Allow EMPLOYEE access
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   medicineController.generateMedicineReport
+);
+
+router.get(
+  "/expire/alerts",
+  authMiddleware,
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  medicineController.getExpirationAlerts
+);
+
+router.get(
+  "/expire",
+  authMiddleware,
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  medicineController.getExpiredMedicines
 );
 
 router.get(
@@ -66,10 +84,17 @@ router.get(
   medicineController.getMedicineById
 );
 
+router.get(
+  "/batch/:batchNumber",
+  authMiddleware,
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
+  medicineController.getMedicineByBatchNumber
+);
+
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Allow EMPLOYEE to add medicine
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   upload.single("Payment_file"),
   medicineController.addMedicine
 );
@@ -77,7 +102,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Allow EMPLOYEE to edit medicine
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   upload.single("Payment_file"),
   medicineController.editMedicine
 );
@@ -85,18 +110,8 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware(["MANAGER"]), // Restrict to MANAGER only
+  roleMiddleware(["MANAGER"]),
   medicineController.deleteMedicine
 );
-
-// Error handling for multer
-router.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    return res
-      .status(400)
-      .json({ error: { message: "File upload error", details: err.message } });
-  }
-  next(err);
-});
 
 export default router;

@@ -1,5 +1,6 @@
 import prisma from "../config/db.js";
 import { hashPassword } from "../utils/hashPassword.js";
+import bcrypt from "bcrypt";
 
 // Validate email format
 const isValidEmail = (email) => {
@@ -145,7 +146,7 @@ const getUserById = async (req, res, next) => {
     res.status(200).json({
       id: user.id,
       FirstName: user.FirstName,
-      LastName: user.FirstName,
+      LastName: user.LastName,
       username: user.username,
       email: user.email,
       role: user.role,

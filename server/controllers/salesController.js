@@ -544,6 +544,37 @@ export const salesController = {
       });
     }
   },
+
+  getMedicineByBatchNumber: async (req, res) => {
+    const { batchNumber } = req.params;
+    try {
+      const medicine = await prisma.medicines.findUnique({
+        where: { batch_number: batchNumber },
+        select: {
+          id: true,
+          medicine_name: true,
+          sell_price: true,
+          quantity: true,
+          dosage_form_id: true,
+          required_prescription: true,
+        },
+      });
+      if (!medicine) {
+        console.log(`Medicine with batch number ${batchNumber} not found`);
+        return res.status(404).json({ message: "Medicine not found" });
+      }
+      console.log(`Fetched medicine with batch number ${batchNumber}`);
+      res.json(medicine);
+    } catch (error) {
+      console.error(
+        `Error fetching medicine with batch number ${batchNumber}:`,
+        error.stack
+      );
+      res
+        .status(500)
+        .json({ message: "Error fetching medicine", error: error.message });
+    }
+  },
 };
 
 export { getEthiopianTime };

@@ -20,7 +20,7 @@ export const seedDatabase = async () => {
       LastName: "Manager",
       username: "Admin",
       email: "admin@example.com", // Add email
-      password: "123", // Match the password used in login
+      password: "1234", // Match the password used in login
       role: "MANAGER",
     };
 

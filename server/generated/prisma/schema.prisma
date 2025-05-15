@@ -101,32 +101,30 @@ model Suppliers {
 // Categories Table
 model Categories {
   id        String      @id @default(uuid())
-  name      String
+  name      String      @unique
   Medicines Medicines[]
 }
 
-// DosageForms Table
 model DosageForms {
   id        String      @id @default(uuid())
-  name      String
+  name      String      @unique
   Medicines Medicines[]
   Sales     Sales[]
   Returns   Returns[]
 }
 
-// Medicines Table
 model Medicines {
   id                    String        @id @default(uuid())
   medicine_name         String
   brand_name            String?
-  batch_number          String?
+  batch_number          String?       @unique
   category_id           String
   dosage_form_id        String
   medicine_weight       Float?
   quantity              Int
   initial_quantity      Int
   supplier_id           String
-  invoice_number        String        @unique
+  invoice_number        String?
   unit_price            Float
   sell_price            Float?
   total_price           Float
@@ -255,24 +253,25 @@ model CustomerCredit {
   updatedBy           Users?        @relation("UpdatedBy", fields: [updated_by], references: [id])
 }
 
-// Objectives Table
 model Objectives {
   id          String       @id @default(uuid())
   title       String
-  description String
+  description String?
   time_period String
-  progress    Float
+  progress    Float        @default(0)
+  activity    Json? // Added for activity logging
   KeyResults  KeyResults[]
 }
 
-// KeyResults Table
 model KeyResults {
   id           String     @id @default(uuid())
   objective_id String
   title        String
-  description  String
-  weight       Float
+  description  String?
+  start_value  Float?     @default(0)
+  target_value Float
+  weight       Float      @default(1)
+  progress     Float      @default(0)
   deadline     DateTime
-  progress     Float
-  objective    Objectives @relation(fields: [objective_id], references: [id])
+  objectives   Objectives @relation(fields: [objective_id], references: [id], onDelete: Cascade)
 }

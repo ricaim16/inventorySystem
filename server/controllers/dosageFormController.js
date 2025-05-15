@@ -22,14 +22,23 @@ export const dosageFormController = {
       return res.status(400).json({ message: "Dosage form name is required" });
 
     try {
-      const dosageForm = await prisma.dosageForms.create({ data: { name } });
+      const normalizedName = name.toLowerCase(); // Normalize to lowercase
+      const dosageForm = await prisma.dosageForms.create({
+        data: { name: normalizedName },
+      });
       res
         .status(201)
         .json({ message: "Dosage form added successfully", dosageForm });
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error adding dosage form", error: error.message });
+      if (error.code === "P2002") {
+        res.status(409).json({
+          message: "Name is unique. You can't add it, you already have it.",
+        });
+      } else {
+        res
+          .status(500)
+          .json({ message: "Error adding dosage form", error: error.message });
+      }
     }
   },
 

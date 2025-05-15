@@ -292,7 +292,8 @@ exports.Prisma.ObjectivesScalarFieldEnum = {
   title: 'title',
   description: 'description',
   time_period: 'time_period',
-  progress: 'progress'
+  progress: 'progress',
+  activity: 'activity'
 };
 
 exports.Prisma.KeyResultsScalarFieldEnum = {
@@ -300,14 +301,21 @@ exports.Prisma.KeyResultsScalarFieldEnum = {
   objective_id: 'objective_id',
   title: 'title',
   description: 'description',
+  start_value: 'start_value',
+  target_value: 'target_value',
   weight: 'weight',
-  deadline: 'deadline',
-  progress: 'progress'
+  progress: 'progress',
+  deadline: 'deadline'
 };
 
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -318,6 +326,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 exports.Role = exports.$Enums.Role = {
   MANAGER: 'MANAGER',

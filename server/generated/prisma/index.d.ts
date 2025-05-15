@@ -8599,7 +8599,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number: string | null
     unit_price: number
     sell_price: number | null
     total_price: number
@@ -8791,7 +8791,7 @@ export namespace Prisma {
       quantity: number
       initial_quantity: number
       supplier_id: string
-      invoice_number: string
+      invoice_number: string | null
       unit_price: number
       sell_price: number | null
       total_price: number
@@ -16961,6 +16961,7 @@ export namespace Prisma {
     description: number
     time_period: number
     progress: number
+    activity: number
     _all: number
   }
 
@@ -16995,6 +16996,7 @@ export namespace Prisma {
     description?: true
     time_period?: true
     progress?: true
+    activity?: true
     _all?: true
   }
 
@@ -17087,9 +17089,10 @@ export namespace Prisma {
   export type ObjectivesGroupByOutputType = {
     id: string
     title: string
-    description: string
+    description: string | null
     time_period: string
     progress: number
+    activity: JsonValue | null
     _count: ObjectivesCountAggregateOutputType | null
     _avg: ObjectivesAvgAggregateOutputType | null
     _sum: ObjectivesSumAggregateOutputType | null
@@ -17117,6 +17120,7 @@ export namespace Prisma {
     description?: boolean
     time_period?: boolean
     progress?: boolean
+    activity?: boolean
     KeyResults?: boolean | Objectives$KeyResultsArgs<ExtArgs>
     _count?: boolean | ObjectivesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["objectives"]>
@@ -17127,6 +17131,7 @@ export namespace Prisma {
     description?: boolean
     time_period?: boolean
     progress?: boolean
+    activity?: boolean
   }, ExtArgs["result"]["objectives"]>
 
   export type ObjectivesSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -17135,6 +17140,7 @@ export namespace Prisma {
     description?: boolean
     time_period?: boolean
     progress?: boolean
+    activity?: boolean
   }, ExtArgs["result"]["objectives"]>
 
   export type ObjectivesSelectScalar = {
@@ -17143,9 +17149,10 @@ export namespace Prisma {
     description?: boolean
     time_period?: boolean
     progress?: boolean
+    activity?: boolean
   }
 
-  export type ObjectivesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "time_period" | "progress", ExtArgs["result"]["objectives"]>
+  export type ObjectivesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "time_period" | "progress" | "activity", ExtArgs["result"]["objectives"]>
   export type ObjectivesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     KeyResults?: boolean | Objectives$KeyResultsArgs<ExtArgs>
     _count?: boolean | ObjectivesCountOutputTypeDefaultArgs<ExtArgs>
@@ -17161,9 +17168,10 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       title: string
-      description: string
+      description: string | null
       time_period: string
       progress: number
+      activity: Prisma.JsonValue | null
     }, ExtArgs["result"]["objectives"]>
     composites: {}
   }
@@ -17593,6 +17601,7 @@ export namespace Prisma {
     readonly description: FieldRef<"Objectives", 'String'>
     readonly time_period: FieldRef<"Objectives", 'String'>
     readonly progress: FieldRef<"Objectives", 'Float'>
+    readonly activity: FieldRef<"Objectives", 'Json'>
   }
     
 
@@ -18036,11 +18045,15 @@ export namespace Prisma {
   }
 
   export type KeyResultsAvgAggregateOutputType = {
+    start_value: number | null
+    target_value: number | null
     weight: number | null
     progress: number | null
   }
 
   export type KeyResultsSumAggregateOutputType = {
+    start_value: number | null
+    target_value: number | null
     weight: number | null
     progress: number | null
   }
@@ -18050,9 +18063,11 @@ export namespace Prisma {
     objective_id: string | null
     title: string | null
     description: string | null
+    start_value: number | null
+    target_value: number | null
     weight: number | null
-    deadline: Date | null
     progress: number | null
+    deadline: Date | null
   }
 
   export type KeyResultsMaxAggregateOutputType = {
@@ -18060,9 +18075,11 @@ export namespace Prisma {
     objective_id: string | null
     title: string | null
     description: string | null
+    start_value: number | null
+    target_value: number | null
     weight: number | null
-    deadline: Date | null
     progress: number | null
+    deadline: Date | null
   }
 
   export type KeyResultsCountAggregateOutputType = {
@@ -18070,19 +18087,25 @@ export namespace Prisma {
     objective_id: number
     title: number
     description: number
+    start_value: number
+    target_value: number
     weight: number
-    deadline: number
     progress: number
+    deadline: number
     _all: number
   }
 
 
   export type KeyResultsAvgAggregateInputType = {
+    start_value?: true
+    target_value?: true
     weight?: true
     progress?: true
   }
 
   export type KeyResultsSumAggregateInputType = {
+    start_value?: true
+    target_value?: true
     weight?: true
     progress?: true
   }
@@ -18092,9 +18115,11 @@ export namespace Prisma {
     objective_id?: true
     title?: true
     description?: true
+    start_value?: true
+    target_value?: true
     weight?: true
-    deadline?: true
     progress?: true
+    deadline?: true
   }
 
   export type KeyResultsMaxAggregateInputType = {
@@ -18102,9 +18127,11 @@ export namespace Prisma {
     objective_id?: true
     title?: true
     description?: true
+    start_value?: true
+    target_value?: true
     weight?: true
-    deadline?: true
     progress?: true
+    deadline?: true
   }
 
   export type KeyResultsCountAggregateInputType = {
@@ -18112,9 +18139,11 @@ export namespace Prisma {
     objective_id?: true
     title?: true
     description?: true
+    start_value?: true
+    target_value?: true
     weight?: true
-    deadline?: true
     progress?: true
+    deadline?: true
     _all?: true
   }
 
@@ -18208,10 +18237,12 @@ export namespace Prisma {
     id: string
     objective_id: string
     title: string
-    description: string
+    description: string | null
+    start_value: number | null
+    target_value: number
     weight: number
-    deadline: Date
     progress: number
+    deadline: Date
     _count: KeyResultsCountAggregateOutputType | null
     _avg: KeyResultsAvgAggregateOutputType | null
     _sum: KeyResultsSumAggregateOutputType | null
@@ -18238,10 +18269,12 @@ export namespace Prisma {
     objective_id?: boolean
     title?: boolean
     description?: boolean
+    start_value?: boolean
+    target_value?: boolean
     weight?: boolean
-    deadline?: boolean
     progress?: boolean
-    objective?: boolean | ObjectivesDefaultArgs<ExtArgs>
+    deadline?: boolean
+    objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["keyResults"]>
 
   export type KeyResultsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -18249,10 +18282,12 @@ export namespace Prisma {
     objective_id?: boolean
     title?: boolean
     description?: boolean
+    start_value?: boolean
+    target_value?: boolean
     weight?: boolean
-    deadline?: boolean
     progress?: boolean
-    objective?: boolean | ObjectivesDefaultArgs<ExtArgs>
+    deadline?: boolean
+    objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["keyResults"]>
 
   export type KeyResultsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -18260,10 +18295,12 @@ export namespace Prisma {
     objective_id?: boolean
     title?: boolean
     description?: boolean
+    start_value?: boolean
+    target_value?: boolean
     weight?: boolean
-    deadline?: boolean
     progress?: boolean
-    objective?: boolean | ObjectivesDefaultArgs<ExtArgs>
+    deadline?: boolean
+    objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["keyResults"]>
 
   export type KeyResultsSelectScalar = {
@@ -18271,35 +18308,39 @@ export namespace Prisma {
     objective_id?: boolean
     title?: boolean
     description?: boolean
+    start_value?: boolean
+    target_value?: boolean
     weight?: boolean
-    deadline?: boolean
     progress?: boolean
+    deadline?: boolean
   }
 
-  export type KeyResultsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "objective_id" | "title" | "description" | "weight" | "deadline" | "progress", ExtArgs["result"]["keyResults"]>
+  export type KeyResultsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "objective_id" | "title" | "description" | "start_value" | "target_value" | "weight" | "progress" | "deadline", ExtArgs["result"]["keyResults"]>
   export type KeyResultsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    objective?: boolean | ObjectivesDefaultArgs<ExtArgs>
+    objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }
   export type KeyResultsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    objective?: boolean | ObjectivesDefaultArgs<ExtArgs>
+    objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }
   export type KeyResultsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    objective?: boolean | ObjectivesDefaultArgs<ExtArgs>
+    objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }
 
   export type $KeyResultsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "KeyResults"
     objects: {
-      objective: Prisma.$ObjectivesPayload<ExtArgs>
+      objectives: Prisma.$ObjectivesPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       objective_id: string
       title: string
-      description: string
+      description: string | null
+      start_value: number | null
+      target_value: number
       weight: number
-      deadline: Date
       progress: number
+      deadline: Date
     }, ExtArgs["result"]["keyResults"]>
     composites: {}
   }
@@ -18694,7 +18735,7 @@ export namespace Prisma {
    */
   export interface Prisma__KeyResultsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    objective<T extends ObjectivesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ObjectivesDefaultArgs<ExtArgs>>): Prisma__ObjectivesClient<$Result.GetResult<Prisma.$ObjectivesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    objectives<T extends ObjectivesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ObjectivesDefaultArgs<ExtArgs>>): Prisma__ObjectivesClient<$Result.GetResult<Prisma.$ObjectivesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18728,9 +18769,11 @@ export namespace Prisma {
     readonly objective_id: FieldRef<"KeyResults", 'String'>
     readonly title: FieldRef<"KeyResults", 'String'>
     readonly description: FieldRef<"KeyResults", 'String'>
+    readonly start_value: FieldRef<"KeyResults", 'Float'>
+    readonly target_value: FieldRef<"KeyResults", 'Float'>
     readonly weight: FieldRef<"KeyResults", 'Float'>
-    readonly deadline: FieldRef<"KeyResults", 'DateTime'>
     readonly progress: FieldRef<"KeyResults", 'Float'>
+    readonly deadline: FieldRef<"KeyResults", 'DateTime'>
   }
     
 
@@ -19367,7 +19410,8 @@ export namespace Prisma {
     title: 'title',
     description: 'description',
     time_period: 'time_period',
-    progress: 'progress'
+    progress: 'progress',
+    activity: 'activity'
   };
 
   export type ObjectivesScalarFieldEnum = (typeof ObjectivesScalarFieldEnum)[keyof typeof ObjectivesScalarFieldEnum]
@@ -19378,9 +19422,11 @@ export namespace Prisma {
     objective_id: 'objective_id',
     title: 'title',
     description: 'description',
+    start_value: 'start_value',
+    target_value: 'target_value',
     weight: 'weight',
-    deadline: 'deadline',
-    progress: 'progress'
+    progress: 'progress',
+    deadline: 'deadline'
   };
 
   export type KeyResultsScalarFieldEnum = (typeof KeyResultsScalarFieldEnum)[keyof typeof KeyResultsScalarFieldEnum]
@@ -19392,6 +19438,14 @@ export namespace Prisma {
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -19408,6 +19462,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -19545,6 +19608,20 @@ export namespace Prisma {
    * Reference to a field of type 'PaymentStatus[]'
    */
   export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
   /**
    * Deep Input Types
@@ -19861,12 +19938,12 @@ export namespace Prisma {
 
   export type CategoriesWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    name?: string
     AND?: CategoriesWhereInput | CategoriesWhereInput[]
     OR?: CategoriesWhereInput[]
     NOT?: CategoriesWhereInput | CategoriesWhereInput[]
-    name?: StringFilter<"Categories"> | string
     Medicines?: MedicinesListRelationFilter
-  }, "id">
+  }, "id" | "name">
 
   export type CategoriesOrderByWithAggregationInput = {
     id?: SortOrder
@@ -19905,14 +19982,14 @@ export namespace Prisma {
 
   export type DosageFormsWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    name?: string
     AND?: DosageFormsWhereInput | DosageFormsWhereInput[]
     OR?: DosageFormsWhereInput[]
     NOT?: DosageFormsWhereInput | DosageFormsWhereInput[]
-    name?: StringFilter<"DosageForms"> | string
     Medicines?: MedicinesListRelationFilter
     Sales?: SalesListRelationFilter
     Returns?: ReturnsListRelationFilter
-  }, "id">
+  }, "id" | "name">
 
   export type DosageFormsOrderByWithAggregationInput = {
     id?: SortOrder
@@ -19944,7 +20021,7 @@ export namespace Prisma {
     quantity?: IntFilter<"Medicines"> | number
     initial_quantity?: IntFilter<"Medicines"> | number
     supplier_id?: StringFilter<"Medicines"> | string
-    invoice_number?: StringFilter<"Medicines"> | string
+    invoice_number?: StringNullableFilter<"Medicines"> | string | null
     unit_price?: FloatFilter<"Medicines"> | number
     sell_price?: FloatNullableFilter<"Medicines"> | number | null
     total_price?: FloatFilter<"Medicines"> | number
@@ -19975,7 +20052,7 @@ export namespace Prisma {
     quantity?: SortOrder
     initial_quantity?: SortOrder
     supplier_id?: SortOrder
-    invoice_number?: SortOrder
+    invoice_number?: SortOrderInput | SortOrder
     unit_price?: SortOrder
     sell_price?: SortOrderInput | SortOrder
     total_price?: SortOrder
@@ -19997,19 +20074,19 @@ export namespace Prisma {
 
   export type MedicinesWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    invoice_number?: string
+    batch_number?: string
     AND?: MedicinesWhereInput | MedicinesWhereInput[]
     OR?: MedicinesWhereInput[]
     NOT?: MedicinesWhereInput | MedicinesWhereInput[]
     medicine_name?: StringFilter<"Medicines"> | string
     brand_name?: StringNullableFilter<"Medicines"> | string | null
-    batch_number?: StringNullableFilter<"Medicines"> | string | null
     category_id?: StringFilter<"Medicines"> | string
     dosage_form_id?: StringFilter<"Medicines"> | string
     medicine_weight?: FloatNullableFilter<"Medicines"> | number | null
     quantity?: IntFilter<"Medicines"> | number
     initial_quantity?: IntFilter<"Medicines"> | number
     supplier_id?: StringFilter<"Medicines"> | string
+    invoice_number?: StringNullableFilter<"Medicines"> | string | null
     unit_price?: FloatFilter<"Medicines"> | number
     sell_price?: FloatNullableFilter<"Medicines"> | number | null
     total_price?: FloatFilter<"Medicines"> | number
@@ -20027,7 +20104,7 @@ export namespace Prisma {
     createdBy?: XOR<UsersScalarRelationFilter, UsersWhereInput>
     Sales?: SalesListRelationFilter
     Returns?: ReturnsListRelationFilter
-  }, "id" | "invoice_number">
+  }, "id" | "batch_number">
 
   export type MedicinesOrderByWithAggregationInput = {
     id?: SortOrder
@@ -20040,7 +20117,7 @@ export namespace Prisma {
     quantity?: SortOrder
     initial_quantity?: SortOrder
     supplier_id?: SortOrder
-    invoice_number?: SortOrder
+    invoice_number?: SortOrderInput | SortOrder
     unit_price?: SortOrder
     sell_price?: SortOrderInput | SortOrder
     total_price?: SortOrder
@@ -20073,7 +20150,7 @@ export namespace Prisma {
     quantity?: IntWithAggregatesFilter<"Medicines"> | number
     initial_quantity?: IntWithAggregatesFilter<"Medicines"> | number
     supplier_id?: StringWithAggregatesFilter<"Medicines"> | string
-    invoice_number?: StringWithAggregatesFilter<"Medicines"> | string
+    invoice_number?: StringNullableWithAggregatesFilter<"Medicines"> | string | null
     unit_price?: FloatWithAggregatesFilter<"Medicines"> | number
     sell_price?: FloatNullableWithAggregatesFilter<"Medicines"> | number | null
     total_price?: FloatWithAggregatesFilter<"Medicines"> | number
@@ -20660,18 +20737,20 @@ export namespace Prisma {
     NOT?: ObjectivesWhereInput | ObjectivesWhereInput[]
     id?: StringFilter<"Objectives"> | string
     title?: StringFilter<"Objectives"> | string
-    description?: StringFilter<"Objectives"> | string
+    description?: StringNullableFilter<"Objectives"> | string | null
     time_period?: StringFilter<"Objectives"> | string
     progress?: FloatFilter<"Objectives"> | number
+    activity?: JsonNullableFilter<"Objectives">
     KeyResults?: KeyResultsListRelationFilter
   }
 
   export type ObjectivesOrderByWithRelationInput = {
     id?: SortOrder
     title?: SortOrder
-    description?: SortOrder
+    description?: SortOrderInput | SortOrder
     time_period?: SortOrder
     progress?: SortOrder
+    activity?: SortOrderInput | SortOrder
     KeyResults?: KeyResultsOrderByRelationAggregateInput
   }
 
@@ -20681,18 +20760,20 @@ export namespace Prisma {
     OR?: ObjectivesWhereInput[]
     NOT?: ObjectivesWhereInput | ObjectivesWhereInput[]
     title?: StringFilter<"Objectives"> | string
-    description?: StringFilter<"Objectives"> | string
+    description?: StringNullableFilter<"Objectives"> | string | null
     time_period?: StringFilter<"Objectives"> | string
     progress?: FloatFilter<"Objectives"> | number
+    activity?: JsonNullableFilter<"Objectives">
     KeyResults?: KeyResultsListRelationFilter
   }, "id">
 
   export type ObjectivesOrderByWithAggregationInput = {
     id?: SortOrder
     title?: SortOrder
-    description?: SortOrder
+    description?: SortOrderInput | SortOrder
     time_period?: SortOrder
     progress?: SortOrder
+    activity?: SortOrderInput | SortOrder
     _count?: ObjectivesCountOrderByAggregateInput
     _avg?: ObjectivesAvgOrderByAggregateInput
     _max?: ObjectivesMaxOrderByAggregateInput
@@ -20706,9 +20787,10 @@ export namespace Prisma {
     NOT?: ObjectivesScalarWhereWithAggregatesInput | ObjectivesScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Objectives"> | string
     title?: StringWithAggregatesFilter<"Objectives"> | string
-    description?: StringWithAggregatesFilter<"Objectives"> | string
+    description?: StringNullableWithAggregatesFilter<"Objectives"> | string | null
     time_period?: StringWithAggregatesFilter<"Objectives"> | string
     progress?: FloatWithAggregatesFilter<"Objectives"> | number
+    activity?: JsonNullableWithAggregatesFilter<"Objectives">
   }
 
   export type KeyResultsWhereInput = {
@@ -20718,22 +20800,26 @@ export namespace Prisma {
     id?: StringFilter<"KeyResults"> | string
     objective_id?: StringFilter<"KeyResults"> | string
     title?: StringFilter<"KeyResults"> | string
-    description?: StringFilter<"KeyResults"> | string
+    description?: StringNullableFilter<"KeyResults"> | string | null
+    start_value?: FloatNullableFilter<"KeyResults"> | number | null
+    target_value?: FloatFilter<"KeyResults"> | number
     weight?: FloatFilter<"KeyResults"> | number
-    deadline?: DateTimeFilter<"KeyResults"> | Date | string
     progress?: FloatFilter<"KeyResults"> | number
-    objective?: XOR<ObjectivesScalarRelationFilter, ObjectivesWhereInput>
+    deadline?: DateTimeFilter<"KeyResults"> | Date | string
+    objectives?: XOR<ObjectivesScalarRelationFilter, ObjectivesWhereInput>
   }
 
   export type KeyResultsOrderByWithRelationInput = {
     id?: SortOrder
     objective_id?: SortOrder
     title?: SortOrder
-    description?: SortOrder
+    description?: SortOrderInput | SortOrder
+    start_value?: SortOrderInput | SortOrder
+    target_value?: SortOrder
     weight?: SortOrder
-    deadline?: SortOrder
     progress?: SortOrder
-    objective?: ObjectivesOrderByWithRelationInput
+    deadline?: SortOrder
+    objectives?: ObjectivesOrderByWithRelationInput
   }
 
   export type KeyResultsWhereUniqueInput = Prisma.AtLeast<{
@@ -20743,21 +20829,25 @@ export namespace Prisma {
     NOT?: KeyResultsWhereInput | KeyResultsWhereInput[]
     objective_id?: StringFilter<"KeyResults"> | string
     title?: StringFilter<"KeyResults"> | string
-    description?: StringFilter<"KeyResults"> | string
+    description?: StringNullableFilter<"KeyResults"> | string | null
+    start_value?: FloatNullableFilter<"KeyResults"> | number | null
+    target_value?: FloatFilter<"KeyResults"> | number
     weight?: FloatFilter<"KeyResults"> | number
-    deadline?: DateTimeFilter<"KeyResults"> | Date | string
     progress?: FloatFilter<"KeyResults"> | number
-    objective?: XOR<ObjectivesScalarRelationFilter, ObjectivesWhereInput>
+    deadline?: DateTimeFilter<"KeyResults"> | Date | string
+    objectives?: XOR<ObjectivesScalarRelationFilter, ObjectivesWhereInput>
   }, "id">
 
   export type KeyResultsOrderByWithAggregationInput = {
     id?: SortOrder
     objective_id?: SortOrder
     title?: SortOrder
-    description?: SortOrder
+    description?: SortOrderInput | SortOrder
+    start_value?: SortOrderInput | SortOrder
+    target_value?: SortOrder
     weight?: SortOrder
-    deadline?: SortOrder
     progress?: SortOrder
+    deadline?: SortOrder
     _count?: KeyResultsCountOrderByAggregateInput
     _avg?: KeyResultsAvgOrderByAggregateInput
     _max?: KeyResultsMaxOrderByAggregateInput
@@ -20772,10 +20862,12 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"KeyResults"> | string
     objective_id?: StringWithAggregatesFilter<"KeyResults"> | string
     title?: StringWithAggregatesFilter<"KeyResults"> | string
-    description?: StringWithAggregatesFilter<"KeyResults"> | string
+    description?: StringNullableWithAggregatesFilter<"KeyResults"> | string | null
+    start_value?: FloatNullableWithAggregatesFilter<"KeyResults"> | number | null
+    target_value?: FloatWithAggregatesFilter<"KeyResults"> | number
     weight?: FloatWithAggregatesFilter<"KeyResults"> | number
-    deadline?: DateTimeWithAggregatesFilter<"KeyResults"> | Date | string
     progress?: FloatWithAggregatesFilter<"KeyResults"> | number
+    deadline?: DateTimeWithAggregatesFilter<"KeyResults"> | Date | string
   }
 
   export type UsersCreateInput = {
@@ -21219,7 +21311,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -21249,7 +21341,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -21273,7 +21365,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -21303,7 +21395,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -21330,7 +21422,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -21352,7 +21444,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -21376,7 +21468,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -22004,130 +22096,151 @@ export namespace Prisma {
   export type ObjectivesCreateInput = {
     id?: string
     title: string
-    description: string
+    description?: string | null
     time_period: string
-    progress: number
-    KeyResults?: KeyResultsCreateNestedManyWithoutObjectiveInput
+    progress?: number
+    activity?: NullableJsonNullValueInput | InputJsonValue
+    KeyResults?: KeyResultsCreateNestedManyWithoutObjectivesInput
   }
 
   export type ObjectivesUncheckedCreateInput = {
     id?: string
     title: string
-    description: string
+    description?: string | null
     time_period: string
-    progress: number
-    KeyResults?: KeyResultsUncheckedCreateNestedManyWithoutObjectiveInput
+    progress?: number
+    activity?: NullableJsonNullValueInput | InputJsonValue
+    KeyResults?: KeyResultsUncheckedCreateNestedManyWithoutObjectivesInput
   }
 
   export type ObjectivesUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     time_period?: StringFieldUpdateOperationsInput | string
     progress?: FloatFieldUpdateOperationsInput | number
-    KeyResults?: KeyResultsUpdateManyWithoutObjectiveNestedInput
+    activity?: NullableJsonNullValueInput | InputJsonValue
+    KeyResults?: KeyResultsUpdateManyWithoutObjectivesNestedInput
   }
 
   export type ObjectivesUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     time_period?: StringFieldUpdateOperationsInput | string
     progress?: FloatFieldUpdateOperationsInput | number
-    KeyResults?: KeyResultsUncheckedUpdateManyWithoutObjectiveNestedInput
+    activity?: NullableJsonNullValueInput | InputJsonValue
+    KeyResults?: KeyResultsUncheckedUpdateManyWithoutObjectivesNestedInput
   }
 
   export type ObjectivesCreateManyInput = {
     id?: string
     title: string
-    description: string
+    description?: string | null
     time_period: string
-    progress: number
+    progress?: number
+    activity?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type ObjectivesUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     time_period?: StringFieldUpdateOperationsInput | string
     progress?: FloatFieldUpdateOperationsInput | number
+    activity?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type ObjectivesUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     time_period?: StringFieldUpdateOperationsInput | string
     progress?: FloatFieldUpdateOperationsInput | number
+    activity?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type KeyResultsCreateInput = {
     id?: string
     title: string
-    description: string
-    weight: number
+    description?: string | null
+    start_value?: number | null
+    target_value: number
+    weight?: number
+    progress?: number
     deadline: Date | string
-    progress: number
-    objective: ObjectivesCreateNestedOneWithoutKeyResultsInput
+    objectives: ObjectivesCreateNestedOneWithoutKeyResultsInput
   }
 
   export type KeyResultsUncheckedCreateInput = {
     id?: string
     objective_id: string
     title: string
-    description: string
-    weight: number
+    description?: string | null
+    start_value?: number | null
+    target_value: number
+    weight?: number
+    progress?: number
     deadline: Date | string
-    progress: number
   }
 
   export type KeyResultsUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_value?: NullableFloatFieldUpdateOperationsInput | number | null
+    target_value?: FloatFieldUpdateOperationsInput | number
     weight?: FloatFieldUpdateOperationsInput | number
-    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
     progress?: FloatFieldUpdateOperationsInput | number
-    objective?: ObjectivesUpdateOneRequiredWithoutKeyResultsNestedInput
+    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    objectives?: ObjectivesUpdateOneRequiredWithoutKeyResultsNestedInput
   }
 
   export type KeyResultsUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     objective_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_value?: NullableFloatFieldUpdateOperationsInput | number | null
+    target_value?: FloatFieldUpdateOperationsInput | number
     weight?: FloatFieldUpdateOperationsInput | number
-    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
     progress?: FloatFieldUpdateOperationsInput | number
+    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type KeyResultsCreateManyInput = {
     id?: string
     objective_id: string
     title: string
-    description: string
-    weight: number
+    description?: string | null
+    start_value?: number | null
+    target_value: number
+    weight?: number
+    progress?: number
     deadline: Date | string
-    progress: number
   }
 
   export type KeyResultsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_value?: NullableFloatFieldUpdateOperationsInput | number | null
+    target_value?: FloatFieldUpdateOperationsInput | number
     weight?: FloatFieldUpdateOperationsInput | number
-    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
     progress?: FloatFieldUpdateOperationsInput | number
+    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type KeyResultsUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     objective_id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_value?: NullableFloatFieldUpdateOperationsInput | number | null
+    target_value?: FloatFieldUpdateOperationsInput | number
     weight?: FloatFieldUpdateOperationsInput | number
-    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
     progress?: FloatFieldUpdateOperationsInput | number
+    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -23163,6 +23276,29 @@ export namespace Prisma {
     total_unpaid_amount?: SortOrder
     total_paid_amount?: SortOrder
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type KeyResultsListRelationFilter = {
     every?: KeyResultsWhereInput
@@ -23180,6 +23316,7 @@ export namespace Prisma {
     description?: SortOrder
     time_period?: SortOrder
     progress?: SortOrder
+    activity?: SortOrder
   }
 
   export type ObjectivesAvgOrderByAggregateInput = {
@@ -23205,6 +23342,32 @@ export namespace Prisma {
   export type ObjectivesSumOrderByAggregateInput = {
     progress?: SortOrder
   }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
 
   export type ObjectivesScalarRelationFilter = {
     is?: ObjectivesWhereInput
@@ -23216,12 +23379,16 @@ export namespace Prisma {
     objective_id?: SortOrder
     title?: SortOrder
     description?: SortOrder
+    start_value?: SortOrder
+    target_value?: SortOrder
     weight?: SortOrder
-    deadline?: SortOrder
     progress?: SortOrder
+    deadline?: SortOrder
   }
 
   export type KeyResultsAvgOrderByAggregateInput = {
+    start_value?: SortOrder
+    target_value?: SortOrder
     weight?: SortOrder
     progress?: SortOrder
   }
@@ -23231,9 +23398,11 @@ export namespace Prisma {
     objective_id?: SortOrder
     title?: SortOrder
     description?: SortOrder
+    start_value?: SortOrder
+    target_value?: SortOrder
     weight?: SortOrder
-    deadline?: SortOrder
     progress?: SortOrder
+    deadline?: SortOrder
   }
 
   export type KeyResultsMinOrderByAggregateInput = {
@@ -23241,12 +23410,16 @@ export namespace Prisma {
     objective_id?: SortOrder
     title?: SortOrder
     description?: SortOrder
+    start_value?: SortOrder
+    target_value?: SortOrder
     weight?: SortOrder
-    deadline?: SortOrder
     progress?: SortOrder
+    deadline?: SortOrder
   }
 
   export type KeyResultsSumOrderByAggregateInput = {
+    start_value?: SortOrder
+    target_value?: SortOrder
     weight?: SortOrder
     progress?: SortOrder
   }
@@ -24333,45 +24506,45 @@ export namespace Prisma {
     update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutUpdatedCustomerCreditsInput, UsersUpdateWithoutUpdatedCustomerCreditsInput>, UsersUncheckedUpdateWithoutUpdatedCustomerCreditsInput>
   }
 
-  export type KeyResultsCreateNestedManyWithoutObjectiveInput = {
-    create?: XOR<KeyResultsCreateWithoutObjectiveInput, KeyResultsUncheckedCreateWithoutObjectiveInput> | KeyResultsCreateWithoutObjectiveInput[] | KeyResultsUncheckedCreateWithoutObjectiveInput[]
-    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectiveInput | KeyResultsCreateOrConnectWithoutObjectiveInput[]
-    createMany?: KeyResultsCreateManyObjectiveInputEnvelope
+  export type KeyResultsCreateNestedManyWithoutObjectivesInput = {
+    create?: XOR<KeyResultsCreateWithoutObjectivesInput, KeyResultsUncheckedCreateWithoutObjectivesInput> | KeyResultsCreateWithoutObjectivesInput[] | KeyResultsUncheckedCreateWithoutObjectivesInput[]
+    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectivesInput | KeyResultsCreateOrConnectWithoutObjectivesInput[]
+    createMany?: KeyResultsCreateManyObjectivesInputEnvelope
     connect?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
   }
 
-  export type KeyResultsUncheckedCreateNestedManyWithoutObjectiveInput = {
-    create?: XOR<KeyResultsCreateWithoutObjectiveInput, KeyResultsUncheckedCreateWithoutObjectiveInput> | KeyResultsCreateWithoutObjectiveInput[] | KeyResultsUncheckedCreateWithoutObjectiveInput[]
-    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectiveInput | KeyResultsCreateOrConnectWithoutObjectiveInput[]
-    createMany?: KeyResultsCreateManyObjectiveInputEnvelope
+  export type KeyResultsUncheckedCreateNestedManyWithoutObjectivesInput = {
+    create?: XOR<KeyResultsCreateWithoutObjectivesInput, KeyResultsUncheckedCreateWithoutObjectivesInput> | KeyResultsCreateWithoutObjectivesInput[] | KeyResultsUncheckedCreateWithoutObjectivesInput[]
+    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectivesInput | KeyResultsCreateOrConnectWithoutObjectivesInput[]
+    createMany?: KeyResultsCreateManyObjectivesInputEnvelope
     connect?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
   }
 
-  export type KeyResultsUpdateManyWithoutObjectiveNestedInput = {
-    create?: XOR<KeyResultsCreateWithoutObjectiveInput, KeyResultsUncheckedCreateWithoutObjectiveInput> | KeyResultsCreateWithoutObjectiveInput[] | KeyResultsUncheckedCreateWithoutObjectiveInput[]
-    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectiveInput | KeyResultsCreateOrConnectWithoutObjectiveInput[]
-    upsert?: KeyResultsUpsertWithWhereUniqueWithoutObjectiveInput | KeyResultsUpsertWithWhereUniqueWithoutObjectiveInput[]
-    createMany?: KeyResultsCreateManyObjectiveInputEnvelope
+  export type KeyResultsUpdateManyWithoutObjectivesNestedInput = {
+    create?: XOR<KeyResultsCreateWithoutObjectivesInput, KeyResultsUncheckedCreateWithoutObjectivesInput> | KeyResultsCreateWithoutObjectivesInput[] | KeyResultsUncheckedCreateWithoutObjectivesInput[]
+    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectivesInput | KeyResultsCreateOrConnectWithoutObjectivesInput[]
+    upsert?: KeyResultsUpsertWithWhereUniqueWithoutObjectivesInput | KeyResultsUpsertWithWhereUniqueWithoutObjectivesInput[]
+    createMany?: KeyResultsCreateManyObjectivesInputEnvelope
     set?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
     disconnect?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
     delete?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
     connect?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
-    update?: KeyResultsUpdateWithWhereUniqueWithoutObjectiveInput | KeyResultsUpdateWithWhereUniqueWithoutObjectiveInput[]
-    updateMany?: KeyResultsUpdateManyWithWhereWithoutObjectiveInput | KeyResultsUpdateManyWithWhereWithoutObjectiveInput[]
+    update?: KeyResultsUpdateWithWhereUniqueWithoutObjectivesInput | KeyResultsUpdateWithWhereUniqueWithoutObjectivesInput[]
+    updateMany?: KeyResultsUpdateManyWithWhereWithoutObjectivesInput | KeyResultsUpdateManyWithWhereWithoutObjectivesInput[]
     deleteMany?: KeyResultsScalarWhereInput | KeyResultsScalarWhereInput[]
   }
 
-  export type KeyResultsUncheckedUpdateManyWithoutObjectiveNestedInput = {
-    create?: XOR<KeyResultsCreateWithoutObjectiveInput, KeyResultsUncheckedCreateWithoutObjectiveInput> | KeyResultsCreateWithoutObjectiveInput[] | KeyResultsUncheckedCreateWithoutObjectiveInput[]
-    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectiveInput | KeyResultsCreateOrConnectWithoutObjectiveInput[]
-    upsert?: KeyResultsUpsertWithWhereUniqueWithoutObjectiveInput | KeyResultsUpsertWithWhereUniqueWithoutObjectiveInput[]
-    createMany?: KeyResultsCreateManyObjectiveInputEnvelope
+  export type KeyResultsUncheckedUpdateManyWithoutObjectivesNestedInput = {
+    create?: XOR<KeyResultsCreateWithoutObjectivesInput, KeyResultsUncheckedCreateWithoutObjectivesInput> | KeyResultsCreateWithoutObjectivesInput[] | KeyResultsUncheckedCreateWithoutObjectivesInput[]
+    connectOrCreate?: KeyResultsCreateOrConnectWithoutObjectivesInput | KeyResultsCreateOrConnectWithoutObjectivesInput[]
+    upsert?: KeyResultsUpsertWithWhereUniqueWithoutObjectivesInput | KeyResultsUpsertWithWhereUniqueWithoutObjectivesInput[]
+    createMany?: KeyResultsCreateManyObjectivesInputEnvelope
     set?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
     disconnect?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
     delete?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
     connect?: KeyResultsWhereUniqueInput | KeyResultsWhereUniqueInput[]
-    update?: KeyResultsUpdateWithWhereUniqueWithoutObjectiveInput | KeyResultsUpdateWithWhereUniqueWithoutObjectiveInput[]
-    updateMany?: KeyResultsUpdateManyWithWhereWithoutObjectiveInput | KeyResultsUpdateManyWithWhereWithoutObjectiveInput[]
+    update?: KeyResultsUpdateWithWhereUniqueWithoutObjectivesInput | KeyResultsUpdateWithWhereUniqueWithoutObjectivesInput[]
+    updateMany?: KeyResultsUpdateManyWithWhereWithoutObjectivesInput | KeyResultsUpdateManyWithWhereWithoutObjectivesInput[]
     deleteMany?: KeyResultsScalarWhereInput | KeyResultsScalarWhereInput[]
   }
 
@@ -24723,6 +24896,29 @@ export namespace Prisma {
     _min?: NestedEnumPaymentStatusFilter<$PrismaModel>
     _max?: NestedEnumPaymentStatusFilter<$PrismaModel>
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type MembersCreateWithoutUserInput = {
     id?: string
@@ -24821,7 +25017,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -24850,7 +25046,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -25223,7 +25419,7 @@ export namespace Prisma {
     quantity?: IntFilter<"Medicines"> | number
     initial_quantity?: IntFilter<"Medicines"> | number
     supplier_id?: StringFilter<"Medicines"> | string
-    invoice_number?: StringFilter<"Medicines"> | string
+    invoice_number?: StringNullableFilter<"Medicines"> | string | null
     unit_price?: FloatFilter<"Medicines"> | number
     sell_price?: FloatNullableFilter<"Medicines"> | number | null
     total_price?: FloatFilter<"Medicines"> | number
@@ -25509,7 +25705,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -25537,7 +25733,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -25603,7 +25799,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -25631,7 +25827,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -25681,7 +25877,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -25709,7 +25905,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -26275,7 +26471,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -26304,7 +26500,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -26483,7 +26679,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -26512,7 +26708,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -26652,7 +26848,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -26681,7 +26877,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -26745,7 +26941,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -26774,7 +26970,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -27405,48 +27601,52 @@ export namespace Prisma {
     updatedSales?: SalesUncheckedUpdateManyWithoutUpdatedByNestedInput
   }
 
-  export type KeyResultsCreateWithoutObjectiveInput = {
+  export type KeyResultsCreateWithoutObjectivesInput = {
     id?: string
     title: string
-    description: string
-    weight: number
+    description?: string | null
+    start_value?: number | null
+    target_value: number
+    weight?: number
+    progress?: number
     deadline: Date | string
-    progress: number
   }
 
-  export type KeyResultsUncheckedCreateWithoutObjectiveInput = {
+  export type KeyResultsUncheckedCreateWithoutObjectivesInput = {
     id?: string
     title: string
-    description: string
-    weight: number
+    description?: string | null
+    start_value?: number | null
+    target_value: number
+    weight?: number
+    progress?: number
     deadline: Date | string
-    progress: number
   }
 
-  export type KeyResultsCreateOrConnectWithoutObjectiveInput = {
+  export type KeyResultsCreateOrConnectWithoutObjectivesInput = {
     where: KeyResultsWhereUniqueInput
-    create: XOR<KeyResultsCreateWithoutObjectiveInput, KeyResultsUncheckedCreateWithoutObjectiveInput>
+    create: XOR<KeyResultsCreateWithoutObjectivesInput, KeyResultsUncheckedCreateWithoutObjectivesInput>
   }
 
-  export type KeyResultsCreateManyObjectiveInputEnvelope = {
-    data: KeyResultsCreateManyObjectiveInput | KeyResultsCreateManyObjectiveInput[]
+  export type KeyResultsCreateManyObjectivesInputEnvelope = {
+    data: KeyResultsCreateManyObjectivesInput | KeyResultsCreateManyObjectivesInput[]
     skipDuplicates?: boolean
   }
 
-  export type KeyResultsUpsertWithWhereUniqueWithoutObjectiveInput = {
+  export type KeyResultsUpsertWithWhereUniqueWithoutObjectivesInput = {
     where: KeyResultsWhereUniqueInput
-    update: XOR<KeyResultsUpdateWithoutObjectiveInput, KeyResultsUncheckedUpdateWithoutObjectiveInput>
-    create: XOR<KeyResultsCreateWithoutObjectiveInput, KeyResultsUncheckedCreateWithoutObjectiveInput>
+    update: XOR<KeyResultsUpdateWithoutObjectivesInput, KeyResultsUncheckedUpdateWithoutObjectivesInput>
+    create: XOR<KeyResultsCreateWithoutObjectivesInput, KeyResultsUncheckedCreateWithoutObjectivesInput>
   }
 
-  export type KeyResultsUpdateWithWhereUniqueWithoutObjectiveInput = {
+  export type KeyResultsUpdateWithWhereUniqueWithoutObjectivesInput = {
     where: KeyResultsWhereUniqueInput
-    data: XOR<KeyResultsUpdateWithoutObjectiveInput, KeyResultsUncheckedUpdateWithoutObjectiveInput>
+    data: XOR<KeyResultsUpdateWithoutObjectivesInput, KeyResultsUncheckedUpdateWithoutObjectivesInput>
   }
 
-  export type KeyResultsUpdateManyWithWhereWithoutObjectiveInput = {
+  export type KeyResultsUpdateManyWithWhereWithoutObjectivesInput = {
     where: KeyResultsScalarWhereInput
-    data: XOR<KeyResultsUpdateManyMutationInput, KeyResultsUncheckedUpdateManyWithoutObjectiveInput>
+    data: XOR<KeyResultsUpdateManyMutationInput, KeyResultsUncheckedUpdateManyWithoutObjectivesInput>
   }
 
   export type KeyResultsScalarWhereInput = {
@@ -27456,26 +27656,30 @@ export namespace Prisma {
     id?: StringFilter<"KeyResults"> | string
     objective_id?: StringFilter<"KeyResults"> | string
     title?: StringFilter<"KeyResults"> | string
-    description?: StringFilter<"KeyResults"> | string
+    description?: StringNullableFilter<"KeyResults"> | string | null
+    start_value?: FloatNullableFilter<"KeyResults"> | number | null
+    target_value?: FloatFilter<"KeyResults"> | number
     weight?: FloatFilter<"KeyResults"> | number
-    deadline?: DateTimeFilter<"KeyResults"> | Date | string
     progress?: FloatFilter<"KeyResults"> | number
+    deadline?: DateTimeFilter<"KeyResults"> | Date | string
   }
 
   export type ObjectivesCreateWithoutKeyResultsInput = {
     id?: string
     title: string
-    description: string
+    description?: string | null
     time_period: string
-    progress: number
+    progress?: number
+    activity?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type ObjectivesUncheckedCreateWithoutKeyResultsInput = {
     id?: string
     title: string
-    description: string
+    description?: string | null
     time_period: string
-    progress: number
+    progress?: number
+    activity?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type ObjectivesCreateOrConnectWithoutKeyResultsInput = {
@@ -27497,17 +27701,19 @@ export namespace Prisma {
   export type ObjectivesUpdateWithoutKeyResultsInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     time_period?: StringFieldUpdateOperationsInput | string
     progress?: FloatFieldUpdateOperationsInput | number
+    activity?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type ObjectivesUncheckedUpdateWithoutKeyResultsInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     time_period?: StringFieldUpdateOperationsInput | string
     progress?: FloatFieldUpdateOperationsInput | number
+    activity?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type SupplierCreditsCreateManyCreatedByInput = {
@@ -27540,7 +27746,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -27709,7 +27915,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -27738,7 +27944,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -27764,7 +27970,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28079,7 +28285,7 @@ export namespace Prisma {
     medicine_weight?: number | null
     quantity: number
     initial_quantity: number
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -28158,7 +28364,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28186,7 +28392,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28212,7 +28418,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28236,7 +28442,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -28258,7 +28464,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28286,7 +28492,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28312,7 +28518,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28336,7 +28542,7 @@ export namespace Prisma {
     quantity: number
     initial_quantity: number
     supplier_id: string
-    invoice_number: string
+    invoice_number?: string | null
     unit_price: number
     sell_price?: number | null
     total_price: number
@@ -28386,7 +28592,7 @@ export namespace Prisma {
     medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28414,7 +28620,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28440,7 +28646,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     initial_quantity?: IntFieldUpdateOperationsInput | number
     supplier_id?: StringFieldUpdateOperationsInput | string
-    invoice_number?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
     unit_price?: FloatFieldUpdateOperationsInput | number
     sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
     total_price?: FloatFieldUpdateOperationsInput | number
@@ -28794,40 +29000,48 @@ export namespace Prisma {
     updated_by?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type KeyResultsCreateManyObjectiveInput = {
+  export type KeyResultsCreateManyObjectivesInput = {
     id?: string
     title: string
-    description: string
-    weight: number
+    description?: string | null
+    start_value?: number | null
+    target_value: number
+    weight?: number
+    progress?: number
     deadline: Date | string
-    progress: number
   }
 
-  export type KeyResultsUpdateWithoutObjectiveInput = {
+  export type KeyResultsUpdateWithoutObjectivesInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_value?: NullableFloatFieldUpdateOperationsInput | number | null
+    target_value?: FloatFieldUpdateOperationsInput | number
     weight?: FloatFieldUpdateOperationsInput | number
-    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
     progress?: FloatFieldUpdateOperationsInput | number
+    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type KeyResultsUncheckedUpdateWithoutObjectiveInput = {
+  export type KeyResultsUncheckedUpdateWithoutObjectivesInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_value?: NullableFloatFieldUpdateOperationsInput | number | null
+    target_value?: FloatFieldUpdateOperationsInput | number
     weight?: FloatFieldUpdateOperationsInput | number
-    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
     progress?: FloatFieldUpdateOperationsInput | number
+    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type KeyResultsUncheckedUpdateManyWithoutObjectiveInput = {
+  export type KeyResultsUncheckedUpdateManyWithoutObjectivesInput = {
     id?: StringFieldUpdateOperationsInput | string
     title?: StringFieldUpdateOperationsInput | string
-    description?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    start_value?: NullableFloatFieldUpdateOperationsInput | number | null
+    target_value?: FloatFieldUpdateOperationsInput | number
     weight?: FloatFieldUpdateOperationsInput | number
-    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
     progress?: FloatFieldUpdateOperationsInput | number
+    deadline?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
