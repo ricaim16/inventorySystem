@@ -1,21 +1,18 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import returnsApi from "../../api/returnsApi";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const ReturnReport = ({ showToast }) => {
   const [report, setReport] = useState(null);
   const [filters, setFilters] = useState({
     start_date: "",
     end_date: "",
-    limit: 100,
-    offset: 0,
+    medicine_id: "",
   });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMedicineId, setSelectedMedicineId] = useState("");
   const [medicines, setMedicines] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,7 +22,7 @@ const ReturnReport = ({ showToast }) => {
   const { user } = useAuth();
   const { theme } = useTheme();
 
-  const formatEAT = useCallback((date) => {
+  const formatEAT = (date) => {
     try {
       return new Date(date).toLocaleString("en-US", {
         timeZone: "Africa/Addis_Ababa",
@@ -36,7 +33,7 @@ const ReturnReport = ({ showToast }) => {
     } catch (err) {
       return "Invalid Date";
     }
-  }, []);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -47,19 +44,12 @@ const ReturnReport = ({ showToast }) => {
   }, [user]);
 
   const fetchMedicines = async () => {
-    setLoading(true);
-    setError(null);
     try {
       const { getAllMedicines } = await import("../../api/medicineApi");
       const data = await getAllMedicines();
       setMedicines(data || []);
-      if (data && data.length > 0) {
-        setSelectedMedicineId(data[0].id);
-      }
     } catch (err) {
       setError("Failed to load medicines: " + (err.message || "Unknown error"));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -71,33 +61,67 @@ const ReturnReport = ({ showToast }) => {
       const cleanedFilters = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== "")
       );
+      // Validate and adjust dates
       if (cleanedFilters.start_date && cleanedFilters.end_date) {
         const startDate = new Date(cleanedFilters.start_date);
         const endDate = new Date(cleanedFilters.end_date);
         if (startDate > endDate) {
           throw new Error("Start date cannot be after end date.");
         }
+        // Extend end_date to end of day
         endDate.setHours(23, 59, 59, 999);
         cleanedFilters.end_date = endDate.toISOString();
         cleanedFilters.start_date = startDate.toISOString();
+        console.log("Adjusted Date Range:", {
+          start_date: cleanedFilters.start_date,
+          end_date: cleanedFilters.end_date,
+        });
       }
-      cleanedFilters.medicine_id = selectedMedicineId || undefined;
+      if (cleanedFilters.medicine_id) {
+        console.log("Selected Medicine ID:", cleanedFilters.medicine_id);
+      }
       console.log("Filters sent to API:", cleanedFilters);
       const data = await returnsApi.getAllReturns(cleanedFilters);
       if (!Array.isArray(data)) {
         throw new Error("Invalid report data structure");
       }
-      if (data.length === 0) {
-        setError("No returns found for the selected filters.");
+
+      // Client-side filtering as fallback
+      let filteredData = data;
+      if (cleanedFilters.medicine_id) {
+        filteredData = filteredData.filter(
+          (returnItem) => returnItem.medicine?.id === cleanedFilters.medicine_id
+        );
+      }
+      if (cleanedFilters.start_date && cleanedFilters.end_date) {
+        const startDate = new Date(cleanedFilters.start_date);
+        const endDate = new Date(cleanedFilters.end_date);
+        filteredData = filteredData.filter((returnItem) => {
+          const returnDate = new Date(returnItem.return_date);
+          return returnDate >= startDate && returnDate <= endDate;
+        });
+      }
+
+      if (filteredData.length === 0) {
+        let errorMessage = "No medicine returns.";
+        if (cleanedFilters.medicine_id) {
+          errorMessage = "No returns found for the selected medicine.";
+        } else if (cleanedFilters.start_date && cleanedFilters.end_date) {
+          errorMessage = "No medicine is returned between the selected dates.";
+        }
+        setError(errorMessage);
         setReport(null);
         setShowReport(false);
         return false;
       }
       const summary = {
-        returnCount: data.length,
-        totalQuantity: data.reduce((sum, r) => sum + (r.quantity || 0), 0),
+        returnCount: filteredData.length,
+        totalQuantity: filteredData.reduce(
+          (sum, r) => sum + (r.quantity || 0),
+          0
+        ),
       };
-      setReport({ summary, returns: data, generatedAt: new Date() });
+      setReport({ summary, returns: filteredData });
       setShowReport(true);
       showToast("Returns report generated successfully!");
       return true;
@@ -116,10 +140,6 @@ const ReturnReport = ({ showToast }) => {
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleMedicineChange = (e) => {
-    setSelectedMedicineId(e.target.value);
   };
 
   const handleFilterSubmit = async (e) => {
@@ -141,8 +161,8 @@ const ReturnReport = ({ showToast }) => {
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    const medicineName = selectedMedicineId
-      ? medicines.find((m) => m.id === selectedMedicineId)?.medicine_name ||
+    const medicineName = filters.medicine_id
+      ? medicines.find((m) => m.id === filters.medicine_id)?.medicine_name ||
         "Unknown"
       : "All Medicines";
     const dateRange =
@@ -239,10 +259,6 @@ const ReturnReport = ({ showToast }) => {
     showToast("Returns report downloaded successfully!");
   };
 
-  const filteredMedicines = medicines.filter((medicine) =>
-    medicine?.medicine_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const totalPages = report?.returns
     ? Math.ceil(report.returns.length / itemsPerPage)
     : 0;
@@ -319,7 +335,6 @@ const ReturnReport = ({ showToast }) => {
         className={`text-2xl sm:text-3xl font-semibold font-sans mb-4 ${
           theme === "dark" ? "text-gray-100" : "text-gray-900"
         }`}
-        style={{ color: "#10B981" }}
       >
         Returns Report
       </h2>
@@ -359,15 +374,12 @@ const ReturnReport = ({ showToast }) => {
         }`}
       >
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-          <h3
-            className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0"
-            style={{ color: "#10B981" }}
-          >
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
             Generate Returns Report
           </h3>
           <button
             type="submit"
-            className={`bg-[#10B981] text-white px-4 py-2 rounded hover:bg-[#0E8C6A] disabled:bg-gray-500 disabled:opacity-50 text-base sm:text-lg ${
+            className={`bg-[#10B981] text-white px-4 py-2 rounded hover:bg-[#0E8C6A] disabled:bg-[#A52A2A] disabled:opacity-50 text-base sm:text-lg ${
               loading ? "opacity-50" : ""
             } w-full sm:w-auto`}
             disabled={loading}
@@ -376,61 +388,6 @@ const ReturnReport = ({ showToast }) => {
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="relative">
-            <label
-              className={`block text-sm font-medium mb-1 ${
-                theme === "dark" ? "text-white" : "text-black"
-              }`}
-            >
-              Search Medicine
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search medicines..."
-                className={`w-full p-2 pl-10 border rounded text-sm placeholder-gray-400 ${
-                  theme === "dark"
-                    ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                    : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#F7F7F7]"
-                }`}
-                disabled={loading}
-              />
-              <FiSearch
-                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
-                  theme === "dark" ? "text-gray-400" : "text-gray-500"
-                }`}
-                size={16}
-              />
-            </div>
-          </div>
-          <div>
-            <label
-              className={`block text-sm font-medium mb-1 ${
-                theme === "dark" ? "text-white" : "text-black"
-              }`}
-            >
-              Select Medicine
-            </label>
-            <select
-              value={selectedMedicineId}
-              onChange={handleMedicineChange}
-              className={`w-full p-2 border rounded text-sm ${
-                theme === "dark"
-                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                  : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#F7F7F7]"
-              }`}
-              disabled={loading || medicines.length === 0}
-            >
-              <option value="">All Medicines</option>
-              {filteredMedicines.map((med) => (
-                <option key={med.id} value={med.id}>
-                  {med.medicine_name}
-                </option>
-              ))}
-            </select>
-          </div>
           <div>
             <label
               className={`block text-sm font-medium mb-1 ${
@@ -485,12 +442,15 @@ const ReturnReport = ({ showToast }) => {
                 theme === "dark" ? "text-white" : "text-black"
               }`}
             >
-              Items per Page
+              Medicine
             </label>
             <select
-              name="limit"
-              value={filters.limit}
-              onChange={handleFilterChange}
+              name="medicine_id"
+              value={filters.medicine_id}
+              onChange={(e) => {
+                console.log("Selected medicine ID:", e.target.value);
+                handleFilterChange(e);
+              }}
               className={`w-full p-2 border rounded text-sm ${
                 theme === "dark"
                   ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
@@ -498,10 +458,12 @@ const ReturnReport = ({ showToast }) => {
               }`}
               disabled={loading}
             >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
+              <option value="">All Medicines</option>
+              {medicines.map((med) => (
+                <option key={med.id} value={med.id}>
+                  {med.medicine_name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -509,8 +471,7 @@ const ReturnReport = ({ showToast }) => {
 
       {!loading && !error && !showReport && (
         <div className="text-center mb-4 text-sm sm:text-base">
-          No returns report generated yet. Please select a medicine and click
-          "Apply Filters".
+          No returns report generated yet. Please click "Apply Filters".
         </div>
       )}
 
@@ -519,7 +480,7 @@ const ReturnReport = ({ showToast }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
             <div
               className={`p-4 rounded-lg shadow ${
-                theme === "dark" ? "bg-orange-900" : "bg-orange particul-200"
+                theme === "dark" ? "bg-orange-900" : "bg-orange-200"
               }`}
               style={{
                 backgroundColor: theme === "dark" ? "#DD6B20" : "#FBD38D",
@@ -721,7 +682,7 @@ const ReturnReport = ({ showToast }) => {
             </div>
           ) : (
             <div className="text-center mb-4 text-sm sm:text-base">
-              {report.message || "No returns found"}
+              {report?.message || "No medicine returns"}
             </div>
           )}
         </>
