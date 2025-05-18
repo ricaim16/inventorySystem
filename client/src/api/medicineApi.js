@@ -184,7 +184,7 @@ export const getExpirationAlerts = async () => {
 
 export const generateExpirationReport = async () => {
   try {
-    const response = await axiosInstance.get("/expire/report");
+    const response = await axiosInstance.get(`/expire/report`);
     return response.data;
   } catch (error) {
     console.error("Error generating expiration report:", {

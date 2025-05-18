@@ -1,83 +1,117 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { addObjective, addKeyResult } from "../../api/okrApi";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  editObjective,
+  editKeyResult,
+  fetchObjectives,
+} from "../../api/okrApi";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { format, addDays } from "date-fns";
 
-const OkrAdd = () => {
+const OkrEdit = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { user } = useAuth();
   const { theme } = useTheme();
   const isManager = user?.role === "MANAGER";
-  const [error, setError] = useState(null);
-  const [newObjective, setNewObjective] = useState({
+  const [objective, setObjective] = useState({
     title: "",
     description: "",
-    time_period: "Q2 2025",
+    time_period: "",
   });
-  const [newKeyResults, setNewKeyResults] = useState([
-    {
-      title: "",
-      description: "",
-      start_value: 0,
-      target_value: 100,
-      weight: 1,
-      deadline: addDays(new Date(), 1),
-    },
-  ]);
+  const [keyResults, setKeyResults] = useState([]);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAddObjective = async (e) => {
+  useEffect(() => {
+    const loadObjective = async () => {
+      setIsLoading(true);
+      try {
+        const objectives = await fetchObjectives();
+        const obj = objectives.find((o) => o.id === id);
+        if (!obj) {
+          throw new Error("Objective not found");
+        }
+        setObjective({
+          title: obj.title,
+          description: obj.description || "",
+          time_period: obj.time_period,
+        });
+        setKeyResults(
+          obj.KeyResults.map((kr) => ({
+            id: kr.id,
+            title: kr.title,
+            description: kr.description || "",
+            start_value: kr.start_value || 0,
+            target_value: kr.target_value || 100,
+            weight: kr.weight || 1,
+            deadline: format(new Date(kr.deadline), "yyyy-MM-dd"),
+          }))
+        );
+        setError(null);
+      } catch (error) {
+        console.error("Load objective error:", {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data,
+        });
+        setError(
+          error.response?.data?.details ||
+            error.message ||
+            "Failed to load objective"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (isManager) {
+      loadObjective();
+    } else {
+      setError("Access denied. Only managers can edit OKRs.");
+    }
+  }, [id, isManager]);
+
+  const handleEditObjective = async (e) => {
     e.preventDefault();
     if (!isManager) {
-      setError("Access denied. Only managers can add OKRs.");
+      setError("Access denied. Only managers can edit OKRs.");
       return;
     }
-    if (!newObjective.title.trim() || !newObjective.time_period.trim()) {
+    if (!objective.title.trim() || !objective.time_period.trim()) {
       setError("Objective title and time period are required.");
       return;
     }
     if (
-      newKeyResults.some(
-        (kr) => !kr.title.trim() || kr.target_value <= (kr.start_value ?? 0)
+      keyResults.some(
+        (kr) => !kr.title.trim() || kr.target_value <= kr.start_value
       )
     ) {
-      setError("Key result must have a title and valid start/target values.");
+      setError(
+        "All key results must have a title and target value must be greater than start value."
+      );
       return;
     }
     try {
       setError(null);
-      const objective = await addObjective({
-        title: newObjective.title,
-        description: newObjective.description,
-        time_period: newObjective.time_period,
+      await editObjective(id, {
+        title: objective.title,
+        description: objective.description,
+        time_period: objective.time_period,
       });
-      for (const kr of newKeyResults) {
-        const keyResultData = {
-          objective_id: objective.id,
+      for (const kr of keyResults) {
+        await editKeyResult(kr.id, {
           title: kr.title,
-          description: kr.description || "",
-          start_value: parseFloat(kr.start_value) ?? 0,
+          description: kr.description,
+          start_value: parseFloat(kr.start_value) || 0,
           target_value: parseFloat(kr.target_value) || 100,
           weight: parseFloat(kr.weight) || 1,
           deadline: new Date(kr.deadline),
-        };
-        await addKeyResult(keyResultData);
+        });
       }
-      setNewObjective({ title: "", description: "", time_period: "Q2 2025" });
-      setNewKeyResults([
-        {
-          title: "",
-          description: "",
-          start_value: 0,
-          target_value: 100,
-          weight: 1,
-          deadline: addDays(new Date(), 1),
-        },
-      ]);
       navigate("/okr/track-progress");
     } catch (error) {
-      console.error("Add objective error:", {
+      console.error("Edit objective error:", {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
@@ -85,21 +119,22 @@ const OkrAdd = () => {
       setError(
         error.response?.data?.details ||
           error.message ||
-          "Failed to create objective"
+          "Failed to edit objective"
       );
     }
   };
 
-  const handleAddAnotherKeyResult = () => {
-    setNewKeyResults([
-      ...newKeyResults,
+  const handleAddKeyResult = () => {
+    setKeyResults([
+      ...keyResults,
       {
+        id: `temp-${Date.now()}`,
         title: "",
         description: "",
         start_value: 0,
         target_value: 100,
         weight: 1,
-        deadline: addDays(new Date(), 1),
+        deadline: format(addDays(new Date(), 1), "yyyy-MM-dd"),
       },
     ]);
   };
@@ -111,7 +146,19 @@ const OkrAdd = () => {
           theme === "dark" ? "text-red-400" : "text-red-600"
         }`}
       >
-        Access denied. Only managers can add OKRs.
+        Access denied. Only managers can edit OKRs.
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        className={`p-6 text-sm ${
+          theme === "dark" ? "text-gray-400" : "text-gray-600"
+        }`}
+      >
+        Loading...
       </div>
     );
   }
@@ -123,11 +170,11 @@ const OkrAdd = () => {
       }`}
     >
       <h1
-        className={`text-xl sm:text-2xl font-semibold mb-6 ${
+        className={`text-xl sm:text-2xl font-semibold mb-6 flex items-center ${
           theme === "dark" ? "text-teal-400" : "text-teal-600"
         }`}
       >
-        OBJECTIVE AND KEY RESULT
+        <span className="mr-2">✏️</span> Edit Objective and Key Results
       </h1>
       {error && (
         <div
@@ -151,7 +198,7 @@ const OkrAdd = () => {
           </button>
         </div>
       )}
-      <form onSubmit={handleAddObjective} className="space-y-4">
+      <form onSubmit={handleEditObjective} className="space-y-4">
         <div
           className={`p-4 rounded-md transition-colors duration-200 ${
             theme === "dark" ? "bg-gray-900" : "bg-white"
@@ -177,12 +224,9 @@ const OkrAdd = () => {
               id="objective-title"
               type="text"
               name="title"
-              value={newObjective.title}
+              value={objective.title}
               onChange={(e) =>
-                setNewObjective({
-                  ...newObjective,
-                  [e.target.name]: e.target.value,
-                })
+                setObjective({ ...objective, [e.target.name]: e.target.value })
               }
               placeholder="Enter objective title"
               className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
@@ -205,12 +249,9 @@ const OkrAdd = () => {
             <textarea
               id="objective-description"
               name="description"
-              value={newObjective.description}
+              value={objective.description}
               onChange={(e) =>
-                setNewObjective({
-                  ...newObjective,
-                  [e.target.name]: e.target.value,
-                })
+                setObjective({ ...objective, [e.target.name]: e.target.value })
               }
               placeholder="Add a description (optional)"
               className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
@@ -241,12 +282,9 @@ const OkrAdd = () => {
               id="time-period"
               type="text"
               name="time_period"
-              value={newObjective.time_period}
+              value={objective.time_period}
               onChange={(e) =>
-                setNewObjective({
-                  ...newObjective,
-                  [e.target.name]: e.target.value,
-                })
+                setObjective({ ...objective, [e.target.name]: e.target.value })
               }
               placeholder="e.g., Q2 2025"
               className={`mt-1 block w-32 border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs transition-colors duration-200 ${
@@ -269,10 +307,10 @@ const OkrAdd = () => {
               theme === "dark" ? "text-teal-400" : "text-teal-600"
             }`}
           >
-            Key Result
+            Key Results
           </h2>
-          {newKeyResults.map((kr, index) => (
-            <div key={index} className="space-y-4 mb-4">
+          {keyResults.map((kr, index) => (
+            <div key={kr.id} className="space-y-4 mb-4">
               <div>
                 <label
                   htmlFor={`kr-title-${index}`}
@@ -288,9 +326,9 @@ const OkrAdd = () => {
                   name="title"
                   value={kr.title}
                   onChange={(e) => {
-                    const updated = [...newKeyResults];
+                    const updated = [...keyResults];
                     updated[index][e.target.name] = e.target.value;
-                    setNewKeyResults(updated);
+                    setKeyResults(updated);
                   }}
                   placeholder="Enter key result title"
                   className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
@@ -315,9 +353,9 @@ const OkrAdd = () => {
                   name="description"
                   value={kr.description}
                   onChange={(e) => {
-                    const updated = [...newKeyResults];
+                    const updated = [...keyResults];
                     updated[index][e.target.name] = e.target.value;
-                    setNewKeyResults(updated);
+                    setKeyResults(updated);
                   }}
                   placeholder="Add a description (optional)"
                   className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
@@ -359,20 +397,20 @@ const OkrAdd = () => {
                       name="start_value"
                       value={kr.start_value}
                       onChange={(e) => {
-                        const updated = [...newKeyResults];
+                        const updated = [...keyResults];
                         updated[index][e.target.name] =
                           e.target.value === ""
                             ? ""
                             : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
+                        setKeyResults(updated);
                       }}
                       onBlur={(e) => {
-                        const updated = [...newKeyResults];
+                        const updated = [...keyResults];
                         updated[index][e.target.name] =
                           e.target.value === ""
                             ? 0
                             : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
+                        setKeyResults(updated);
                       }}
                       placeholder="0"
                       className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
@@ -397,20 +435,20 @@ const OkrAdd = () => {
                       name="target_value"
                       value={kr.target_value}
                       onChange={(e) => {
-                        const updated = [...newKeyResults];
+                        const updated = [...keyResults];
                         updated[index][e.target.name] =
                           e.target.value === ""
                             ? ""
                             : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
+                        setKeyResults(updated);
                       }}
                       onBlur={(e) => {
-                        const updated = [...newKeyResults];
+                        const updated = [...keyResults];
                         updated[index][e.target.name] =
                           e.target.value === ""
                             ? 100
                             : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
+                        setKeyResults(updated);
                       }}
                       placeholder="100"
                       className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
@@ -438,10 +476,16 @@ const OkrAdd = () => {
                   name="weight"
                   value={kr.weight}
                   onChange={(e) => {
-                    const updated = [...newKeyResults];
+                    const updated = [...keyResults];
                     updated[index][e.target.name] =
-                      parseFloat(e.target.value) || 1;
-                    setNewKeyResults(updated);
+                      e.target.value === "" ? "" : parseFloat(e.target.value);
+                    setKeyResults(updated);
+                  }}
+                  onBlur={(e) => {
+                    const updated = [...keyResults];
+                    updated[index][e.target.name] =
+                      e.target.value === "" ? 1 : parseFloat(e.target.value);
+                    setKeyResults(updated);
                   }}
                   placeholder="1"
                   className={`mt-1 block w-24 border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs transition-colors duration-200 ${
@@ -465,11 +509,11 @@ const OkrAdd = () => {
                   id={`deadline-${index}`}
                   type="date"
                   name="deadline"
-                  value={format(new Date(kr.deadline), "yyyy-MM-dd")}
+                  value={kr.deadline}
                   onChange={(e) => {
-                    const updated = [...newKeyResults];
-                    updated[index].deadline = new Date(e.target.value);
-                    setNewKeyResults(updated);
+                    const updated = [...keyResults];
+                    updated[index][e.target.name] = e.target.value;
+                    setKeyResults(updated);
                   }}
                   className={`mt-1 block w-32 border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs transition-colors duration-200 ${
                     theme === "dark"
@@ -484,7 +528,7 @@ const OkrAdd = () => {
           <div className="flex justify-start">
             <button
               type="button"
-              onClick={handleAddAnotherKeyResult}
+              onClick={handleAddKeyResult}
               className={`text-sm sm:text-base font-medium transition-colors duration-200 ${
                 theme === "dark"
                   ? "text-teal-400 hover:text-teal-300"
@@ -516,7 +560,7 @@ const OkrAdd = () => {
                 : "bg-teal-600 hover:bg-teal-700"
             }`}
           >
-            Add
+            Done
           </button>
         </div>
       </form>
@@ -524,4 +568,4 @@ const OkrAdd = () => {
   );
 };
 
-export default OkrAdd;
+export default OkrEdit;

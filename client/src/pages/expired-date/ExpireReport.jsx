@@ -606,7 +606,7 @@ const ExpireReport = () => {
             </h3>
             <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center">
               <div className="flex justify-center w-full md:w-1/2">
-                <div className="w-80 h-80 sm:w-96 sm:h-96">
+                <div className="w-72 h-72 sm:w-80 sm:h-80">
                   <Pie
                     data={pieData}
                     options={{

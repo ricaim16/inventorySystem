@@ -623,7 +623,7 @@ const MedicineReport = () => {
                 >
                   Category Distribution
                 </h3>
-                <div className="w-full max-w-[450px] mx-auto">
+                <div className="w-full max-w-[300px] mx-auto">
                   <Pie
                     data={pieChartData}
                     options={{
@@ -656,7 +656,7 @@ const MedicineReport = () => {
                         },
                       },
                     }}
-                    height={450}
+                    height={300}
                   />
                 </div>
               </div>

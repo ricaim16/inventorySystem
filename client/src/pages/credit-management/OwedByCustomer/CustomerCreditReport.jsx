@@ -602,10 +602,8 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
                 <table className="w-full border-collapse text-[0.65rem] sm:text-xs md:text-sm min-w-fit">
                   <thead>
                     <tr
-                      className={`${
-                        theme === "dark"
-                          ? "bg-gray-700 border-gray-600"
-                          : "bg-gray-200 border-gray-300"
+                      className={`bg-[#5DB5B5] ${
+                        theme === "dark" ? "border-gray-600" : "border-gray-300"
                       }`}
                     >
                       <th

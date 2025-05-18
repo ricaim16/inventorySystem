@@ -26,9 +26,7 @@ import OwedByCustomer from "./pages/credit-management/OwedByCustomer/OwedByCusto
 import OwedToSupplier from "./pages/credit-management/OwedToSupplier/OwedToSupplier";
 import UserManagement from "./pages/members/UserManagement/UserManagement";
 import EmployeeManagement from "./pages/members/EmployeeManagement/EmployeeManagement";
-import OkrAdd from "./pages/okr/OkrAdd";
-import OkrTrackProgress from "./pages/okr/OkrTrackProgress";
-import OkrGenerateReport from "./pages/okr/OkrGenerateReport";
+import OkrManagement from "./pages/okr/OkrManagement"; // Import OkrManagement
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
@@ -239,31 +237,11 @@ function App() {
               }
             />
             <Route
-              path="/okr/add"
+              path="/okr/*"
               element={
                 <ProtectedRoute>
                   <Layout showToast={showToast}>
-                    <OkrAdd />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/okr/:id" // Add dynamic route for OkrTrackProgress
-              element={
-                <ProtectedRoute>
-                  <Layout showToast={showToast}>
-                    <OkrTrackProgress />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/okr/generate-report"
-              element={
-                <ProtectedRoute>
-                  <Layout showToast={showToast}>
-                    <OkrGenerateReport />
+                    <OkrManagement />
                   </Layout>
                 </ProtectedRoute>
               }

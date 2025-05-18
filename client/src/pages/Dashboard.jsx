@@ -8,6 +8,7 @@ import {
   generateMedicineReport,
   getExpiredMedicines,
 } from "../api/medicineApi";
+import { fetchObjectives } from "../api/okrApi";
 import { Bar, Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -21,7 +22,7 @@ import {
   Legend,
 } from "chart.js";
 
-// Explicitly register Chart.js components
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -45,15 +46,16 @@ const Dashboard = () => {
   const [okrValue, setOkrValue] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedWeekRange, setSelectedWeekRange] = useState(null);
   const [weekDisplay, setWeekDisplay] = useState("");
   const [currentMonthName, setCurrentMonthName] = useState("");
   const [weeklySalesData, setWeeklySalesData] = useState([]);
   const [yearlySalesData, setYearlySalesData] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
 
+  // Ethiopian time helper
   const getEthiopianTime = (date = new Date()) => {
     const utcDate = new Date(date);
     const etOffset = 3 * 60 * 60 * 1000;
@@ -61,15 +63,15 @@ const Dashboard = () => {
   };
 
   const formatEAT = (date) => {
-    const options = {
+    return new Date(date).toLocaleString("en-US", {
       timeZone: "Africa/Addis_Ababa",
       year: "numeric",
       month: "short",
       day: "numeric",
-    };
-    return new Date(date).toLocaleString("en-US", options);
+    });
   };
 
+  // Date range helpers
   const getCurrentMonthRange = () => {
     const now = getEthiopianTime();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -152,15 +154,6 @@ const Dashboard = () => {
     };
   };
 
-  const isDateInCurrentWeek = (dateString) => {
-    if (!dateString) return false;
-    const selected = new Date(dateString);
-    const currentWeek = getCurrentWeekRange();
-    const start = new Date(currentWeek.start_date);
-    const end = new Date(currentWeek.end_date);
-    return selected >= start && selected <= end;
-  };
-
   const formatWeekDisplay = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -176,15 +169,30 @@ const Dashboard = () => {
     return `${startStr} - ${endStr}`;
   };
 
-  const getAvailableYears = () => {
-    const currentYear = getEthiopianTime().getFullYear();
-    const years = [];
-    for (let i = currentYear; i >= currentYear - 5; i--) {
-      years.push(i.toString());
-    }
-    return years;
+  // OKR progress calculation
+  const calculateObjectiveProgress = (keyResults) => {
+    if (!keyResults || keyResults.length === 0) return 0;
+    const totalWeight = keyResults.reduce(
+      (sum, kr) => sum + (Number(kr.weight) || 1),
+      0
+    );
+    if (totalWeight === 0) return 0;
+
+    const weightedProgress = keyResults.reduce((sum, kr) => {
+      const progress = Number(kr.progress) || 0;
+      const startValue = Number(kr.start_value) || 0;
+      const targetValue = Number(kr.target_value) || 100;
+      if (targetValue <= startValue) return sum;
+      const progressPercentage =
+        ((progress - startValue) / (targetValue - startValue)) * 100;
+      const cappedProgress = Math.min(100, Math.max(0, progressPercentage));
+      return sum + cappedProgress * (Number(kr.weight) || 1);
+    }, 0);
+
+    return Math.min(100, Math.max(0, weightedProgress / totalWeight));
   };
 
+  // Fetch data including OKR
   useEffect(() => {
     if (!user) {
       setError("Please log in to view the dashboard.");
@@ -202,10 +210,7 @@ const Dashboard = () => {
           monthName,
         } = getCurrentMonthRange();
 
-        if (!selectedYear) {
-          setSelectedYear(year.toString());
-        }
-
+        // Initialize default date if not set
         if (!selectedDate) {
           const today = getEthiopianTime();
           setSelectedDate(today.toISOString().split("T")[0]);
@@ -216,35 +221,84 @@ const Dashboard = () => {
           );
         }
 
-        const currentMonth = `${year}-${String(
-          getEthiopianTime().getMonth() + 1
+        // Derive month and year from selectedDate
+        const derivedDate = selectedDate
+          ? new Date(selectedDate)
+          : getEthiopianTime();
+        const derivedYear = derivedDate.getFullYear().toString();
+        const derivedMonth = `${derivedYear}-${String(
+          derivedDate.getMonth() + 1
         ).padStart(2, "0")}`;
-        if (!selectedMonth || selectedMonth.split("-")[0] !== year.toString()) {
-          setSelectedMonth(currentMonth);
-          setCurrentMonthName(monthName);
-        }
+        setSelectedYear(derivedYear);
+        setSelectedMonth(derivedMonth);
+        setCurrentMonthName(
+          derivedDate.toLocaleString("en-US", { month: "long" })
+        );
 
-        const monthRange = selectedMonth
-          ? getSelectedMonthRange(selectedMonth)
-          : { start_date: monthStart, end_date: monthEnd, monthName };
-        const monthlySalesData = await generateSalesReport({
-          start_date: monthRange.start_date,
-          end_date: monthRange.end_date,
-        });
+        // Fetch sales and medicine data
+        const monthRange = getSelectedMonthRange(derivedMonth) || {
+          start_date: monthStart,
+          end_date: monthEnd,
+          monthName,
+        };
+        let monthlySalesData;
+        try {
+          monthlySalesData = await generateSalesReport({
+            start_date: monthRange.start_date,
+            end_date: monthRange.end_date,
+          });
+        } catch (err) {
+          console.error(
+            "Failed to fetch sales report:",
+            err.message,
+            err.response?.status
+          );
+          throw new Error("Unable to fetch sales data");
+        }
         setMonthlySales(monthlySalesData?.summary?.totalSales || 0);
         setCurrentMonthName(monthRange.monthName);
 
-        const yearRange = getYearRange(selectedYear || year);
-        const totalSalesData = await generateSalesReport({
-          start_date: yearRange.start_date,
-          end_date: yearRange.end_date,
-        });
+        const yearRange = getYearRange(derivedYear);
+        let totalSalesData;
+        try {
+          totalSalesData = await generateSalesReport({
+            start_date: yearRange.start_date,
+            end_date: yearRange.end_date,
+          });
+        } catch (err) {
+          console.error(
+            "Failed to fetch total sales:",
+            err.message,
+            err.response?.status
+          );
+          throw new Error("Unable to fetch total sales data");
+        }
         setTotalSales(totalSalesData?.summary?.totalSales || 0);
 
-        const expiringData = await getExpirationAlerts();
+        let expiringData;
+        try {
+          expiringData = await getExpirationAlerts();
+        } catch (err) {
+          console.error(
+            "Failed to fetch expiration alerts:",
+            err.message,
+            err.response?.status
+          );
+          throw new Error("Unable to fetch expiration alerts");
+        }
         setExpiringItems(expiringData?.length || 0);
 
-        const expiredData = await getExpiredMedicines();
+        let expiredData;
+        try {
+          expiredData = await getExpiredMedicines();
+        } catch (err) {
+          console.error(
+            "Failed to fetch expired medicines:",
+            err.message,
+            err.response?.status
+          );
+          throw new Error("Unable to fetch expired medicines");
+        }
         const expiredItems = expiredData?.medicines || [];
         setExpiredMedicines(
           expiredItems.sort(
@@ -252,25 +306,72 @@ const Dashboard = () => {
           )
         );
 
-        const lowStockData = await getLowStockMedicines();
+        let lowStockData;
+        try {
+          lowStockData = await getLowStockMedicines();
+        } catch (err) {
+          console.error(
+            "Failed to fetch low stock medicines:",
+            err.message,
+            err.response?.status
+          );
+          throw new Error("Unable to fetch low stock medicines");
+        }
         setLowStockItems(lowStockData?.length || 0);
 
-        const medicineReport = await generateMedicineReport();
+        let medicineReport;
+        try {
+          medicineReport = await generateMedicineReport();
+        } catch (err) {
+          console.error(
+            "Failed to fetch medicine report:",
+            err.message,
+            err.response?.status
+          );
+          throw new Error("Unable to fetch medicine report");
+        }
         setWinningProducts(medicineReport?.winningProducts || []);
 
-        const salesTarget = 1000000;
-        const salesProgress = totalSalesData?.summary?.totalSales || 0;
-        const okrPercentage = Math.min(
-          (salesProgress / salesTarget) * 100,
-          100
-        );
-        setOkrValue(okrPercentage);
+        // Fetch OKR data
+        let okrProgress = 0;
+        if (user.role === "MANAGER") {
+          let objectives;
+          try {
+            objectives = await fetchObjectives();
+          } catch (err) {
+            console.error(
+              "Failed to fetch OKR objectives:",
+              err.message,
+              err.response?.status
+            );
+            throw new Error("Unable to fetch OKR data");
+          }
+          if (objectives && objectives.length > 0) {
+            const totalProgress = objectives.reduce((sum, obj) => {
+              const progress = calculateObjectiveProgress(obj.KeyResults);
+              return sum + progress;
+            }, 0);
+            okrProgress = totalProgress / objectives.length;
+          }
+        }
+        setOkrValue(okrProgress);
 
+        // Weekly sales data
         if (selectedWeekRange) {
-          const weekSalesData = await generateSalesReport({
-            start_date: selectedWeekRange.start_date,
-            end_date: selectedWeekRange.end_date,
-          });
+          let weekSalesData;
+          try {
+            weekSalesData = await generateSalesReport({
+              start_date: selectedWeekRange.start_date,
+              end_date: selectedWeekRange.end_date,
+            });
+          } catch (err) {
+            console.error(
+              "Failed to fetch weekly sales:",
+              err.message,
+              err.response?.status
+            );
+            throw new Error("Unable to fetch weekly sales data");
+          }
           const sales = weekSalesData?.sales || [];
           const dailySales = Array(7).fill(0);
           sales.forEach((sale) => {
@@ -278,57 +379,49 @@ const Dashboard = () => {
             const dayIndex = (saleDate.getDay() + 6) % 7;
             dailySales[dayIndex] += sale.total_amount || 0;
           });
-          console.log("Weekly Sales Data:", dailySales); // Debug log
           setWeeklySalesData(dailySales);
         }
 
+        // Yearly sales data
         const yearlySales = Array(12).fill(0);
-        const yearToFetch = selectedYear || year;
+        const yearToFetch = derivedYear;
         const yearStart = new Date(yearToFetch, 0, 1);
         const yearEnd = new Date(yearToFetch, 11, 31, 23, 59, 59, 999);
-        const yearlySalesDataResponse = await generateSalesReport({
-          start_date: yearStart.toISOString().split("T")[0],
-          end_date: yearEnd.toISOString().split("T")[0],
-        });
+        let yearlySalesDataResponse;
+        try {
+          yearlySalesDataResponse = await generateSalesReport({
+            start_date: yearStart.toISOString().split("T")[0],
+            end_date: yearEnd.toISOString().split("T")[0],
+          });
+        } catch (err) {
+          console.error(
+            "Failed to fetch yearly sales:",
+            err.message,
+            err.response?.status
+          );
+          throw new Error("Unable to fetch yearly sales data");
+        }
         const sales = yearlySalesDataResponse?.sales || [];
         sales.forEach((sale) => {
           const saleDate = new Date(sale.sealed_date);
           const monthIndex = saleDate.getMonth();
           yearlySales[monthIndex] += sale.total_amount || 0;
         });
-        console.log("Yearly Sales Data:", yearlySales); // Debug log
         setYearlySalesData(yearlySales);
       } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-        setError("Failed to load dashboard data: " + err.message);
+        console.error("Error fetching dashboard data:", err.message);
+        setError(
+          `Failed to load dashboard data: ${err.message}. Please try again later.`
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-
     const interval = setInterval(fetchDashboardData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [user, selectedMonth, selectedYear, selectedWeekRange]);
-
-  const handleMonthChange = (e) => {
-    const monthString = e.target.value;
-    setSelectedMonth(monthString);
-    if (monthString) {
-      const year = monthString.split("-")[0];
-      setSelectedYear(year);
-    }
-  };
-
-  const handleYearChange = (e) => {
-    const yearString = e.target.value;
-    setSelectedYear(yearString);
-    if (selectedMonth && selectedMonth.split("-")[0] !== yearString) {
-      setSelectedMonth("");
-      setCurrentMonthName("");
-    }
-  };
+  }, [user, selectedDate, selectedWeekRange]);
 
   const handleDateChange = (e) => {
     const dateString = e.target.value;
@@ -338,6 +431,7 @@ const Dashboard = () => {
     setWeekDisplay(formatWeekDisplay(weekRange.start_date, weekRange.end_date));
   };
 
+  // Chart configurations
   const weeklyChartData = {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     datasets: [
@@ -356,15 +450,13 @@ const Dashboard = () => {
   };
 
   const weeklyChartOptions = {
-    maintainAspectRatio: false, // Allow custom height
+    maintainAspectRatio: false,
     scales: {
       y: {
         beginAtZero: true,
-        max: 100000, // Set maximum to 100,000 Birr
+        max: 100000,
         title: { display: true, text: "Sales (ETB)" },
-        ticks: {
-          color: theme === "dark" ? "#D1D5DB" : "#4B5563",
-        },
+        ticks: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
         grid: {
           color:
             theme === "dark"
@@ -374,9 +466,7 @@ const Dashboard = () => {
       },
       x: {
         title: { display: true, text: "Day of Week" },
-        ticks: {
-          color: theme === "dark" ? "#D1D5DB" : "#4B5563",
-        },
+        ticks: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
         grid: {
           color:
             theme === "dark"
@@ -386,17 +476,12 @@ const Dashboard = () => {
       },
     },
     plugins: {
-      legend: {
-        display: true,
-        labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
-      },
+      legend: { labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" } },
       title: {
         display: true,
         text: `Weekly Sales (${weekDisplay || "Current Week"})`,
         color: theme === "dark" ? "#3B82F6" : "#3B82F6",
-        font: {
-          weight: "bold",
-        },
+        font: { weight: "bold" },
       },
     },
   };
@@ -435,15 +520,13 @@ const Dashboard = () => {
   };
 
   const yearlyChartOptions = {
-    maintainAspectRatio: false, // Allow custom height
+    maintainAspectRatio: false,
     scales: {
       y: {
         beginAtZero: true,
-        max: 500000, // Set maximum to 500,000 Birr
+        max: 500000,
         title: { display: true, text: "Sales (ETB)" },
-        ticks: {
-          color: theme === "dark" ? "#D1D5DB" : "#4B5563",
-        },
+        ticks: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
         grid: {
           color:
             theme === "dark"
@@ -453,9 +536,7 @@ const Dashboard = () => {
       },
       x: {
         title: { display: true, text: "Month" },
-        ticks: {
-          color: theme === "dark" ? "#D1D5DB" : "#4B5563",
-        },
+        ticks: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
         grid: {
           color:
             theme === "dark"
@@ -465,23 +546,19 @@ const Dashboard = () => {
       },
     },
     plugins: {
-      legend: {
-        display: true,
-        labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" },
-      },
+      legend: { labels: { color: theme === "dark" ? "#D1D5DB" : "#4B5563" } },
       title: {
         display: true,
         text: `Yearly Sales (${
           selectedYear || getEthiopianTime().getFullYear()
         })`,
         color: theme === "dark" ? "#3B82F6" : "#3B82F6",
-        font: {
-          weight: "bold",
-        },
+        font: { weight: "bold" },
       },
     },
   };
 
+  // OKR Gauge component
   const OKRGauge = ({ value }) => {
     const percentage = Math.min(Math.max(value, 0), 100);
     const angle = (percentage / 100) * 180 - 90;
@@ -687,37 +764,6 @@ const Dashboard = () => {
               Sales Filter
             </h3>
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <select
-                value={selectedYear}
-                onChange={handleYearChange}
-                className={`p-2 border rounded text-sm ${
-                  theme === "dark"
-                    ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                    : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#E0E0E0]"
-                }`}
-                disabled={loading}
-              >
-                <option value="">Select Year</option>
-                {getAvailableYears().map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={handleMonthChange}
-                max={new Date().toISOString().slice(0, 7)}
-                className={`p-2 border rounded text-sm ${
-                  theme === "dark"
-                    ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                    : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#E0E0E0]"
-                }`}
-                disabled={loading}
-              />
-
               <input
                 type="date"
                 value={selectedDate}
@@ -727,12 +773,6 @@ const Dashboard = () => {
                   theme === "dark"
                     ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
                     : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#E0E0E0]"
-                } ${
-                  isDateInCurrentWeek(selectedDate)
-                    ? theme === "dark"
-                      ? "bg-blue-900"
-                      : "bg-blue-200"
-                    : ""
                 }`}
                 disabled={loading}
               />
@@ -743,7 +783,7 @@ const Dashboard = () => {
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-gray-800" : "bg-[#F7F7F7]"
-              } h-96`} // Set explicit height for chart
+              } h-96`}
             >
               {weeklySalesData.length &&
               weeklySalesData.some((val) => val > 0) ? (
@@ -765,7 +805,7 @@ const Dashboard = () => {
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-gray-800" : "bg-[#F7F7F7]"
-              } h-96`} // Set explicit height for chart
+              } h-96`}
             >
               {yearlySalesData.length &&
               yearlySalesData.some((val) => val > 0) ? (
@@ -828,7 +868,7 @@ const Dashboard = () => {
                       }`}
                       style={{ color: "#10B981" }}
                     >
-                      Total Sales
+                      Total Quantity
                     </th>
                     <th
                       className={`border p-2 text-left ${
@@ -870,7 +910,7 @@ const Dashboard = () => {
                             theme === "dark" ? "text-gray-300" : "text-gray-600"
                           }`}
                         >
-                          {product.totalSales || 0} ETB
+                          {product.totalSales || 0}
                         </td>
                         <td
                           className={`border p-2 ${
@@ -908,9 +948,18 @@ const Dashboard = () => {
                     theme === "dark" ? "text-white" : "text-black"
                   }`}
                 >
-                  OKR
+                  OKR Progress
                 </h3>
                 <OKRGauge value={okrValue} />
+                {user.role !== "MANAGER" && (
+                  <p
+                    className={`text-xs mt-2 ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    OKR tracking available for managers only
+                  </p>
+                )}
               </div>
             </div>
           </div>
