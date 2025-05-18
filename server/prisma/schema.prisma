@@ -274,5 +274,7 @@ model KeyResults {
   weight       Float     @default(1)
   progress     Float     @default(0)
   deadline     DateTime
+  status       String?   @default("No Status") // Add status field
+  comment      String?   // Add comment field (optional)
   objectives   Objectives @relation(fields: [objective_id], references: [id], onDelete: Cascade)
 }

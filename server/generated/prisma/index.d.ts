@@ -18068,6 +18068,8 @@ export namespace Prisma {
     weight: number | null
     progress: number | null
     deadline: Date | null
+    status: string | null
+    comment: string | null
   }
 
   export type KeyResultsMaxAggregateOutputType = {
@@ -18080,6 +18082,8 @@ export namespace Prisma {
     weight: number | null
     progress: number | null
     deadline: Date | null
+    status: string | null
+    comment: string | null
   }
 
   export type KeyResultsCountAggregateOutputType = {
@@ -18092,6 +18096,8 @@ export namespace Prisma {
     weight: number
     progress: number
     deadline: number
+    status: number
+    comment: number
     _all: number
   }
 
@@ -18120,6 +18126,8 @@ export namespace Prisma {
     weight?: true
     progress?: true
     deadline?: true
+    status?: true
+    comment?: true
   }
 
   export type KeyResultsMaxAggregateInputType = {
@@ -18132,6 +18140,8 @@ export namespace Prisma {
     weight?: true
     progress?: true
     deadline?: true
+    status?: true
+    comment?: true
   }
 
   export type KeyResultsCountAggregateInputType = {
@@ -18144,6 +18154,8 @@ export namespace Prisma {
     weight?: true
     progress?: true
     deadline?: true
+    status?: true
+    comment?: true
     _all?: true
   }
 
@@ -18243,6 +18255,8 @@ export namespace Prisma {
     weight: number
     progress: number
     deadline: Date
+    status: string | null
+    comment: string | null
     _count: KeyResultsCountAggregateOutputType | null
     _avg: KeyResultsAvgAggregateOutputType | null
     _sum: KeyResultsSumAggregateOutputType | null
@@ -18274,6 +18288,8 @@ export namespace Prisma {
     weight?: boolean
     progress?: boolean
     deadline?: boolean
+    status?: boolean
+    comment?: boolean
     objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["keyResults"]>
 
@@ -18287,6 +18303,8 @@ export namespace Prisma {
     weight?: boolean
     progress?: boolean
     deadline?: boolean
+    status?: boolean
+    comment?: boolean
     objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["keyResults"]>
 
@@ -18300,6 +18318,8 @@ export namespace Prisma {
     weight?: boolean
     progress?: boolean
     deadline?: boolean
+    status?: boolean
+    comment?: boolean
     objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["keyResults"]>
 
@@ -18313,9 +18333,11 @@ export namespace Prisma {
     weight?: boolean
     progress?: boolean
     deadline?: boolean
+    status?: boolean
+    comment?: boolean
   }
 
-  export type KeyResultsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "objective_id" | "title" | "description" | "start_value" | "target_value" | "weight" | "progress" | "deadline", ExtArgs["result"]["keyResults"]>
+  export type KeyResultsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "objective_id" | "title" | "description" | "start_value" | "target_value" | "weight" | "progress" | "deadline" | "status" | "comment", ExtArgs["result"]["keyResults"]>
   export type KeyResultsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     objectives?: boolean | ObjectivesDefaultArgs<ExtArgs>
   }
@@ -18341,6 +18363,8 @@ export namespace Prisma {
       weight: number
       progress: number
       deadline: Date
+      status: string | null
+      comment: string | null
     }, ExtArgs["result"]["keyResults"]>
     composites: {}
   }
@@ -18774,6 +18798,8 @@ export namespace Prisma {
     readonly weight: FieldRef<"KeyResults", 'Float'>
     readonly progress: FieldRef<"KeyResults", 'Float'>
     readonly deadline: FieldRef<"KeyResults", 'DateTime'>
+    readonly status: FieldRef<"KeyResults", 'String'>
+    readonly comment: FieldRef<"KeyResults", 'String'>
   }
     
 
@@ -19426,7 +19452,9 @@ export namespace Prisma {
     target_value: 'target_value',
     weight: 'weight',
     progress: 'progress',
-    deadline: 'deadline'
+    deadline: 'deadline',
+    status: 'status',
+    comment: 'comment'
   };
 
   export type KeyResultsScalarFieldEnum = (typeof KeyResultsScalarFieldEnum)[keyof typeof KeyResultsScalarFieldEnum]
@@ -20806,6 +20834,8 @@ export namespace Prisma {
     weight?: FloatFilter<"KeyResults"> | number
     progress?: FloatFilter<"KeyResults"> | number
     deadline?: DateTimeFilter<"KeyResults"> | Date | string
+    status?: StringNullableFilter<"KeyResults"> | string | null
+    comment?: StringNullableFilter<"KeyResults"> | string | null
     objectives?: XOR<ObjectivesScalarRelationFilter, ObjectivesWhereInput>
   }
 
@@ -20819,6 +20849,8 @@ export namespace Prisma {
     weight?: SortOrder
     progress?: SortOrder
     deadline?: SortOrder
+    status?: SortOrderInput | SortOrder
+    comment?: SortOrderInput | SortOrder
     objectives?: ObjectivesOrderByWithRelationInput
   }
 
@@ -20835,6 +20867,8 @@ export namespace Prisma {
     weight?: FloatFilter<"KeyResults"> | number
     progress?: FloatFilter<"KeyResults"> | number
     deadline?: DateTimeFilter<"KeyResults"> | Date | string
+    status?: StringNullableFilter<"KeyResults"> | string | null
+    comment?: StringNullableFilter<"KeyResults"> | string | null
     objectives?: XOR<ObjectivesScalarRelationFilter, ObjectivesWhereInput>
   }, "id">
 
@@ -20848,6 +20882,8 @@ export namespace Prisma {
     weight?: SortOrder
     progress?: SortOrder
     deadline?: SortOrder
+    status?: SortOrderInput | SortOrder
+    comment?: SortOrderInput | SortOrder
     _count?: KeyResultsCountOrderByAggregateInput
     _avg?: KeyResultsAvgOrderByAggregateInput
     _max?: KeyResultsMaxOrderByAggregateInput
@@ -20868,6 +20904,8 @@ export namespace Prisma {
     weight?: FloatWithAggregatesFilter<"KeyResults"> | number
     progress?: FloatWithAggregatesFilter<"KeyResults"> | number
     deadline?: DateTimeWithAggregatesFilter<"KeyResults"> | Date | string
+    status?: StringNullableWithAggregatesFilter<"KeyResults"> | string | null
+    comment?: StringNullableWithAggregatesFilter<"KeyResults"> | string | null
   }
 
   export type UsersCreateInput = {
@@ -22169,6 +22207,8 @@ export namespace Prisma {
     weight?: number
     progress?: number
     deadline: Date | string
+    status?: string | null
+    comment?: string | null
     objectives: ObjectivesCreateNestedOneWithoutKeyResultsInput
   }
 
@@ -22182,6 +22222,8 @@ export namespace Prisma {
     weight?: number
     progress?: number
     deadline: Date | string
+    status?: string | null
+    comment?: string | null
   }
 
   export type KeyResultsUpdateInput = {
@@ -22193,6 +22235,8 @@ export namespace Prisma {
     weight?: FloatFieldUpdateOperationsInput | number
     progress?: FloatFieldUpdateOperationsInput | number
     deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    comment?: NullableStringFieldUpdateOperationsInput | string | null
     objectives?: ObjectivesUpdateOneRequiredWithoutKeyResultsNestedInput
   }
 
@@ -22206,6 +22250,8 @@ export namespace Prisma {
     weight?: FloatFieldUpdateOperationsInput | number
     progress?: FloatFieldUpdateOperationsInput | number
     deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    comment?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type KeyResultsCreateManyInput = {
@@ -22218,6 +22264,8 @@ export namespace Prisma {
     weight?: number
     progress?: number
     deadline: Date | string
+    status?: string | null
+    comment?: string | null
   }
 
   export type KeyResultsUpdateManyMutationInput = {
@@ -22229,6 +22277,8 @@ export namespace Prisma {
     weight?: FloatFieldUpdateOperationsInput | number
     progress?: FloatFieldUpdateOperationsInput | number
     deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    comment?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type KeyResultsUncheckedUpdateManyInput = {
@@ -22241,6 +22291,8 @@ export namespace Prisma {
     weight?: FloatFieldUpdateOperationsInput | number
     progress?: FloatFieldUpdateOperationsInput | number
     deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    comment?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -23384,6 +23436,8 @@ export namespace Prisma {
     weight?: SortOrder
     progress?: SortOrder
     deadline?: SortOrder
+    status?: SortOrder
+    comment?: SortOrder
   }
 
   export type KeyResultsAvgOrderByAggregateInput = {
@@ -23403,6 +23457,8 @@ export namespace Prisma {
     weight?: SortOrder
     progress?: SortOrder
     deadline?: SortOrder
+    status?: SortOrder
+    comment?: SortOrder
   }
 
   export type KeyResultsMinOrderByAggregateInput = {
@@ -23415,6 +23471,8 @@ export namespace Prisma {
     weight?: SortOrder
     progress?: SortOrder
     deadline?: SortOrder
+    status?: SortOrder
+    comment?: SortOrder
   }
 
   export type KeyResultsSumOrderByAggregateInput = {
@@ -27610,6 +27668,8 @@ export namespace Prisma {
     weight?: number
     progress?: number
     deadline: Date | string
+    status?: string | null
+    comment?: string | null
   }
 
   export type KeyResultsUncheckedCreateWithoutObjectivesInput = {
@@ -27621,6 +27681,8 @@ export namespace Prisma {
     weight?: number
     progress?: number
     deadline: Date | string
+    status?: string | null
+    comment?: string | null
   }
 
   export type KeyResultsCreateOrConnectWithoutObjectivesInput = {
@@ -27662,6 +27724,8 @@ export namespace Prisma {
     weight?: FloatFilter<"KeyResults"> | number
     progress?: FloatFilter<"KeyResults"> | number
     deadline?: DateTimeFilter<"KeyResults"> | Date | string
+    status?: StringNullableFilter<"KeyResults"> | string | null
+    comment?: StringNullableFilter<"KeyResults"> | string | null
   }
 
   export type ObjectivesCreateWithoutKeyResultsInput = {
@@ -29009,6 +29073,8 @@ export namespace Prisma {
     weight?: number
     progress?: number
     deadline: Date | string
+    status?: string | null
+    comment?: string | null
   }
 
   export type KeyResultsUpdateWithoutObjectivesInput = {
@@ -29020,6 +29086,8 @@ export namespace Prisma {
     weight?: FloatFieldUpdateOperationsInput | number
     progress?: FloatFieldUpdateOperationsInput | number
     deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    comment?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type KeyResultsUncheckedUpdateWithoutObjectivesInput = {
@@ -29031,6 +29099,8 @@ export namespace Prisma {
     weight?: FloatFieldUpdateOperationsInput | number
     progress?: FloatFieldUpdateOperationsInput | number
     deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    comment?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type KeyResultsUncheckedUpdateManyWithoutObjectivesInput = {
@@ -29042,6 +29112,8 @@ export namespace Prisma {
     weight?: FloatFieldUpdateOperationsInput | number
     progress?: FloatFieldUpdateOperationsInput | number
     deadline?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: NullableStringFieldUpdateOperationsInput | string | null
+    comment?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
 

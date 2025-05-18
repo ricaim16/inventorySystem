@@ -305,7 +305,9 @@ exports.Prisma.KeyResultsScalarFieldEnum = {
   target_value: 'target_value',
   weight: 'weight',
   progress: 'progress',
-  deadline: 'deadline'
+  deadline: 'deadline',
+  status: 'status',
+  comment: 'comment'
 };
 
 exports.Prisma.SortOrder = {

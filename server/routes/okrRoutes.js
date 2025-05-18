@@ -1,104 +1,74 @@
 import express from "express";
-import { medicineController } from "../controllers/medicineController.js";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.js";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import {
+  createObjective,
+  createKeyResult,
+  getObjectives,
+  updateKeyResultProgress,
+  editObjective,
+  deleteObjective,
+  editKeyResult,
+  deleteKeyResult,
+} from "../controllers/okrController.js";
 
 const router = express.Router();
 
-// Serve static files from Uploads directory
-router.use("/Uploads", express.static(path.join(__dirname, "../Uploads")));
+console.log("Registering OKR routes...");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../Uploads");
-    if (!fs.existsSync(uploadPath))
-      fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (
-      !["image/jpeg", "image/png", "application/pdf"].includes(file.mimetype)
-    ) {
-      return cb(new Error("Only JPEG, PNG, and PDF files are allowed"));
-    }
-    cb(null, true);
-  },
-});
-
-// Routes
-router.get(
-  "/",
+router.post(
+  "/objectives",
   authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
-  medicineController.getAllMedicines
-);
-
-router.get(
-  "/low-stock",
-  authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
-  medicineController.getLowStockMedicines
-);
-
-router.get(
-  "/report",
-  authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
-  medicineController.generateMedicineReport
-);
-
-router.get(
-  "/:id",
-  authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
-  medicineController.getMedicineById
+  roleMiddleware(["MANAGER"]),
+  createObjective
 );
 
 router.post(
-  "/",
+  "/key-results",
   authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
-  upload.single("Payment_file"),
-  medicineController.addMedicine
+  roleMiddleware(["MANAGER"]),
+  createKeyResult
+);
+
+router.get(
+  "/objectives",
+  authMiddleware,
+  roleMiddleware(["MANAGER"]),
+  getObjectives
 );
 
 router.put(
-  "/:id",
+  "/key-results/:id",
   authMiddleware,
-  roleMiddleware(["MANAGER", "EMPLOYEE"]),
-  upload.single("Payment_file"),
-  medicineController.editMedicine
+  roleMiddleware(["MANAGER"]),
+  updateKeyResultProgress
+);
+
+router.put(
+  "/objectives/:id",
+  authMiddleware,
+  roleMiddleware(["MANAGER"]),
+  editObjective
 );
 
 router.delete(
-  "/:id",
+  "/objectives/:id",
   authMiddleware,
   roleMiddleware(["MANAGER"]),
-  medicineController.deleteMedicine
+  deleteObjective
 );
 
-// Error handling for multer
-router.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    return res
-      .status(400)
-      .json({ error: { message: "File upload error", details: err.message } });
-  }
-  next(err);
-});
+router.put(
+  "/key-results/:id/edit",
+  authMiddleware,
+  roleMiddleware(["MANAGER"]),
+  editKeyResult
+);
+
+router.delete(
+  "/key-results/:id",
+  authMiddleware,
+  roleMiddleware(["MANAGER"]),
+  deleteKeyResult
+);
 
 export default router;
