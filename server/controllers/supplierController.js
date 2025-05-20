@@ -2,7 +2,7 @@ import prisma from "../config/db.js";
 import path from "path";
 
 function getEthiopianTime(date = new Date()) {
-  const EAT_OFFSET = 3 * 60 * 60 * 1000; // Ethiopia UTC+3 year-round
+  const EAT_OFFSET = 3 * 60 * 60 * 1000;
   return new Date(date.getTime() + EAT_OFFSET);
 }
 
@@ -15,18 +15,13 @@ export const supplierController = {
   getAllSuppliers: async (req, res) => {
     try {
       const suppliers = await prisma.suppliers.findMany({
-        include: {
-          SupplierCredits: {
-            select: {
-              credit_amount: true,
-              payment_status: true,
-              updated_at: true,
-            },
-          },
-          Medicines: {
-            select: { id: true, medicine_name: true, total_price: true },
-          },
-        },
+        select: {
+          id: true,
+          supplier_name: true,
+          contact_info: true,
+          location: true,
+          email: true,
+        }, // Include all fields needed by SupplierList
       });
       console.log(
         `Fetched ${suppliers.length} suppliers by user ${req.user.id}`
@@ -214,6 +209,7 @@ export const supplierController = {
     }
   },
 
+  // Keeping other credit-related methods unchanged as they are not directly related to the dropdown
   getAllSupplierCredits: async (req, res) => {
     try {
       const supplierCredits = await prisma.supplierCredits.findMany({

@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getAllSuppliers, getCreditReport } from "../../api/supplierApi";
 import { jwtDecode } from "jwt-decode";
 import { useTheme } from "../../context/ThemeContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const SupplierReport = ({ showToast }) => {
   const { theme } = useTheme();
@@ -12,6 +12,7 @@ const SupplierReport = ({ showToast }) => {
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [report, setReport] = useState(null);
   const [reportFilters, setReportFilters] = useState({
     start_date: "",
@@ -60,9 +61,6 @@ const SupplierReport = ({ showToast }) => {
     try {
       const data = await getAllSuppliers();
       setSuppliers(data || []);
-      if (data && data.length > 0) {
-        setSelectedSupplierId(data[0].id);
-      }
     } catch (err) {
       setError("Failed to fetch suppliers: " + err.message);
     } finally {
@@ -145,8 +143,9 @@ const SupplierReport = ({ showToast }) => {
     }));
   };
 
-  const handleSupplierChange = (e) => {
-    setSelectedSupplierId(e.target.value);
+  const handleSupplierChange = (id) => {
+    setSelectedSupplierId(id);
+    setIsDropdownOpen(false);
   };
 
   const handleSubmitFilters = (e) => {
@@ -423,54 +422,101 @@ const SupplierReport = ({ showToast }) => {
                 theme === "dark" ? "text-white" : "text-black"
               }`}
             >
-              Search Supplier
+              Supplier
             </label>
             <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search suppliers..."
-                className={`w-full p-2 pl-10 border rounded text-sm placeholder-gray-400 ${
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`w-full p-2 pl-3 pr-10 border rounded text-sm flex items-center justify-between ${
                   theme === "dark"
                     ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                    : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#F7F7F7]"
-                }`}
-                disabled={loading}
-              />
-              <FiSearch
-                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
-                  theme === "dark" ? "text-gray-400" : "text-gray-500"
-                }`}
-                size={16}
-              />
+                    : "bg-white text-black border-gray-300 hover:bg-gray-100"
+                } ${loading ? "opacity-50" : ""}`}
+                disabled={loading || suppliers.length === 0}
+              >
+                <span>
+                  {selectedSupplierId
+                    ? suppliers.find((s) => s.id === selectedSupplierId)
+                        ?.supplier_name || "Select Supplier"
+                    : "All Suppliers"}
+                </span>
+                <svg
+                  className={`w-5 h-5 ml-2 transition-transform ${
+                    isDropdownOpen ? "rotate-180" : ""
+                  } ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+              {isDropdownOpen && (
+                <div
+                  className={`absolute z-10 w-full mt-1 border rounded-md shadow-lg ${
+                    theme === "dark"
+                      ? "bg-gray-800 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-black"
+                  }`}
+                >
+                  <div className="p-2">
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search suppliers..."
+                      className={`w-full p-2 border rounded text-sm placeholder-gray-400 ${
+                        theme === "dark"
+                          ? "bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                          : "bg-gray-100 text-black border-gray-300 placeholder-gray-500"
+                      }`}
+                      autoFocus
+                    />
+                  </div>
+                  <ul className="max-h-40 overflow-y-auto">
+                    <li
+                      className={`px-4 py-2 text-sm cursor-pointer ${
+                        theme === "dark"
+                          ? "hover:bg-gray-700 text-white"
+                          : "hover:bg-gray-100 text-black"
+                      } ${!selectedSupplierId ? "font-bold" : ""}`}
+                      onClick={() => handleSupplierChange("")}
+                    >
+                      All Suppliers
+                    </li>
+                    {filteredSuppliers.length > 0 ? (
+                      filteredSuppliers.map((supp) => (
+                        <li
+                          key={supp.id}
+                          className={`px-4 py-2 text-sm cursor-pointer ${
+                            theme === "dark"
+                              ? "hover:bg-gray-700 text-white"
+                              : "hover:bg-gray-100 text-black"
+                          } ${
+                            selectedSupplierId === supp.id ? "font-bold" : ""
+                          }`}
+                          onClick={() => handleSupplierChange(supp.id)}
+                        >
+                          {supp.supplier_name}
+                        </li>
+                      ))
+                    ) : searchTerm ? (
+                      <li
+                        className={`px-4 py-2 text-sm ${
+                          theme === "dark" ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        No supplier starts with the name
+                      </li>
+                    ) : null}
+                  </ul>
+                </div>
+              )}
             </div>
-          </div>
-          <div>
-            <label
-              className={`block text-sm font-medium mb-1 ${
-                theme === "dark" ? "text-white" : "text-black"
-              }`}
-            >
-              Select Supplier
-            </label>
-            <select
-              value={selectedSupplierId}
-              onChange={handleSupplierChange}
-              className={`w-full p-2 border rounded text-sm ${
-                theme === "dark"
-                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                  : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#F7F7F7]"
-              }`}
-              disabled={loading || suppliers.length === 0}
-            >
-              <option value="">All Suppliers</option>
-              {filteredSuppliers.map((supp) => (
-                <option key={supp.id} value={supp.id}>
-                  {supp.supplier_name}
-                </option>
-              ))}
-            </select>
           </div>
           <div>
             <label
@@ -558,7 +604,6 @@ const SupplierReport = ({ showToast }) => {
       {report && credits.length > 0 && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            {/* Total Credit Amount Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-blue-900" : "bg-blue-200"
@@ -577,7 +622,6 @@ const SupplierReport = ({ showToast }) => {
                 ETB {report.summary.totalCreditAmount.toFixed(2) || 0}
               </p>
             </div>
-            {/* Total Paid Amount Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-green-900" : "bg-green-200"
@@ -596,7 +640,6 @@ const SupplierReport = ({ showToast }) => {
                 ETB {report.summary.totalPaidAmount.toFixed(2) || 0}
               </p>
             </div>
-            {/* Credit Count Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-orange-900" : "bg-orange-200"

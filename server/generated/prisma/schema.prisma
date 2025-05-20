@@ -46,7 +46,7 @@ model Users {
   FirstName              String
   LastName               String
   username               String            @unique
-  email                  String?           @unique // Add this line (optional and unique)
+  email                  String?           @unique
   password               String
   otp                    Int?
   role                   Role
@@ -54,6 +54,7 @@ model Users {
   member                 Members?
   credits                SupplierCredits[] @relation("CreatedBy")
   medicines              Medicines[]       @relation("CreatedBy")
+  updatedMedicines       Medicines[]       @relation("UpdatedBy")
   customerCredits        CustomerCredit[]  @relation("CreatedBy")
   updatedCustomerCredits CustomerCredit[]  @relation("UpdatedBy")
   updatedSupplierCredits SupplierCredits[] @relation("UpdatedBy")
@@ -134,12 +135,14 @@ model Medicines {
   Payment_file          String?
   details               String?
   createdById           String
+  updatedById           String?
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
   category              Categories    @relation(fields: [category_id], references: [id])
   dosage_form           DosageForms   @relation(fields: [dosage_form_id], references: [id])
   supplier              Suppliers     @relation(fields: [supplier_id], references: [id])
   createdBy             Users         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy             Users?        @relation("UpdatedBy", fields: [updatedById], references: [id])
   Sales                 Sales[]
   Returns               Returns[]
 }

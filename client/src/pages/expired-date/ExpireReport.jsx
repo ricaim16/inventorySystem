@@ -1,17 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { generateExpirationReport } from "../../api/medicineApi";
 import { useTheme } from "../../context/ThemeContext";
-import { useAuth } from "../../context/AuthContext"; // Added to access user role
+import { useAuth } from "../../context/AuthContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
-// Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// Function to generate a random color
 const generateRandomColor = () => {
   const letters = "0123456789ABCDEF";
   let color = "#";
@@ -21,7 +19,6 @@ const generateRandomColor = () => {
   return color;
 };
 
-// Function to truncate details (copied from ExpireAlert)
 const truncateDetails = (text) => {
   if (!text || typeof text !== "string") return ["N/A"];
   const words = text.trim().split(/\s+/);
@@ -35,7 +32,7 @@ const truncateDetails = (text) => {
 
 const ExpireReport = () => {
   const { theme } = useTheme();
-  const { user } = useAuth(); // Added to access user role
+  const { user } = useAuth();
   const [report, setReport] = useState(null);
   const [expiredMedicines, setExpiredMedicines] = useState([]);
   const [expiringSoonMedicines, setExpiringSoonMedicines] = useState([]);
@@ -53,7 +50,6 @@ const ExpireReport = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Generate category list and colors dynamically
   const categoryCounts = [...expiredMedicines, ...expiringSoonMedicines].reduce(
     (acc, med) => {
       const category = med.category?.name || "Uncategorized";
@@ -271,12 +267,9 @@ const ExpireReport = () => {
           "Quantity",
           "Category",
           "Supplier",
-          user?.role === "MANAGER" ? "Created By" : null, // Conditional header
-          user?.role === "MANAGER" ? "Created At" : null,
-          user?.role === "MANAGER" ? "Updated At" : null,
-          user?.role === "MANAGER" ? "Details" : null,
+          user?.role === "MANAGER" ? "Created By" : null,
           "Status",
-        ].filter(Boolean), // Remove null values
+        ].filter(Boolean),
       ],
       body: expiredMedicines.map((med, index) => {
         const row = [
@@ -289,12 +282,7 @@ const ExpireReport = () => {
           med.supplier?.supplier_name || "N/A",
         ];
         if (user?.role === "MANAGER") {
-          row.push(
-            med.createdBy?.username || "N/A",
-            formatEAT(med.created_at) || "N/A",
-            formatEAT(med.updated_at) || "N/A",
-            truncateDetails(med.details)[0] || "N/A"
-          );
+          row.push(med.createdBy?.username || "N/A");
         }
         row.push(getStatus(med.expire_date));
         return row;
@@ -327,9 +315,6 @@ const ExpireReport = () => {
           "Category",
           "Supplier",
           user?.role === "MANAGER" ? "Created By" : null,
-          user?.role === "MANAGER" ? "Created At" : null,
-          user?.role === "MANAGER" ? "Updated At" : null,
-          user?.role === "MANAGER" ? "Details" : null,
           "Status",
         ].filter(Boolean),
       ],
@@ -344,12 +329,7 @@ const ExpireReport = () => {
           med.supplier?.supplier_name || "N/A",
         ];
         if (user?.role === "MANAGER") {
-          row.push(
-            med.createdBy?.username || "N/A",
-            formatEAT(med.created_at) || "N/A",
-            formatEAT(med.updated_at) || "N/A",
-            truncateDetails(med.details)[0] || "N/A"
-          );
+          row.push(med.createdBy?.username || "N/A");
         }
         row.push(getStatus(med.expire_date));
         return row;
@@ -377,7 +357,6 @@ const ExpireReport = () => {
     ],
   };
 
-  // Pagination for report list
   const allMedicines = [...expiredMedicines, ...expiringSoonMedicines];
   const filteredMedicines = reportFilters.category
     ? allMedicines.filter(
@@ -553,7 +532,7 @@ const ExpireReport = () => {
                 </h3>
               </div>
               <p className="text-xl sm:text-2xl font-bold">
-                {report.totalValue?.toFixed(2) || "0.00"} ETB
+                {Math.abs(report.totalValue)?.toFixed(2) || "0.00"} ETB
               </p>
             </div>
             <div
@@ -641,9 +620,7 @@ const ExpireReport = () => {
                 <div className="max-h-64 overflow-y-auto">
                   <table className="w-full border-collapse text-sm">
                     <thead className="sticky top-0">
-                      <tr
-                        className="bg-teal-600 text-white" // Updated to match pagination color
-                      >
+                      <tr className="bg-teal-600 text-white">
                         <th
                           className={`border p-2 text-left ${
                             theme === "dark" ? "text-gray-200" : "text-white"
@@ -779,20 +756,9 @@ const ExpireReport = () => {
                         Supplier
                       </th>
                       {user?.role === "MANAGER" && (
-                        <>
-                          <th className="border p-2 text-left font-bold uppercase tracking-wider hidden lg:table-cell">
-                            Created By
-                          </th>
-                          <th className="border p-2 text-left font-bold uppercase tracking-wider hidden lg:table-cell">
-                            Created At
-                          </th>
-                          <th className="border p-2 text-left font-bold uppercase tracking-wider hidden lg:table-cell">
-                            Updated At
-                          </th>
-                          <th className="border p-2 text-left font-bold uppercase tracking-wider hidden lg:table-cell">
-                            Details
-                          </th>
-                        </>
+                        <th className="border p-2 text-left font-bold uppercase tracking-wider hidden lg:table-cell">
+                          Created By
+                        </th>
                       )}
                       <th className="border p-2 text-left font-bold uppercase tracking-wider">
                         Status
@@ -838,20 +804,9 @@ const ExpireReport = () => {
                             {med.supplier?.supplier_name || "N/A"}
                           </td>
                           {user?.role === "MANAGER" && (
-                            <>
-                              <td className="border p-2 hidden lg:table-cell">
-                                {med.createdBy?.username || "N/A"}
-                              </td>
-                              <td className="border p-2 hidden lg:table-cell">
-                                {formatEAT(med.created_at) || "N/A"}
-                              </td>
-                              <td className="border p-2 hidden lg:table-cell">
-                                {formatEAT(med.updated_at) || "N/A"}
-                              </td>
-                              <td className="border p-2 hidden lg:table-cell">
-                                {truncateDetails(med.details)[0] || "N/A"}
-                              </td>
-                            </>
+                            <td className="border p-2 hidden lg:table-cell">
+                              {med.createdBy?.username || "N/A"}
+                            </td>
                           )}
                           <td className="border p-2">{status}</td>
                         </tr>

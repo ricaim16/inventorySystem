@@ -32,6 +32,7 @@ export const medicineController = {
           supplier: true,
           Sales: true,
           createdBy: { select: { username: true } },
+          updatedBy: { select: { username: true } },
         },
       });
 
@@ -64,6 +65,7 @@ export const medicineController = {
           dosage_form: true,
           supplier: true,
           createdBy: { select: { username: true } },
+          updatedBy: { select: { username: true } },
         },
       });
       if (!medicine)
@@ -300,12 +302,14 @@ export const medicineController = {
             : undefined,
           medicine_weight: parsedMedicineWeight,
           createdBy: { connect: { id: req.user.id } },
+          updatedBy: { connect: { id: req.user.id } },
         },
         include: {
           category: true,
           dosage_form: true,
           supplier: true,
           createdBy: { select: { username: true } },
+          updatedBy: { select: { username: true } },
         },
       });
 
@@ -372,26 +376,58 @@ export const medicineController = {
       payment_method,
       details,
       invoice_number,
+      Payment_file, // Note: FormData may send this as a string or file
     } = req.body;
 
     const payment_file = req.file
       ? path.join("Uploads", req.file.filename).replace(/\\/g, "/")
-      : undefined;
+      : Payment_file === "" || Payment_file === undefined
+      ? undefined // Explicitly handle empty string or undefined
+      : Payment_file;
 
     try {
+      // Log incoming data for debugging
+      console.log("Updating medicine:", {
+        id,
+        body: req.body,
+        file: req.file ? req.file.filename : null,
+        userId: req.user?.id,
+      });
+
+      // Validate authentication
+      if (!req.user?.id) {
+        return res.status(401).json({
+          error: { message: "Unauthorized: User not authenticated" },
+        });
+      }
+
+      // Check if medicine exists
       const existingMedicine = await prisma.medicines.findUnique({
         where: { id },
       });
-      if (!existingMedicine)
-        return res
-          .status(404)
-          .json({ error: { message: "Medicine not found" } });
+      if (!existingMedicine) {
+        return res.status(404).json({
+          error: { message: "Medicine not found" },
+        });
+      }
 
+      // Validate user
+      const user = await prisma.users.findUnique({
+        where: { id: req.user.id },
+      });
+      if (!user) {
+        return res.status(401).json({
+          error: { message: "User not found" },
+        });
+      }
+
+      // Normalize batch number
       const normalizedBatchNumber =
         batch_number && batch_number.trim()
           ? batch_number.trim().toUpperCase()
-          : null;
+          : undefined;
 
+      // Check batch number uniqueness (only if changed)
       if (
         normalizedBatchNumber &&
         normalizedBatchNumber !== existingMedicine.batch_number
@@ -409,32 +445,43 @@ export const medicineController = {
         }
       }
 
+      // Parse inputs with default fallbacks
       const parsedSupplierId = supplier_id ? supplier_id.toString() : undefined;
       const parsedCategoryId = category_id ? category_id.toString() : undefined;
       const parsedDosageFormId = dosage_form_id
         ? dosage_form_id.toString()
         : undefined;
       const parsedQuantity =
-        quantity !== undefined ? parseInt(quantity, 10) : undefined;
+        quantity !== undefined && quantity !== ""
+          ? parseInt(quantity, 10)
+          : undefined;
       const parsedUnitPrice =
-        unit_price !== undefined ? parseFloat(unit_price) : undefined;
+        unit_price !== undefined && unit_price !== ""
+          ? parseFloat(unit_price)
+          : undefined;
       const parsedSellPrice =
-        sell_price !== undefined ? parseFloat(sell_price) : undefined;
+        sell_price !== undefined && sell_price !== ""
+          ? parseFloat(sell_price)
+          : undefined;
       const parsedMedicineWeight =
-        medicine_weight !== undefined ? parseFloat(medicine_weight) : undefined;
-      const parsedExpireDate = expire_date ? new Date(expire_date) : undefined;
+        medicine_weight !== undefined && medicine_weight !== ""
+          ? parseFloat(medicine_weight)
+          : undefined;
+      const parsedExpireDate =
+        expire_date && expire_date !== "" ? new Date(expire_date) : undefined;
       const parsedRequiredPrescription =
         required_prescription !== undefined
           ? required_prescription === "true" || required_prescription === true
           : undefined;
 
+      // Validate inputs
       const validationErrors = {};
       if (
         parsedQuantity !== undefined &&
         (isNaN(parsedQuantity) || parsedQuantity < 0)
       ) {
         validationErrors.quantity =
-          "Quantity must be a valid non-negative number";
+          "Quantity must be a valid non-negative integer";
       }
       if (
         parsedUnitPrice !== undefined &&
@@ -469,6 +516,7 @@ export const medicineController = {
         });
       }
 
+      // Validate sell price vs unit price
       if (
         parsedUnitPrice !== undefined &&
         parsedSellPrice !== undefined &&
@@ -481,36 +529,36 @@ export const medicineController = {
         });
       }
 
-      if (parsedSupplierId) {
-        const supplier = await prisma.suppliers.findUnique({
-          where: { id: parsedSupplierId },
+      // Validate foreign keys
+      const [supplier, category, dosageForm] = await Promise.all([
+        parsedSupplierId
+          ? prisma.suppliers.findUnique({ where: { id: parsedSupplierId } })
+          : Promise.resolve(null),
+        parsedCategoryId
+          ? prisma.categories.findUnique({ where: { id: parsedCategoryId } })
+          : Promise.resolve(null),
+        parsedDosageFormId
+          ? prisma.dosageForms.findUnique({ where: { id: parsedDosageFormId } })
+          : Promise.resolve(null),
+      ]);
+
+      if (parsedSupplierId && !supplier) {
+        return res.status(404).json({
+          error: { message: "Supplier not found" },
         });
-        if (!supplier)
-          return res
-            .status(404)
-            .json({ error: { message: "Supplier not found" } });
+      }
+      if (parsedCategoryId && !category) {
+        return res.status(404).json({
+          error: { message: "Category not found" },
+        });
+      }
+      if (parsedDosageFormId && !dosageForm) {
+        return res.status(404).json({
+          error: { message: "Dosage form not found" },
+        });
       }
 
-      if (parsedCategoryId) {
-        const category = await prisma.categories.findUnique({
-          where: { id: parsedCategoryId },
-        });
-        if (!category)
-          return res
-            .status(404)
-            .json({ error: { message: "Category not found" } });
-      }
-
-      if (parsedDosageFormId) {
-        const dosageForm = await prisma.dosageForms.findUnique({
-          where: { id: parsedDosageFormId },
-        });
-        if (!dosageForm)
-          return res
-            .status(404)
-            .json({ error: { message: "Dosage form not found" } });
-      }
-
+      // Validate file type
       if (
         payment_file &&
         req.file &&
@@ -525,44 +573,71 @@ export const medicineController = {
         });
       }
 
+      // Calculate total_price
       const updatedUnitPrice = parsedUnitPrice ?? existingMedicine.unit_price;
       const updatedQuantity = parsedQuantity ?? existingMedicine.quantity;
       const total_price = updatedUnitPrice * updatedQuantity;
 
+      // Prepare update data
+      const updateData = {
+        medicine_name: medicine_name ?? existingMedicine.medicine_name,
+        brand_name:
+          brand_name !== undefined
+            ? brand_name || null
+            : existingMedicine.brand_name,
+        batch_number: normalizedBatchNumber ?? existingMedicine.batch_number,
+        category: parsedCategoryId
+          ? { connect: { id: parsedCategoryId } }
+          : undefined,
+        dosage_form: parsedDosageFormId
+          ? { connect: { id: parsedDosageFormId } }
+          : undefined,
+        medicine_weight:
+          parsedMedicineWeight ?? existingMedicine.medicine_weight,
+        quantity: updatedQuantity,
+        initial_quantity: updatedQuantity ?? existingMedicine.initial_quantity,
+        supplier: parsedSupplierId
+          ? { connect: { id: parsedSupplierId } }
+          : undefined,
+        invoice_number:
+          invoice_number !== undefined
+            ? invoice_number || null
+            : existingMedicine.invoice_number,
+        unit_price: updatedUnitPrice,
+        sell_price: parsedSellPrice ?? existingMedicine.sell_price,
+        total_price,
+        expire_date: parsedExpireDate ?? existingMedicine.expire_date,
+        required_prescription:
+          parsedRequiredPrescription ?? existingMedicine.required_prescription,
+        payment_method: payment_method ?? existingMedicine.payment_method,
+        Payment_file: payment_file ?? existingMedicine.Payment_file,
+        details:
+          details !== undefined ? details || null : existingMedicine.details,
+        updatedBy: req.user.id ? { connect: { id: req.user.id } } : undefined,
+        // Do not set updatedAt explicitly; let Prisma handle it
+      };
+
+      // Remove undefined fields to avoid Prisma issues
+      Object.keys(updateData).forEach((key) => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+
+      // Update medicine
       const medicine = await prisma.medicines.update({
         where: { id },
-        data: {
-          medicine_name: medicine_name ?? existingMedicine.medicine_name,
-          brand_name: brand_name ?? existingMedicine.brand_name,
-          batch_number: normalizedBatchNumber ?? existingMedicine.batch_number,
-          category_id: parsedCategoryId ?? existingMedicine.category_id,
-          dosage_form_id: parsedDosageFormId ?? existingMedicine.dosage_form_id,
-          medicine_weight:
-            parsedMedicineWeight ?? existingMedicine.medicine_weight,
-          quantity: updatedQuantity,
-          initial_quantity:
-            updatedQuantity ?? existingMedicine.initial_quantity,
-          supplier_id: parsedSupplierId ?? existingMedicine.supplier_id,
-          invoice_number: invoice_number ?? existingMedicine.invoice_number,
-          unit_price: updatedUnitPrice,
-          sell_price: parsedSellPrice ?? existingMedicine.sell_price,
-          total_price,
-          expire_date: parsedExpireDate ?? existingMedicine.expire_date,
-          required_prescription:
-            parsedRequiredPrescription ??
-            existingMedicine.required_prescription,
-          payment_method: payment_method ?? existingMedicine.payment_method,
-          Payment_file: payment_file ?? existingMedicine.Payment_file,
-          details: details ?? existingMedicine.details,
-        },
+        data: updateData,
         include: {
           category: true,
           dosage_form: true,
           supplier: true,
           createdBy: { select: { username: true } },
+          updatedBy: { select: { username: true } },
         },
       });
 
+      // Transform Payment_file URL
       const transformedMedicine = {
         ...medicine,
         Payment_file: medicine.Payment_file
@@ -579,6 +654,9 @@ export const medicineController = {
         message: error.message,
         code: error.code,
         stack: error.stack,
+        meta: error.meta,
+        body: req.body,
+        file: req.file ? req.file.filename : null,
       });
       if (error.code === "P2002") {
         return res.status(409).json({
@@ -588,15 +666,25 @@ export const medicineController = {
           },
         });
       }
+      if (error.code === "P2003") {
+        return res.status(400).json({
+          error: {
+            message: "Invalid foreign key reference",
+            details: error.message,
+            meta: error.meta,
+          },
+        });
+      }
       res.status(500).json({
         error: {
           message: "Error updating medicine",
           details: error.message || "Unexpected error occurred",
+          meta: error.meta,
         },
       });
     }
   },
-
+  
   deleteMedicine: async (req, res) => {
     const { id } = req.params;
     try {
@@ -729,6 +817,7 @@ export const medicineController = {
           dosage_form: true,
           supplier: true,
           createdBy: { select: { username: true } },
+          updatedBy: { select: { username: true } },
         },
       });
 
@@ -763,6 +852,7 @@ export const medicineController = {
           category: true,
           dosage_form: true,
           createdBy: { select: { username: true } },
+          updatedBy: { select: { username: true } },
         },
       });
 
@@ -794,12 +884,13 @@ export const medicineController = {
           (sum, sale) => sum + sale.quantity,
           0
         );
+        // Calculate turnover ratio as totalSales / initial_quantity
         const turnoverRatio =
-          med.quantity === 0
+          med.initial_quantity === 0
             ? totalSales > 0
               ? Infinity
               : 0
-            : totalSales / med.quantity;
+            : totalSales / med.initial_quantity;
         return { ...med, totalSales, turnoverRatio };
       });
 
@@ -842,8 +933,8 @@ export const medicineController = {
           id: med.id,
           medicine_name: med.medicine_name,
           totalSales: med.totalSales,
-          TurnoverRatio: isFinite(med.turnoverRatio)
-            ? med.turnoverRatio.toFixed(2)
+          turnoverRatio: isFinite(med.turnoverRatio)
+            ? Number(med.turnoverRatio.toFixed(2))
             : "Infinity",
           quantityInStock: med.quantity,
           unit_price: med.unit_price,
@@ -855,8 +946,10 @@ export const medicineController = {
         id: med.id,
         medicine_name: med.medicine_name,
         quantity: med.quantity,
+        unit_price: med.unit_price,
         expire_date: med.expire_date,
         createdBy: med.createdBy.username,
+        updatedBy: med.updatedBy?.username || null,
       }));
 
       const totalStockLevel = transformedMedicines.reduce(
@@ -865,7 +958,7 @@ export const medicineController = {
       );
 
       const totalAssetValue = transformedMedicines.reduce(
-        (sum, med) => sum + med.total_price,
+        (sum, med) => sum + (med.quantity * med.unit_price || 0),
         0
       );
 
@@ -888,7 +981,7 @@ export const medicineController = {
 
       const recentMedicines = await prisma.medicines.findMany({
         where: { createdAt: { gte: sevenDaysAgo } },
-        select: { quantity: true, total_price: true },
+        select: { quantity: true, unit_price: true },
       });
 
       const recentStockLevel = recentMedicines.reduce(
@@ -896,7 +989,7 @@ export const medicineController = {
         0
       );
       const recentAssetValue = recentMedicines.reduce(
-        (sum, med) => sum + med.total_price,
+        (sum, med) => sum + (med.quantity * med.unit_price || 0),
         0
       );
 
@@ -949,10 +1042,15 @@ export const medicineController = {
     const { batchNumber } = req.params;
     console.log(`Received batchNumber: ${batchNumber}`);
     try {
-      const normalizedBatchNumber = batchNumber.trim().toUpperCase();
-      console.log(`Normalized batchNumber: ${normalizedBatchNumber}`);
-      const medicine = await prisma.medicines.findFirst({
-        where: { batch_number: normalizedBatchNumber },
+      const searchTerm = batchNumber.trim();
+      console.log(`Search term: ${searchTerm}`);
+      const medicines = await prisma.medicines.findMany({
+        where: {
+          batch_number: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
         select: {
           id: true,
           medicine_name: true,
@@ -960,29 +1058,79 @@ export const medicineController = {
           quantity: true,
           dosage_form_id: true,
           required_prescription: true,
+          batch_number: true,
         },
       });
-      if (!medicine) {
+      if (!medicines || medicines.length === 0) {
         console.log(
-          `Medicine with batch number ${normalizedBatchNumber} not found`
+          `No medicines found for batch number containing ${searchTerm}`
         );
-        return res.status(404).json({ message: "Medicine not found" });
+        return res.status(404).json({ message: "No medicines found" });
       }
       console.log(
-        `Fetched medicine with batch number ${normalizedBatchNumber}:`,
-        medicine
+        `Fetched medicines for batch number containing ${searchTerm}:`,
+        medicines
       );
-      res.json(medicine);
+      res.json(medicines);
     } catch (error) {
       console.error(
-        `Error fetching medicine with batch number ${batchNumber}:`,
+        `Error fetching medicines with batch number ${batchNumber}:`,
         {
           message: error.message,
           stack: error.stack,
         }
       );
       res.status(500).json({
-        message: "Error fetching medicine",
+        message: "Error fetching medicines",
+        error: error.message,
+      });
+    }
+  },
+
+  getMedicineByBatchNumber: async (req, res) => {
+    const { batchNumber } = req.params;
+    console.log(`Received batchNumber: ${batchNumber}`);
+    try {
+      const searchTerm = batchNumber.trim();
+      console.log(`Search term: ${searchTerm}`);
+      const medicines = await prisma.medicines.findMany({
+        where: {
+          batch_number: {
+            contains: searchTerm,
+            mode: "insensitive", // Case-insensitive search
+          },
+        },
+        select: {
+          id: true,
+          medicine_name: true,
+          sell_price: true,
+          quantity: true,
+          dosage_form_id: true,
+          required_prescription: true,
+          batch_number: true, // Include batch number in the response
+        },
+      });
+      if (!medicines || medicines.length === 0) {
+        console.log(
+          `No medicines found for batch number containing ${searchTerm}`
+        );
+        return res.status(404).json({ message: "No medicines found" });
+      }
+      console.log(
+        `Fetched medicines for batch number containing ${searchTerm}:`,
+        medicines
+      );
+      res.json(medicines); // Return an array of matching medicines
+    } catch (error) {
+      console.error(
+        `Error fetching medicines with batch number ${batchNumber}:`,
+        {
+          message: error.message,
+          stack: error.stack,
+        }
+      );
+      res.status(500).json({
+        message: "Error fetching medicines",
         error: error.message,
       });
     }

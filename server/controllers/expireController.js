@@ -29,6 +29,7 @@ export const expireController = {
           dosage_form: true,
           supplier: true,
           createdBy: { select: { username: true } },
+          updatedBy: { select: { username: true } },
         },
       });
 

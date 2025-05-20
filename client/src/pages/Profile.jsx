@@ -4,6 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { getUserById, updateUser, checkEmail } from "../api/userApi";
 import Sidebar from "../components/Sidebar";
+import {
+  HiExclamationCircle,
+  HiCheckCircle,
+  HiEye,
+  HiEyeOff,
+} from "react-icons/hi";
 
 // Custom debounce function
 const debounce = (func, wait) => {
@@ -258,74 +264,65 @@ const Profile = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen font-sans">
       <Sidebar />
       <div
-        className={`flex-1 pt-6 pr-6 pb-6 pl-4 ${
-          theme === "dark" ? "bg-gray-900" : "bg-gray-100"
+        className={`flex-1 p-4 sm:p-6 md:p-8 w-full rounded-xl shadow-lg transition-all duration-300 ${
+          theme === "dark" ? "bg-gray-900" : "bg-white"
         }`}
       >
-        <h1 className={`text-3xl font-bold mb-6 text-[#10B981]`}>
+        <h1
+          className={`text-2xl sm:text-3xl font-semibold mb-6 ${
+            theme === "dark" ? "text-gray-100" : "text-gray-900"
+          }`}
+          style={{ color: "#10B981" }}
+        >
           Edit Profile
         </h1>
 
         {error && (
           <div
-            className="bg-red-50 text-red-700 p-3 rounded-md mb-4 flex items-center"
+            className={`${
+              theme === "dark"
+                ? "text-red-400 bg-red-900/20"
+                : "text-red-500 bg-red-100"
+            } mb-6 flex items-center text-base p-4 rounded-lg`}
             role="alert"
           >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <HiExclamationCircle className="w-6 h-6 mr-2" />
             {error}
           </div>
         )}
         {success && (
           <div
-            className="bg-green-50 text-green-700 p-3 rounded-md mb-4 flex items-center"
+            className={`${
+              theme === "dark"
+                ? "text-green-500 bg-green-900/20"
+                : "text-green-500 bg-green-100"
+            } mb-6 flex items-center text-base p-4 rounded-lg`}
             role="alert"
           >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
+            <HiCheckCircle className="w-6 h-6 mr-2" />
             {success}
           </div>
         )}
 
         <div
-          className={`max-w-2xl p-6 rounded-md shadow-md ${
+          className={`max-w-3xl p-6 rounded-xl shadow-lg transition-all duration-300 ${
             theme === "dark"
-              ? "bg-gray-800 text-gray-100"
-              : "bg-[#f4f4f4] text-gray-900"
-          }`}
+              ? "bg-gray-800 text-gray-200 border-gray-700"
+              : "bg-white text-gray-800 border-gray-200"
+          } border`}
         >
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium mb-1"
+                className={`block text-sm font-medium mb-1 ${
+                  theme === "dark" ? "text-gray-200" : "text-gray-700"
+                }`}
               >
-                Username
+                Username <span className="text-red-500">*</span>
               </label>
               <input
                 id="username"
@@ -333,18 +330,23 @@ const Profile = () => {
                 type="text"
                 value={formData.username}
                 onChange={handleInputChange}
-                className={`w-full p-2 border rounded-md ${
+                className={`w-full px-3 py-2 border rounded-lg text-base ${
                   theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
-                    : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
-                } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                    ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                    : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                 placeholder="Enter your username"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">
+              <label
+                htmlFor="email"
+                className={`block text-sm font-medium mb-1 ${
+                  theme === "dark" ? "text-gray-200" : "text-gray-700"
+                }`}
+              >
                 Email
               </label>
               <input
@@ -353,23 +355,27 @@ const Profile = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className={`w-full p-2 border rounded-md ${
+                className={`w-full px-3 py-2 border rounded-lg text-base ${
                   theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
-                    : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
-                } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                    ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                    : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                 placeholder="Enter your email"
               />
               {emailStatus && (
-                <p
-                  className={`mt-1 text-xs ${
+                <div
+                  className={`mt-1 text-xs p-1 rounded ${
                     emailStatus === "Email available"
-                      ? "text-green-500"
-                      : "text-red-500"
+                      ? theme === "dark"
+                        ? "text-green-500 bg-green-900/20"
+                        : "text-green-500 bg-green-100"
+                      : theme === "dark"
+                      ? "text-red-500 bg-red-900/20"
+                      : "text-red-500 bg-red-100"
                   }`}
                 >
                   {emailStatus}
-                </p>
+                </div>
               )}
             </div>
 
@@ -377,9 +383,11 @@ const Profile = () => {
               <div>
                 <label
                   htmlFor="FirstName"
-                  className="block text-sm font-medium mb-1"
+                  className={`block text-sm font-medium mb-1 ${
+                    theme === "dark" ? "text-gray-200" : "text-gray-700"
+                  }`}
                 >
-                  First Name
+                  First Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="FirstName"
@@ -387,11 +395,11 @@ const Profile = () => {
                   type="text"
                   value={formData.FirstName}
                   onChange={handleInputChange}
-                  className={`w-full p-2 border rounded-md ${
+                  className={`w-full px-3 py-2 border rounded-lg text-base ${
                     theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
-                      : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
-                  } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                      ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                  } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                   placeholder="Enter your first name"
                   required
                 />
@@ -399,9 +407,11 @@ const Profile = () => {
               <div>
                 <label
                   htmlFor="LastName"
-                  className="block text-sm font-medium mb-1"
+                  className={`block text-sm font-medium mb-1 ${
+                    theme === "dark" ? "text-gray-200" : "text-gray-700"
+                  }`}
                 >
-                  Last Name
+                  Last Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="LastName"
@@ -409,11 +419,11 @@ const Profile = () => {
                   type="text"
                   value={formData.LastName}
                   onChange={handleInputChange}
-                  className={`w-full p-2 border rounded-md ${
+                  className={`w-full px-3 py-2 border rounded-lg text-base ${
                     theme === "dark"
-                      ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
-                      : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
-                  } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                      ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                  } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                   placeholder="Enter your last name"
                   required
                 />
@@ -421,14 +431,18 @@ const Profile = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+              <label
+                className={`block text-sm font-medium mb-1 ${
+                  theme === "dark" ? "text-gray-200" : "text-gray-700"
+                }`}
+              >
+                Password
+              </label>
               {!showPasswordForm ? (
                 <button
                   type="button"
                   onClick={() => setShowPasswordForm(true)}
-                  className={`text-[#10B981] hover:text-[#059669] transition-colors duration-200 ${
-                    theme === "dark" ? "hover:text-[#34D399]" : ""
-                  }`}
+                  className={`text-teal-500 hover:text-teal-400 transition-colors duration-200 text-sm font-semibold`}
                 >
                   Change Password
                 </button>
@@ -436,29 +450,23 @@ const Profile = () => {
                 <div className="space-y-4">
                   {passwordError && (
                     <div
-                      className="bg-red-50 text-red-700 p-2 rounded-md flex items-center text-sm"
+                      className={`${
+                        theme === "dark"
+                          ? "text-red-400 bg-red-900/20"
+                          : "text-red-500 bg-red-100"
+                      } p-3 rounded-lg flex items-center text-base`}
                       role="alert"
                     >
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                      <HiExclamationCircle className="w-5 h-5 mr-2" />
                       {passwordError}
                     </div>
                   )}
                   <div className="relative">
                     <label
                       htmlFor="oldPassword"
-                      className="block text-sm font-medium mb-1"
+                      className={`block text-sm font-medium mb-1 ${
+                        theme === "dark" ? "text-gray-200" : "text-gray-700"
+                      }`}
                     >
                       Current Password
                     </label>
@@ -468,59 +476,31 @@ const Profile = () => {
                       type={showOldPassword ? "text" : "password"}
                       value={passwordData.oldPassword}
                       onChange={handlePasswordChange}
-                      className={`w-full p-2 pr-10 border rounded-md ${
+                      className={`w-full px-3 py-2 border rounded-lg text-base ${
                         theme === "dark"
-                          ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
-                          : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
-                      } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                          ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                          : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                      } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                       placeholder="Enter current password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowOldPassword(!showOldPassword)}
-                      className="absolute right-2 top-9 text-[#10B981] hover:text-[#059669]"
+                      className="absolute right-3 top-9 text-teal-500 hover:text-teal-400"
                     >
                       {showOldPassword ? (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
+                        <HiEye className="w-5 h-5" />
                       ) : (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
-                          />
-                        </svg>
+                        <HiEyeOff className="w-5 h-5" />
                       )}
                     </button>
                   </div>
                   <div className="relative">
                     <label
                       htmlFor="newPassword"
-                      className="block text-sm font-medium mb-1"
+                      className={`block text-sm font-medium mb-1 ${
+                        theme === "dark" ? "text-gray-200" : "text-gray-700"
+                      }`}
                     >
                       New Password
                     </label>
@@ -530,59 +510,31 @@ const Profile = () => {
                       type={showNewPassword ? "text" : "password"}
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
-                      className={`w-full p-2 pr-10 border rounded-md ${
+                      className={`w-full px-3 py-2 border rounded-lg text-base ${
                         theme === "dark"
-                          ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
-                          : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
-                      } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                          ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                          : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                      } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                       placeholder="Enter new password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-2 top-9 text-[#10B981] hover:text-[#059669]"
+                      className="absolute right-3 top-9 text-teal-500 hover:text-teal-400"
                     >
                       {showNewPassword ? (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
+                        <HiEye className="w-5 h-5" />
                       ) : (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
-                          />
-                        </svg>
+                        <HiEyeOff className="w-5 h-5" />
                       )}
                     </button>
                   </div>
                   <div className="relative">
                     <label
                       htmlFor="confirmPassword"
-                      className="block text-sm font-medium mb-1"
+                      className={`block text-sm font-medium mb-1 ${
+                        theme === "dark" ? "text-gray-200" : "text-gray-700"
+                      }`}
                     >
                       Confirm New Password
                     </label>
@@ -592,11 +544,11 @@ const Profile = () => {
                       type={showConfirmPassword ? "text" : "password"}
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
-                      className={`w-full p-2 pr-10 border rounded-md ${
+                      className={`w-full px-3 py-2 border rounded-lg text-base ${
                         theme === "dark"
-                          ? "bg-gray-700 border-gray-600 text-gray-100 focus:border-[#10B981]"
-                          : "bg-gray-50 border-gray-300 text-gray-900 focus:border-[#10B981]"
-                      } focus:outline-none focus:ring-2 focus:ring-[#10B981]`}
+                          ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                          : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+                      } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                       placeholder="Confirm new password"
                     />
                     <button
@@ -604,42 +556,12 @@ const Profile = () => {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-2 top-9 text-[#10B981] hover:text-[#059669]"
+                      className="absolute right-3 top-9 text-teal-500 hover:text-teal-400"
                     >
                       {showConfirmPassword ? (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
+                        <HiEye className="w-5 h-5" />
                       ) : (
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
-                          />
-                        </svg>
+                        <HiEyeOff className="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -657,10 +579,10 @@ const Profile = () => {
                       setShowNewPassword(false);
                       setShowConfirmPassword(false);
                     }}
-                    className={`py-2 px-4 rounded-md font-medium transition duration-300 ${
+                    className={`w-full py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors duration-300 ${
                       theme === "dark"
-                        ? "bg-gray-600 text-gray-100 hover:bg-gray-500"
-                        : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                        ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
+                        : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
                     }`}
                   >
                     Cancel Password Change
@@ -669,25 +591,21 @@ const Profile = () => {
               )}
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`flex-1 py-2 px-4 rounded-md font-bold transition duration-300 ${
-                  theme === "dark"
-                    ? "bg-[#10B981] text-white hover:bg-[#059669]"
-                    : "bg-[#10B981] text-white hover:bg-[#059669]"
-                } disabled:bg-[#10B981]/50 disabled:cursor-not-allowed`}
+                className={`flex-1 py-2 rounded-lg text-sm sm:text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 transition-colors duration-300 disabled:bg-teal-600/50 disabled:cursor-not-allowed`}
               >
                 {isLoading ? "Saving..." : "Update Profile"}
               </button>
               <button
                 type="button"
                 onClick={handleReset}
-                className={`flex-1 py-2 px-4 rounded-md font-bold transition duration-300 ${
+                className={`flex-1 py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors duration-300 ${
                   theme === "dark"
-                    ? "bg-gray-600 text-gray-100 hover:bg-gray-500"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
+                    : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
                 }`}
               >
                 Reset

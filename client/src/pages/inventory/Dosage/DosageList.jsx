@@ -46,7 +46,6 @@ const DosageList = ({ showToast }) => {
   };
 
   const handleDelete = async (id) => {
-    if (user?.role !== "MANAGER") return;
     try {
       await deleteDosageForm(id);
       if (typeof showToast === "function") {
@@ -68,7 +67,6 @@ const DosageList = ({ showToast }) => {
   };
 
   const openDeleteModal = (id) => {
-    if (user?.role !== "MANAGER") return;
     setDosageIdToDelete(id);
     setShowDeleteModal(true);
   };
@@ -284,16 +282,14 @@ const DosageList = ({ showToast }) => {
                         >
                           <PencilSquareIcon className="h-5 w-5" />
                         </button>
-                        {user?.role === "MANAGER" && (
-                          <button
-                            onClick={() => openDeleteModal(dos.id)}
-                            className={actionButtonClass}
-                            title="Delete"
-                            aria-label={`Delete dosage form ${dos.name}`}
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => openDeleteModal(dos.id)}
+                          className={actionButtonClass}
+                          title="Delete"
+                          aria-label={`Delete dosage form ${dos.name}`}
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -365,56 +361,57 @@ const DosageList = ({ showToast }) => {
         </>
       )}
 
-      {user?.role === "MANAGER" && showDeleteModal && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-          <div
-            className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${
-              theme === "dark"
-                ? "bg-gray-800 text-gray-200"
-                : "bg-[#F7F7F7] text-gray-800"
-            }`}
-          >
-            <div className="flex flex-col items-center">
-              <div className="mb-3">
-                <ExclamationCircleIcon
-                  className={`h-6 w-6 ${
-                    theme === "dark" ? "text-gray-400" : "text-gray-500"
-                  }`}
-                />
-              </div>
-              <p
-                className={`text-sm sm:text-base mb-4 text-center font-semibold ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
-                }`}
-              >
-                Are you sure you want to delete this dosage form?
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center w-full">
-                <button
-                  onClick={() => handleDelete(dosageIdToDelete)}
-                  className={`py-2 px-4 rounded text-white text-sm sm:text-base font-semibold ${
-                    theme === "dark"
-                      ? "bg-red-700 hover:bg-red-600"
-                      : "bg-red-500 hover:bg-red-600"
+      {(user?.role === "MANAGER" || user?.role === "EMPLOYEE") &&
+        showDeleteModal && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+            <div
+              className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${
+                theme === "dark"
+                  ? "bg-gray-800 text-gray-200"
+                  : "bg-[#F7F7F7] text-gray-800"
+              }`}
+            >
+              <div className="flex flex-col items-center">
+                <div className="mb-3">
+                  <ExclamationCircleIcon
+                    className={`h-6 w-6 ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  />
+                </div>
+                <p
+                  className={`text-sm sm:text-base mb-4 text-center font-semibold ${
+                    theme === "dark" ? "text-gray-200" : "text-gray-800"
                   }`}
                 >
-                  Yes, I'm sure
-                </button>
-                <button
-                  onClick={closeDeleteModal}
-                  className={`py-2 px-4 font-semibold text-sm sm:text-base ${
-                    theme === "dark"
-                      ? "text-gray-200 hover:text-gray-100"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                >
-                  No, cancel
-                </button>
+                  Are you sure you want to delete this dosage form?
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center w-full">
+                  <button
+                    onClick={() => handleDelete(dosageIdToDelete)}
+                    className={`py-2 px-4 rounded text-white text-sm sm:text-base font-semibold ${
+                      theme === "dark"
+                        ? "bg-red-700 hover:bg-red-600"
+                        : "bg-red-500 hover:bg-red-600"
+                    }`}
+                  >
+                    Yes, I'm sure
+                  </button>
+                  <button
+                    onClick={closeDeleteModal}
+                    className={`py-2 px-4 font-semibold text-sm sm:text-base ${
+                      theme === "dark"
+                        ? "text-gray-200 hover:text-gray-100"
+                        : "text-gray-600 hover:text-gray-800"
+                    }`}
+                  >
+                    No, cancel
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };

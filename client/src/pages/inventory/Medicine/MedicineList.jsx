@@ -209,8 +209,10 @@ const MedicineList = () => {
   };
 
   const getPageNumbers = () => {
-    const maxPagesToShow = 5;
+    // Always return at least page 1, even if totalPages is 1
     const pages = [];
+    if (totalPages === 0) return pages; // No pages if no data
+    const maxPagesToShow = 5;
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
@@ -220,6 +222,11 @@ const MedicineList = () => {
 
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
+    }
+
+    // Ensure at least page 1 is included
+    if (pages.length === 0) {
+      pages.push(1);
     }
 
     return pages;
@@ -648,6 +655,22 @@ const MedicineList = () => {
                           theme === "dark" ? "text-gray-300" : "text-gray-700"
                         }`}
                       >
+                        Updated By
+                      </span>
+                      <span
+                        className={`text-sm sm:text-base ${
+                          theme === "dark" ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
+                        {medicineToView.updatedBy?.username || "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span
+                        className={`font-semibold text-sm sm:text-base ${
+                          theme === "dark" ? "text-gray-300" : "text-gray-700"
+                        }`}
+                      >
                         Created At
                       </span>
                       <span
@@ -1011,17 +1034,8 @@ const MedicineList = () => {
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex justify-between items-center mt-6">
-              <div
-                className={`text-sm sm:text-base ${
-                  theme === "dark" ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Showing {startIndex + 1} to{" "}
-                {Math.min(startIndex + itemsPerPage, filteredMedicines.length)}{" "}
-                of {filteredMedicines.length} medicines
-              </div>
+          {filteredMedicines.length > 0 && (
+            <div className="flex justify-center items-center mt-6">
               <div className="flex space-x-2">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -1050,7 +1064,7 @@ const MedicineList = () => {
                         : "text-gray-600 bg-gray-100 hover:bg-[#f7f7f7]"
                     }`}
                   >
-                    {page}
+                    {`${page}`}
                   </button>
                 ))}
                 <button

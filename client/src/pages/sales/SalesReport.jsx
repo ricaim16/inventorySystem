@@ -6,11 +6,7 @@ import autoTable from "jspdf-autotable";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import {
-  CurrencyDollarIcon,
-  HomeIcon,
-  ChartBarIcon,
-} from "@heroicons/react/24/outline";
+import { ArchiveBoxIcon, ChartBarIcon } from "@heroicons/react/24/outline";
 
 const SalesReport = () => {
   const [report, setReport] = useState(null);
@@ -470,7 +466,7 @@ const SalesReport = () => {
               }}
             >
               <div className="flex items-center mb-2">
-                <CurrencyDollarIcon className="h-6 w-6 text-white mr-3" />
+                <span className="h-6 w-6 text-white mr-3 text-xl">💵</span>
                 <h3 className="text-base sm:text-lg font-semibold text-white">
                   Total Sales
                 </h3>
@@ -488,7 +484,7 @@ const SalesReport = () => {
               }}
             >
               <div className="flex items-center mb-2">
-                <HomeIcon className="h-6 w-6 text-white mr-3" />
+                <ArchiveBoxIcon className="h-6 w-6 text-white mr-3" />
                 <h3 className="text-base sm:text-lg font-semibold text-white">
                   Total Quantity
                 </h3>

@@ -6,7 +6,7 @@ export const categoryController = {
   getAllCategories: async (req, res) => {
     try {
       const categories = await prisma.categories.findMany({
-        include: { Medicines: { select: { medicine_name: true } } },
+        select: { id: true, name: true }, // Only id and name for dropdown
       });
       res.json(categories);
     } catch (error) {
@@ -22,7 +22,7 @@ export const categoryController = {
       return res.status(400).json({ message: "Category name is required" });
 
     try {
-      const normalizedName = name.toLowerCase(); // Normalize to lowercase
+      const normalizedName = name.toLowerCase();
       const category = await prisma.categories.create({
         data: { name: normalizedName },
       });
@@ -49,7 +49,7 @@ export const categoryController = {
       return res.status(400).json({ message: "Category name is required" });
 
     try {
-      const normalizedName = name.toLowerCase(); // Normalize to lowercase
+      const normalizedName = name.toLowerCase();
       const category = await prisma.categories.update({
         where: { id },
         data: { name: normalizedName },

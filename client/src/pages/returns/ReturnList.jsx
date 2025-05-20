@@ -176,7 +176,6 @@ const ReturnList = ({ showToast }) => {
         >
           Returns List
         </h2>
-        
       </div>
 
       {error && (
@@ -455,9 +454,7 @@ const ReturnList = ({ showToast }) => {
                             >
                               <HiPencil size={18} />
                             </button>
-                            {["MANAGER", "EMPLOYEE"].includes(
-                              user?.role?.toUpperCase()
-                            ) && (
+                            {user?.role?.toUpperCase() === "MANAGER" && (
                               <button
                                 onClick={() => handleDelete(returnItem.id)}
                                 className={actionButtonClass}

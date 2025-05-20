@@ -168,42 +168,49 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
 
   return (
     <div
-      className={`rounded-lg shadow-lg p-6 w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto scrollbar scrollbar-thumb-gray-400 ${
+      className={`rounded-xl shadow-lg p-6 w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto scrollbar-thin ${
         theme === "dark"
-          ? "bg-gray-800 scrollbar-track-gray-700"
-          : "bg-[#f7f7f7] scrollbar-track-[#f7f7f7]"
+          ? "bg-gray-800 border-gray-700 scrollbar-thumb-gray-500 scrollbar-track-gray-800"
+          : "bg-white border-gray-200 scrollbar-thumb-gray-300 scrollbar-track-gray-100"
       }`}
     >
       <div className="flex justify-between items-center mb-6">
         <h2
-          className={`text-xl font-bold ${
-            theme === "dark" ? "text-gray-200" : "text-gray-800"
+          className={`text-2xl sm:text-3xl font-semibold ${
+            theme === "dark" ? "text-gray-100" : "text-gray-900"
           }`}
+          style={{ color: "#10B981" }}
         >
-          {initialData ? "UPDATE USER" : "ADD USER"}
+          {initialData ? "Update User" : "Add User"}
         </h2>
         <button
           onClick={onCancel}
-          className="text-white bg-[#A52A2A] border border-[#8B1A1A] rounded px-2 py-1 hover:bg-[#8B1A1A] text-sm"
+          className={`px-3 py-1 rounded-lg text-sm sm:text-base font-semibold transition-colors duration-300 ${
+            theme === "dark"
+              ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
+              : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
+          }`}
         >
           ✕
         </button>
       </div>
       {error && (
-        <p
-          className={`mb-4 text-center text-sm ${
-            theme === "dark" ? "text-red-400" : "text-red-500"
-          }`}
+        <div
+          className={`${
+            theme === "dark"
+              ? "text-red-400 bg-red-900/20"
+              : "text-red-500 bg-red-100"
+          } mb-6 text-base p-4 rounded-lg text-center`}
         >
           {error}
-        </p>
+        </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label
             className={`block text-sm font-medium ${
-              theme === "dark" ? "text-gray-200" : "text-gray-600"
+              theme === "dark" ? "text-gray-200" : "text-gray-700"
             }`}
           >
             First Name <span className="text-red-500">*</span>
@@ -216,10 +223,10 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
             onKeyDown={(e) => handleKeyDown(e, lastNameRef)}
             ref={firstNameRef}
             placeholder="Enter First Name"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E8C7] text-sm ${
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
               theme === "dark"
-                ? "bg-gray-700 border-gray-500 text-gray-200"
-                : "bg-white border-black text-gray-800"
+                ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
             }`}
           />
         </div>
@@ -227,7 +234,7 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
         <div>
           <label
             className={`block text-sm font-medium ${
-              theme === "dark" ? "text-gray-200" : "text-gray-600"
+              theme === "dark" ? "text-gray-200" : "text-gray-700"
             }`}
           >
             Last Name <span className="text-red-500">*</span>
@@ -240,10 +247,10 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
             onKeyDown={(e) => handleKeyDown(e, usernameRef)}
             ref={lastNameRef}
             placeholder="Enter Last Name"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E8C7] text-sm ${
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
               theme === "dark"
-                ? "bg-gray-700 border-gray-500 text-gray-200"
-                : "bg-white border-black text-gray-800"
+                ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
             }`}
           />
         </div>
@@ -251,7 +258,7 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
         <div>
           <label
             className={`block text-sm font-medium ${
-              theme === "dark" ? "text-gray-200" : "text-gray-600"
+              theme === "dark" ? "text-gray-200" : "text-gray-700"
             }`}
           >
             Username <span className="text-red-500">*</span>
@@ -264,10 +271,10 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
             onKeyDown={(e) => handleKeyDown(e, emailRef)}
             ref={usernameRef}
             placeholder="Enter Username"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E8C7] text-sm ${
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
               theme === "dark"
-                ? "bg-gray-700 border-gray-500 text-gray-200"
-                : "bg-white border-black text-gray-800"
+                ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
             }`}
           />
         </div>
@@ -275,7 +282,7 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
         <div>
           <label
             className={`block text-sm font-medium ${
-              theme === "dark" ? "text-gray-200" : "text-gray-600"
+              theme === "dark" ? "text-gray-200" : "text-gray-700"
             }`}
           >
             Email
@@ -288,29 +295,33 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
             onKeyDown={(e) => handleKeyDown(e, passwordRef)}
             ref={emailRef}
             placeholder="Enter Email"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E8C7] text-sm ${
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
               theme === "dark"
-                ? "bg-gray-700 border-gray-500 text-gray-200"
-                : "bg-white border-black text-gray-800"
+                ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
             }`}
           />
           {emailStatus && (
-            <p
-              className={`mt-1 text-xs ${
+            <div
+              className={`mt-1 text-xs p-1 rounded ${
                 emailStatus === "Email available"
-                  ? "text-green-500"
-                  : "text-red-500"
+                  ? theme === "dark"
+                    ? "text-green-500 bg-green-900/20"
+                    : "text-green-500 bg-green-100"
+                  : theme === "dark"
+                  ? "text-red-500 bg-red-900/20"
+                  : "text-red-500 bg-red-100"
               }`}
             >
               {emailStatus}
-            </p>
+            </div>
           )}
         </div>
 
         <div>
           <label
             className={`block text-sm font-medium ${
-              theme === "dark" ? "text-gray-200" : "text-gray-600"
+              theme === "dark" ? "text-gray-200" : "text-gray-700"
             }`}
           >
             Password <span className="text-red-500">*</span>
@@ -323,10 +334,10 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
             onKeyDown={(e) => handleKeyDown(e, statusRef)}
             ref={passwordRef}
             placeholder="Enter Password"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#F5E8C7] text-sm ${
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
               theme === "dark"
-                ? "bg-gray-700 border-gray-500 text-gray-200"
-                : "bg-white border-black text-gray-800"
+                ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
             }`}
           />
         </div>
@@ -334,7 +345,7 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
         <div>
           <label
             className={`block text-sm font-medium ${
-              theme === "dark" ? "text-gray-200" : "text-gray-600"
+              theme === "dark" ? "text-gray-200" : "text-gray-700"
             }`}
           >
             Status <span className="text-red-500">*</span>
@@ -349,11 +360,11 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
                 onChange={handleChange}
                 onKeyDown={(e) => handleKeyDown(e, statusInactiveRef)}
                 ref={statusRef}
-                className="h-4 w-4 text-[#E8D7A5] focus:ring-[#E8D7A5] border-gray-300"
+                className="h-4 w-4 text-teal-500 focus:ring-teal-500 border-gray-300"
               />
               <span
                 className={`text-sm ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-600"
+                  theme === "dark" ? "text-gray-200" : "text-gray-700"
                 }`}
               >
                 Active
@@ -368,11 +379,11 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
                 onChange={handleChange}
                 onKeyDown={(e) => handleKeyDown(e, submitRef)}
                 ref={statusInactiveRef}
-                className="h-4 w-4 text-[#E8D7A5] focus:ring-[#E8D7A5] border-gray-300"
+                className="h-4 w-4 text-teal-500 focus:ring-teal-500 border-gray-300"
               />
               <span
                 className={`text-sm ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-600"
+                  theme === "dark" ? "text-gray-200" : "text-gray-700"
                 }`}
               >
                 Inactive
@@ -381,17 +392,23 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
           </div>
         </div>
 
-        <div className="sm:col-span-2 mt-6">
+        <div className="sm:col-span-2 mt-6 flex flex-col sm:flex-row gap-4">
           <button
             onClick={handleSubmit}
             ref={submitRef}
-            className={`w-full py-2 rounded-lg transition duration-300 text-sm ${
-              theme === "dark"
-                ? "bg-gray-600 text-white border-2 border-gray-500 hover:bg-gray-500 hover:text-white"
-                : "bg-[#f7f7f7] text-gray-800 border-2 border-black hover:bg-[#eaeaea] hover:text-gray-800"
-            }`}
+            className={`flex-1 py-2 rounded-lg text-sm sm:text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 transition-colors duration-300`}
           >
             {initialData ? "Update User" : "Add User"}
+          </button>
+          <button
+            onClick={onCancel}
+            className={`flex-1 py-2 rounded-lg text-sm sm:text-base font-semibold transition-colors duration-300 ${
+              theme === "dark"
+                ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
+                : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
+            }`}
+          >
+            Cancel
           </button>
         </div>
       </div>

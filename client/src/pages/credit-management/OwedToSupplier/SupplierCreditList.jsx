@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, Link } from "react-router-dom";
 import {
   getAllSuppliers,
@@ -14,7 +14,6 @@ import {
   HiEye,
   HiPencil,
   HiTrash,
-  HiSearch,
 } from "react-icons/hi";
 import { useTheme } from "../../../context/ThemeContext";
 
@@ -35,6 +34,7 @@ const SupplierCreditList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [creditIdToDelete, setCreditIdToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const itemsPerPage = 10;
   const location = useLocation();
 
@@ -89,9 +89,9 @@ const SupplierCreditList = () => {
           defaultSupplierId &&
           supplierList.find((supp) => supp.id === defaultSupplierId)
             ? defaultSupplierId
-            : supplierList[0].id;
+            : "";
         setSelectedSupplierId(initialSupplierId);
-        fetchCredits(initialSupplierId);
+        if (initialSupplierId) fetchCredits(initialSupplierId);
       } else {
         setError("No suppliers available. Please add a supplier first.");
         setSelectedSupplierId("");
@@ -136,15 +136,22 @@ const SupplierCreditList = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!id) {
+      setError("No credit ID provided for deletion.");
+      return;
+    }
     try {
       await deleteSupplierCredit(id);
-      fetchCredits(selectedSupplierId);
+      setCredits(credits.filter((cred) => cred.id !== id));
+      setOverdueCredits(overdueCredits.filter((cred) => cred.id !== id));
       setError(null);
     } catch (err) {
       setError("Failed to delete credit: " + (err.message || "Unknown error"));
+      console.error("Delete error:", err);
+    } finally {
+      setShowDeleteModal(false);
+      setCreditIdToDelete(null);
     }
-    setShowDeleteModal(false);
-    setCreditIdToDelete(null);
   };
 
   const openDeleteModal = (id) => {
@@ -169,10 +176,9 @@ const SupplierCreditList = () => {
     setEditCredit(null);
   };
 
-  const handleSupplierChange = (e) => {
-    const supplierId = e.target.value;
-    setSelectedSupplierId(supplierId);
-    if (supplierId) fetchCredits(supplierId);
+  const handleSupplierChange = (id) => {
+    setSelectedSupplierId(id);
+    if (id) fetchCredits(id);
     setSearchTerm("");
     setCurrentPage(1);
   };
@@ -282,12 +288,6 @@ const SupplierCreditList = () => {
         >
           Supplier Credits
         </h2>
-        <Link
-          to="/credit-management/owed-to-supplier/report"
-          className={`px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold bg-teal-600 hover:bg-teal-700 transition duration-300`}
-        >
-          Generate Credit Report
-        </Link>
       </div>
 
       {error && (
@@ -314,44 +314,102 @@ const SupplierCreditList = () => {
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative w-full sm:w-64">
-          <input
-            type="text"
-            placeholder="Search by Supplier Name..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className={`w-full p-2 pl-10 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className={`w-full p-2 pl-3 pr-10 border rounded text-sm flex items-center justify-between ${
               theme === "dark"
-                ? "bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400"
-                : "bg-white border-gray-300 text-gray-600 placeholder-gray-500"
-            }`}
+                ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                : "bg-white text-black border-gray-300 hover:bg-gray-100"
+            } ${loading || suppliers.length === 0 ? "opacity-50" : ""}`}
             disabled={loading || suppliers.length === 0}
-          />
-          <HiSearch
-            className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
-              theme === "dark" ? "text-gray-400" : "text-gray-500"
-            }`}
-          />
+          >
+            <span>
+              {selectedSupplierId
+                ? suppliers.find((supp) => supp.id === selectedSupplierId)
+                    ?.supplier_name || "Select a supplier"
+                : "Select a supplier"}
+            </span>
+            <svg
+              className={`w-5 h-5 ml-2 transition-transform ${
+                isDropdownOpen ? "rotate-180" : ""
+              } ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          {isDropdownOpen && (
+            <div
+              className={`absolute z-10 w-full mt-1 border rounded-md shadow-lg ${
+                theme === "dark"
+                  ? "bg-gray-800 border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-black"
+              }`}
+            >
+              <div className="p-2">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by Supplier Name..."
+                  className={`w-full p-2 border rounded text-sm placeholder-gray-400 ${
+                    theme === "dark"
+                      ? "bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                      : "bg-gray-100 text-black border-gray-300 placeholder-gray-500"
+                  }`}
+                  autoFocus
+                />
+              </div>
+              <ul className="max-h-40 overflow-y-auto">
+                <li
+                  className={`px-4 py-2 text-sm cursor-pointer ${
+                    theme === "dark"
+                      ? "hover:bg-gray-700 text-white"
+                      : "hover:bg-gray-100 text-black"
+                  } ${!selectedSupplierId ? "font-bold" : ""}`}
+                  onClick={() => {
+                    handleSupplierChange("");
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  Select a supplier
+                </li>
+                {filteredSuppliers.length > 0 ? (
+                  filteredSuppliers.map((supp) => (
+                    <li
+                      key={supp.id}
+                      className={`px-4 py-2 text-sm cursor-pointer ${
+                        theme === "dark"
+                          ? "hover:bg-gray-700 text-white"
+                          : "hover:bg-gray-100 text-black"
+                      } ${selectedSupplierId === supp.id ? "font-bold" : ""}`}
+                      onClick={() => {
+                        handleSupplierChange(supp.id);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      {supp.supplier_name}
+                    </li>
+                  ))
+                ) : searchTerm ? (
+                  <li
+                    className={`px-4 py-2 text-sm ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
+                    No suppliers found
+                  </li>
+                ) : null}
+              </ul>
+            </div>
+          )}
         </div>
-        <select
-          value={selectedSupplierId}
-          onChange={handleSupplierChange}
-          className={`w-full sm:w-64 p-2 border rounded text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-            theme === "dark"
-              ? "bg-gray-800 border-gray-600 text-gray-200"
-              : "bg-white border-gray-300 text-gray-600"
-          }`}
-          disabled={loading || suppliers.length === 0}
-        >
-          <option value="">Select a supplier</option>
-          {filteredSuppliers.map((supp) => (
-            <option key={supp.id} value={supp.id}>
-              {supp.supplier_name}
-            </option>
-          ))}
-        </select>
       </div>
 
       {selectedSupplierId ? (
@@ -600,13 +658,6 @@ const SupplierCreditList = () => {
                       theme === "dark" ? "border-gray-700" : "border-gray-200"
                     }`}
                   >
-                    Description
-                  </th>
-                  <th
-                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
-                      theme === "dark" ? "border-gray-700" : "border-gray-200"
-                    }`}
-                  >
                     Status
                   </th>
                   <th
@@ -621,38 +672,6 @@ const SupplierCreditList = () => {
                       theme === "dark" ? "border-gray-700" : "border-gray-200"
                     }`}
                   >
-                    Credit Date
-                  </th>
-                  <th
-                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
-                      theme === "dark" ? "border-gray-700" : "border-gray-200"
-                    }`}
-                  >
-                    Updated
-                  </th>
-                  {userRole === "MANAGER" && (
-                    <th
-                      className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
-                        theme === "dark" ? "border-gray-700" : "border-gray-200"
-                      }`}
-                    >
-                      Created By
-                    </th>
-                  )}
-                  {userRole === "MANAGER" && (
-                    <th
-                      className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
-                        theme === "dark" ? "border-gray-700" : "border-gray-200"
-                      }`}
-                    >
-                      Updated By
-                    </th>
-                  )}
-                  <th
-                    className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
-                      theme === "dark" ? "border-gray-700" : "border-gray-200"
-                    }`}
-                  >
                     Actions
                   </th>
                 </tr>
@@ -661,7 +680,7 @@ const SupplierCreditList = () => {
                 {currentCredits.length === 0 && !loading ? (
                   <tr>
                     <td
-                      colSpan={userRole === "MANAGER" ? 15 : 13}
+                      colSpan={10}
                       className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base text-center ${
                         theme === "dark"
                           ? "text-gray-400 border-gray-700"
@@ -758,15 +777,6 @@ const SupplierCreditList = () => {
                         {cred.payment_method || "N/A"}
                       </td>
                       <td
-                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base truncate ${
-                          theme === "dark"
-                            ? "text-gray-300 border-gray-700"
-                            : "text-gray-700 border-gray-200"
-                        }`}
-                      >
-                        {cred.description || "N/A"}
-                      </td>
-                      <td
                         className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
                           cred.payment_status === "UNPAID"
                             ? theme === "dark"
@@ -810,46 +820,6 @@ const SupplierCreditList = () => {
                             : "text-gray-700 border-gray-200"
                         }`}
                       >
-                        {cred.credit_date ? formatEAT(cred.credit_date) : "N/A"}
-                      </td>
-                      <td
-                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
-                          theme === "dark"
-                            ? "text-gray-300 border-gray-700"
-                            : "text-gray-700 border-gray-200"
-                        }`}
-                      >
-                        {cred.updated_at ? formatEAT(cred.updated_at) : "N/A"}
-                      </td>
-                      {userRole === "MANAGER" && (
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {cred.createdBy?.username || "N/A"}
-                        </td>
-                      )}
-                      {userRole === "MANAGER" && (
-                        <td
-                          className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
-                            theme === "dark"
-                              ? "text-gray-300 border-gray-700"
-                              : "text-gray-700 border-gray-200"
-                          }`}
-                        >
-                          {cred.updatedBy?.username || "N/A"}
-                        </td>
-                      )}
-                      <td
-                        className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
-                          theme === "dark"
-                            ? "text-gray-300 border-gray-700"
-                            : "text-gray-700 border-gray-200"
-                        }`}
-                      >
                         <div className="flex space-x-2 flex-wrap gap-2">
                           <button
                             onClick={() => handleView(cred)}
@@ -862,31 +832,29 @@ const SupplierCreditList = () => {
                           >
                             <HiEye size={18} />
                           </button>
+                          <button
+                            onClick={() => handleEdit(cred)}
+                            className={actionButtonClass}
+                            title="Edit"
+                            aria-label={`Edit credit for ${
+                              cred.supplier?.supplier_name || "N/A"
+                            }`}
+                            disabled={loading}
+                          >
+                            <HiPencil size={18} />
+                          </button>
                           {userRole === "MANAGER" && (
-                            <>
-                              <button
-                                onClick={() => handleEdit(cred)}
-                                className={actionButtonClass}
-                                title="Edit"
-                                aria-label={`Edit credit for ${
-                                  cred.supplier?.supplier_name || "N/A"
-                                }`}
-                                disabled={loading}
-                              >
-                                <HiPencil size={18} />
-                              </button>
-                              <button
-                                onClick={() => openDeleteModal(cred.id)}
-                                className={actionButtonClass}
-                                title="Delete"
-                                aria-label={`Delete credit for ${
-                                  cred.supplier?.supplier_name || "N/A"
-                                }`}
-                                disabled={loading}
-                              >
-                                <HiTrash size={18} />
-                              </button>
-                            </>
+                            <button
+                              onClick={() => openDeleteModal(cred.id)}
+                              className={actionButtonClass}
+                              title="Delete"
+                              aria-label={`Delete credit for ${
+                                cred.supplier?.supplier_name || "N/A"
+                              }`}
+                              disabled={loading}
+                            >
+                              <HiTrash size={18} />
+                            </button>
                           )}
                         </div>
                       </td>
@@ -944,7 +912,7 @@ const SupplierCreditList = () => {
                     {totalUnpaidAmount.toFixed(2)}
                   </td>
                   <td
-                    colSpan={userRole === "MANAGER" ? 10 : 8}
+                    colSpan={5}
                     className={`border-b border-gray-300 px-4 py-3 ${
                       theme === "dark"
                         ? "text-gray-200 border-gray-700"

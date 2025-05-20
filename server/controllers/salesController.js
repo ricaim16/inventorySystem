@@ -104,6 +104,7 @@ export const salesController = {
             id: true,
             quantity: true,
             sell_price: true,
+            unit_price: true, // Added for total_price
             required_prescription: true,
             medicine_name: true,
           },
@@ -177,12 +178,12 @@ export const salesController = {
           where: { id: medicine_id },
           data: {
             quantity: { decrement: parsedQuantity },
-            total_price: { decrement: parsedQuantity * medicine.sell_price },
+            total_price:
+              (medicine.quantity - parsedQuantity) * medicine.unit_price, // Fixed to use unit_price
           },
         }),
       ]);
 
-      // Trigger low stock notification
       await notificationService.handleSaleNotification(
         medicine_id,
         parsedQuantity,
@@ -244,6 +245,7 @@ export const salesController = {
           id: true,
           quantity: true,
           sell_price: true,
+          unit_price: true, // Added for total_price
           required_prescription: true,
           medicine_name: true,
         },
@@ -343,18 +345,14 @@ export const salesController = {
                       ? { decrement: quantityDifference }
                       : { increment: -quantityDifference },
                   total_price:
-                    quantityDifference >= 0
-                      ? { decrement: quantityDifference * medicine.sell_price }
-                      : {
-                          increment: -quantityDifference * medicine.sell_price,
-                        },
+                    (medicine.quantity - quantityDifference) *
+                    medicine.unit_price, // Fixed to use unit_price
                 },
               }),
             ]
           : []),
       ]);
 
-      // Trigger low stock notification if quantity changed
       if (quantityDifference !== 0) {
         await notificationService.handleSaleNotification(
           medicineIdToUse,
@@ -388,7 +386,7 @@ export const salesController = {
 
       const medicine = await prisma.medicines.findUnique({
         where: { id: sale.medicine_id },
-        select: { sell_price: true, medicine_name: true },
+        select: { unit_price: true, medicine_name: true }, // Changed to unit_price
       });
 
       await prisma.$transaction([
@@ -397,14 +395,12 @@ export const salesController = {
           where: { id: sale.medicine_id },
           data: {
             quantity: { increment: sale.quantity },
-            total_price: {
-              increment: sale.quantity * (medicine.sell_price || 0),
-            },
+            total_price:
+              (medicine.quantity + sale.quantity) * medicine.unit_price, // Fixed to use unit_price
           },
         }),
       ]);
 
-      // Trigger low stock notification
       await notificationService.handleSaleNotification(
         sale.medicine_id,
         -sale.quantity,

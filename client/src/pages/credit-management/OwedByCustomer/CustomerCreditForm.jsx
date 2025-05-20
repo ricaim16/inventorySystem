@@ -31,6 +31,10 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
+  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+  const [isMedicineDropdownOpen, setIsMedicineDropdownOpen] = useState(false);
+  const [customerSearchTerm, setCustomerSearchTerm] = useState("");
+  const [medicineSearchTerm, setMedicineSearchTerm] = useState("");
 
   useEffect(() => {
     fetchCustomers();
@@ -115,6 +119,20 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
     setSuccessMessage("");
   };
 
+  const handleCustomerSelect = (customerId) => {
+    setFormData((prev) => ({ ...prev, customer_id: customerId }));
+    setIsCustomerDropdownOpen(false);
+    setCustomerSearchTerm("");
+    setErrors((prev) => ({ ...prev, customer_id: null }));
+  };
+
+  const handleMedicineSelect = (medicineName) => {
+    setFormData((prev) => ({ ...prev, medicine_name: medicineName }));
+    setIsMedicineDropdownOpen(false);
+    setMedicineSearchTerm("");
+    setErrors((prev) => ({ ...prev, medicine_name: null }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.customer_id)
@@ -127,6 +145,8 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
     if (isNaN(paidAmount) || paidAmount < 0)
       newErrors.paid_amount =
         "Please enter a valid paid amount (0 or greater).";
+    if (paidAmount > creditAmount)
+      newErrors.paid_amount = "Paid amount cannot exceed the credit amount.";
     if (!formData.medicine_name)
       newErrors.medicine_name = "Please select a medicine.";
     return newErrors;
@@ -179,6 +199,16 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
       setIsSubmitting(false);
     }
   };
+
+  const filteredCustomers = customers.filter((customer) =>
+    customer?.name?.toLowerCase().includes(customerSearchTerm.toLowerCase())
+  );
+
+  const filteredMedicines = medicines.filter((medicine) =>
+    medicine?.medicine_name
+      ?.toLowerCase()
+      .includes(medicineSearchTerm.toLowerCase())
+  );
 
   return (
     <form
@@ -234,6 +264,7 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
       )}
 
       <div className="mb-6 space-y-4">
+        {/* Customer Dropdown with Search */}
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -242,31 +273,108 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
           >
             Customer <span className="text-red-500">*</span>
           </label>
-          <select
-            name="customer_id"
-            value={formData.customer_id}
-            onChange={handleChange}
-            className={`w-full p-3 border rounded focus:outline-none text-base ${
-              theme === "dark"
-                ? "bg-gray-800 border-gray-600 text-gray-200 hover:border-gray-400 focus:border-gray-400"
-                : "bg-[#F7F7F7] border-gray-300 text-gray-600 hover:border-gray-500 focus:border-gray-500"
-            } ${errors.customer_id ? "border-red-500" : ""}`}
-            required
-            disabled={isSubmitting}
-          >
-            <option value="">Select a customer</option>
-            {isLoadingCustomers ? (
-              <option disabled>Loading customers...</option>
-            ) : customers.length === 0 ? (
-              <option disabled>No customers available</option>
-            ) : (
-              customers.map((cust) => (
-                <option key={cust.id} value={cust.id.toString()}>
-                  {cust.name || "Unnamed Customer"}
-                </option>
-              ))
+          <div className="relative w-full">
+            <button
+              type="button"
+              onClick={() => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)}
+              className={`w-full p-2 pl-3 pr-10 border rounded text-sm flex items-center justify-between ${
+                theme === "dark"
+                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                  : "bg-white text-black border-gray-300 hover:bg-gray-100"
+              } ${errors.customer_id ? "border-red-500" : ""} ${
+                isSubmitting || isLoadingCustomers || customers.length === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              disabled={
+                isSubmitting || isLoadingCustomers || customers.length === 0
+              }
+            >
+              <span>
+                {formData.customer_id
+                  ? customers.find(
+                      (cust) => cust.id.toString() === formData.customer_id
+                    )?.name || "Select a customer"
+                  : "Select a customer"}
+              </span>
+              <svg
+                className={`w-5 h-5 ml-2 transition-transform ${
+                  isCustomerDropdownOpen ? "rotate-180" : ""
+                } ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            {isCustomerDropdownOpen && (
+              <div
+                className={`absolute z-10 w-full mt-1 border rounded-md shadow-lg ${
+                  theme === "dark"
+                    ? "bg-gray-800 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-black"
+                }`}
+              >
+                <div className="p-2">
+                  <input
+                    type="text"
+                    value={customerSearchTerm}
+                    onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                    placeholder="Search items"
+                    className={`w-full p-2 border rounded text-sm placeholder-gray-400 ${
+                      theme === "dark"
+                        ? "bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                        : "bg-gray-100 text-black border-gray-300 placeholder-gray-500"
+                    }`}
+                    autoFocus
+                  />
+                </div>
+                <ul className="max-h-40 overflow-y-auto">
+                  {filteredCustomers.length > 0 ? (
+                    filteredCustomers.map((cust) => (
+                      <li
+                        key={cust.id}
+                        className={`px-4 py-2 text-sm cursor-pointer ${
+                          theme === "dark"
+                            ? "hover:bg-gray-700 text-white"
+                            : "hover:bg-gray-100 text-black"
+                        } ${
+                          formData.customer_id === cust.id.toString()
+                            ? "font-bold"
+                            : ""
+                        }`}
+                        onClick={() => handleCustomerSelect(cust.id.toString())}
+                      >
+                        {cust.name || "Unnamed Customer"}
+                      </li>
+                    ))
+                  ) : customerSearchTerm ? (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No customers found
+                    </li>
+                  ) : (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {isLoadingCustomers
+                        ? "Loading customers..."
+                        : "No customers available"}
+                    </li>
+                  )}
+                </ul>
+              </div>
             )}
-          </select>
+          </div>
           {errors.customer_id && (
             <p
               className={`text-sm mt-1 ${
@@ -277,6 +385,7 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -311,6 +420,7 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -344,6 +454,8 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
+        {/* Medicine Dropdown with Search */}
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -352,25 +464,98 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
           >
             Medicine Name <span className="text-red-500">*</span>
           </label>
-          <select
-            name="medicine_name"
-            value={formData.medicine_name}
-            onChange={handleChange}
-            className={`w-full p-3 border rounded focus:outline-none text-base ${
-              theme === "dark"
-                ? "bg-gray-800 border-gray-600 text-gray-200 hover:border-gray-400 focus:border-gray-400"
-                : "bg-[#F7F7F7] border-gray-300 text-gray-600 hover:border-gray-500 focus:border-gray-500"
-            } ${errors.medicine_name ? "border-red-500" : ""}`}
-            required
-            disabled={isSubmitting}
-          >
-            <option value="">Select a medicine</option>
-            {medicines.map((med) => (
-              <option key={med.id} value={med.medicine_name}>
-                {med.medicine_name}
-              </option>
-            ))}
-          </select>
+          <div className="relative w-full">
+            <button
+              type="button"
+              onClick={() => setIsMedicineDropdownOpen(!isMedicineDropdownOpen)}
+              className={`w-full p-2 pl-3 pr-10 border rounded text-sm flex items-center justify-between ${
+                theme === "dark"
+                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                  : "bg-white text-black border-gray-300 hover:bg-gray-100"
+              } ${errors.medicine_name ? "border-red-500" : ""} ${
+                isSubmitting || medicines.length === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              disabled={isSubmitting || medicines.length === 0}
+            >
+              <span>{formData.medicine_name || "Select a medicine"}</span>
+              <svg
+                className={`w-5 h-5 ml-2 transition-transform ${
+                  isMedicineDropdownOpen ? "rotate-180" : ""
+                } ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            {isMedicineDropdownOpen && (
+              <div
+                className={`absolute z-10 w-full mt-1 border rounded-md shadow-lg ${
+                  theme === "dark"
+                    ? "bg-gray-800 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-black"
+                }`}
+              >
+                <div className="p-2">
+                  <input
+                    type="text"
+                    value={medicineSearchTerm}
+                    onChange={(e) => setMedicineSearchTerm(e.target.value)}
+                    placeholder="Search items"
+                    className={`w-full p-2 border rounded text-sm placeholder-gray-400 ${
+                      theme === "dark"
+                        ? "bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                        : "bg-gray-100 text-black border-gray-300 placeholder-gray-500"
+                    }`}
+                    autoFocus
+                  />
+                </div>
+                <ul className="max-h-40 overflow-y-auto">
+                  {filteredMedicines.length > 0 ? (
+                    filteredMedicines.map((med) => (
+                      <li
+                        key={med.id}
+                        className={`px-4 py-2 text-sm cursor-pointer ${
+                          theme === "dark"
+                            ? "hover:bg-gray-700 text-white"
+                            : "hover:bg-gray-100 text-black"
+                        } ${
+                          formData.medicine_name === med.medicine_name
+                            ? "font-bold"
+                            : ""
+                        }`}
+                        onClick={() => handleMedicineSelect(med.medicine_name)}
+                      >
+                        {med.medicine_name}
+                      </li>
+                    ))
+                  ) : medicineSearchTerm ? (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No medicines found
+                    </li>
+                  ) : (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No medicines available
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
           {errors.medicine_name && (
             <p
               className={`text-sm mt-1 ${
@@ -381,6 +566,7 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -409,6 +595,7 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
             <option value="EBIRR">Ebirr</option>
           </select>
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -431,6 +618,7 @@ const CustomerCreditForm = ({ customerId, credit, onSave, onCancel }) => {
             disabled={isSubmitting}
           />
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${

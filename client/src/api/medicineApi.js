@@ -24,26 +24,29 @@ export const getAllMedicines = async () => {
 
 export const getMedicineByBatchNumber = async (batchNumber) => {
   try {
-    console.log(`Fetching medicine with batch number: ${batchNumber}`);
+    console.log(
+      `Fetching medicines with batch number containing: ${batchNumber}`
+    );
     const encodedBatchNumber = encodeURIComponent(batchNumber);
     const url = `${API_URL}/batch/${encodedBatchNumber}`;
     console.log(`Request URL: ${url}`);
     const response = await axiosInstance.get(url);
     console.log(`Response for batch number ${batchNumber}:`, response.data);
-    return response.data;
+    return response.data; // Now returns an array of medicines
   } catch (error) {
-    console.error(`Error fetching medicine by batch number ${batchNumber}:`, {
+    console.error(`Error fetching medicines by batch number ${batchNumber}:`, {
       message: error.message,
       response: error.response?.data,
       status: error.response?.status,
     });
     throw new Error(
-      `Failed to fetch medicine by batch number: ${
+      `Failed to fetch medicines by batch number: ${
         error.response?.data?.message || error.message
       }`
     );
   }
 };
+
 
 export const getLowStockMedicines = async () => {
   try {

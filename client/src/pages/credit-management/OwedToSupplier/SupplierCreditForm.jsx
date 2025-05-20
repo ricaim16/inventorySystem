@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import {
   addSupplierCredit,
   editSupplierCredit,
@@ -6,12 +7,17 @@ import {
   getAllMedicines,
 } from "../../../api/supplierApi";
 import { useTheme } from "../../../context/ThemeContext";
+import { axiosInstance } from "../../../api/axiosInstance";
 
 const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
   const { theme } = useTheme();
+  const { id } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const supplierIdFromUrl = queryParams.get("supplierId") || supplierId;
+
   const [formData, setFormData] = useState({
-    supplier_id:
-      supplierId?.toString() || credit?.supplier_id?.toString() || "",
+    supplier_id: supplierIdFromUrl || credit?.supplier_id?.toString() || "",
     credit_amount: credit?.credit_amount?.toString() || "",
     paid_amount: credit?.paid_amount?.toString() || "0",
     medicine_name: credit?.medicine_name || "",
@@ -25,12 +31,19 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(true);
+  const [isSupplierDropdownOpen, setIsSupplierDropdownOpen] = useState(false);
+  const [isMedicineDropdownOpen, setIsMedicineDropdownOpen] = useState(false);
+  const [supplierSearchTerm, setSupplierSearchTerm] = useState("");
+  const [medicineSearchTerm, setMedicineSearchTerm] = useState("");
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     fetchSuppliers();
     fetchMedicines();
-  }, [supplierId, credit]);
+    if (id && !credit) {
+      fetchCredit();
+    }
+  }, [id, supplierIdFromUrl, credit]);
 
   useEffect(() => {
     const requiredFields = ["supplier_id", "credit_amount", "medicine_name"];
@@ -52,9 +65,9 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
         setErrors({
           general: "No suppliers available. Please add a supplier first.",
         });
-      } else if (supplierId) {
+      } else if (supplierIdFromUrl) {
         const validSupplier = supplierList.find(
-          (supp) => supp.id.toString() === supplierId
+          (supp) => supp.id.toString() === supplierIdFromUrl
         );
         if (!validSupplier) {
           setErrors({
@@ -85,6 +98,28 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
     }
   };
 
+  const fetchCredit = async () => {
+    setIsSubmitting(true);
+    try {
+      const response = await axiosInstance.get(`/suppliers/credits/${id}`);
+      const creditData = response.data.credit;
+      setFormData({
+        supplier_id: creditData.supplier_id?.toString() || "",
+        credit_amount: creditData.credit_amount?.toString() || "",
+        paid_amount: creditData.paid_amount?.toString() || "0",
+        medicine_name: creditData.medicine_name || "",
+        payment_method: creditData.payment_method || "NONE",
+        description: creditData.description || "",
+        payment_file: null,
+      });
+    } catch (err) {
+      console.error("Error fetching credit:", err);
+      setErrors({ general: "Failed to fetch credit: " + err.message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     setFormData((prev) => ({
@@ -93,6 +128,20 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
     }));
     setErrors((prev) => ({ ...prev, [name]: null }));
     setSuccessMessage("");
+  };
+
+  const handleSupplierSelect = (supplierId) => {
+    setFormData((prev) => ({ ...prev, supplier_id: supplierId }));
+    setIsSupplierDropdownOpen(false);
+    setSupplierSearchTerm("");
+    setErrors((prev) => ({ ...prev, supplier_id: null }));
+  };
+
+  const handleMedicineSelect = (medicineName) => {
+    setFormData((prev) => ({ ...prev, medicine_name: medicineName }));
+    setIsMedicineDropdownOpen(false);
+    setMedicineSearchTerm("");
+    setErrors((prev) => ({ ...prev, medicine_name: null }));
   };
 
   const validateForm = () => {
@@ -107,6 +156,8 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
     if (isNaN(paidAmount) || paidAmount < 0)
       newErrors.paid_amount =
         "Please enter a valid paid amount (0 or greater).";
+    if (paidAmount > creditAmount)
+      newErrors.paid_amount = "Paid amount cannot exceed the credit amount.";
     if (!formData.medicine_name)
       newErrors.medicine_name = "Please select a medicine.";
     return newErrors;
@@ -134,8 +185,8 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
 
     try {
       let savedCredit;
-      if (credit?.id) {
-        savedCredit = await editSupplierCredit(credit.id, submissionData);
+      if (id || credit?.id) {
+        savedCredit = await editSupplierCredit(id || credit.id, submissionData);
         setSuccessMessage("Credit updated successfully!");
       } else {
         savedCredit = await addSupplierCredit(submissionData);
@@ -160,6 +211,18 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
       setIsSubmitting(false);
     }
   };
+
+  const filteredSuppliers = suppliers.filter((supplier) =>
+    supplier?.supplier_name
+      ?.toLowerCase()
+      .includes(supplierSearchTerm.toLowerCase())
+  );
+
+  const filteredMedicines = medicines.filter((medicine) =>
+    medicine?.medicine_name
+      ?.toLowerCase()
+      .includes(medicineSearchTerm.toLowerCase())
+  );
 
   return (
     <form
@@ -198,7 +261,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
           theme === "dark" ? "text-gray-200" : "text-gray-800"
         }`}
       >
-        {credit?.id ? "Edit Credit" : "Add Credit"}
+        {id || credit?.id ? "Edit Credit" : "Add Credit"}
       </h2>
 
       {errors.general && (
@@ -222,6 +285,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
       )}
 
       <div className="mb-6 space-y-4">
+        {/* Supplier Dropdown with Search */}
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -230,31 +294,108 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
           >
             Supplier <span className="text-red-500">*</span>
           </label>
-          <select
-            name="supplier_id"
-            value={formData.supplier_id}
-            onChange={handleChange}
-            className={`w-full p-3 border rounded focus:outline-none text-base ${
-              theme === "dark"
-                ? "bg-gray-800 border-gray-600 text-gray-200 hover:border-gray-400 focus:border-gray-400"
-                : "bg-[#F7F7F7] border-gray-300 text-gray-600 hover:border-gray-500 focus:border-gray-500"
-            } ${errors.supplier_id ? "border-red-500" : ""}`}
-            required
-            disabled={isSubmitting || (supplierId && credit)}
-          >
-            <option value="">Select a supplier</option>
-            {isLoadingSuppliers ? (
-              <option disabled>Loading suppliers...</option>
-            ) : suppliers.length === 0 ? (
-              <option disabled>No suppliers available</option>
-            ) : (
-              suppliers.map((supp) => (
-                <option key={supp.id} value={supp.id.toString()}>
-                  {supp.supplier_name || "Unnamed Supplier"}
-                </option>
-              ))
+          <div className="relative w-full">
+            <button
+              type="button"
+              onClick={() => setIsSupplierDropdownOpen(!isSupplierDropdownOpen)}
+              className={`w-full p-2 pl-3 pr-10 border rounded text-sm flex items-center justify-between ${
+                theme === "dark"
+                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                  : "bg-white text-black border-gray-300 hover:bg-gray-100"
+              } ${errors.supplier_id ? "border-red-500" : ""} ${
+                isSubmitting || isLoadingSuppliers || suppliers.length === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              disabled={
+                isSubmitting || isLoadingSuppliers || suppliers.length === 0
+              }
+            >
+              <span>
+                {formData.supplier_id
+                  ? suppliers.find(
+                      (supp) => supp.id.toString() === formData.supplier_id
+                    )?.supplier_name || "Select a supplier"
+                  : "Select a supplier"}
+              </span>
+              <svg
+                className={`w-5 h-5 ml-2 transition-transform ${
+                  isSupplierDropdownOpen ? "rotate-180" : ""
+                } ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            {isSupplierDropdownOpen && (
+              <div
+                className={`absolute z-10 w-full mt-1 border rounded-md shadow-lg ${
+                  theme === "dark"
+                    ? "bg-gray-800 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-black"
+                }`}
+              >
+                <div className="p-2">
+                  <input
+                    type="text"
+                    value={supplierSearchTerm}
+                    onChange={(e) => setSupplierSearchTerm(e.target.value)}
+                    placeholder="Search suppliers"
+                    className={`w-full p-2 border rounded text-sm placeholder-gray-400 ${
+                      theme === "dark"
+                        ? "bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                        : "bg-gray-100 text-black border-gray-300 placeholder-gray-500"
+                    }`}
+                    autoFocus
+                  />
+                </div>
+                <ul className="max-h-40 overflow-y-auto">
+                  {filteredSuppliers.length > 0 ? (
+                    filteredSuppliers.map((supp) => (
+                      <li
+                        key={supp.id}
+                        className={`px-4 py-2 text-sm cursor-pointer ${
+                          theme === "dark"
+                            ? "hover:bg-gray-700 text-white"
+                            : "hover:bg-gray-100 text-black"
+                        } ${
+                          formData.supplier_id === supp.id.toString()
+                            ? "font-bold"
+                            : ""
+                        }`}
+                        onClick={() => handleSupplierSelect(supp.id.toString())}
+                      >
+                        {supp.supplier_name || "Unnamed Supplier"}
+                      </li>
+                    ))
+                  ) : supplierSearchTerm ? (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No suppliers found
+                    </li>
+                  ) : (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {isLoadingSuppliers
+                        ? "Loading suppliers..."
+                        : "No suppliers available"}
+                    </li>
+                  )}
+                </ul>
+              </div>
             )}
-          </select>
+          </div>
           {errors.supplier_id && (
             <p
               className={`text-sm mt-1 ${
@@ -265,6 +406,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -299,6 +441,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -332,6 +475,8 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
+        {/* Medicine Dropdown with Search */}
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -340,25 +485,98 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
           >
             Medicine Name <span className="text-red-500">*</span>
           </label>
-          <select
-            name="medicine_name"
-            value={formData.medicine_name}
-            onChange={handleChange}
-            className={`w-full p-3 border rounded focus:outline-none text-base ${
-              theme === "dark"
-                ? "bg-gray-800 border-gray-600 text-gray-200 hover:border-gray-400 focus:border-gray-400"
-                : "bg-[#F7F7F7] border-gray-300 text-gray-600 hover:border-gray-500 focus:border-gray-500"
-            } ${errors.medicine_name ? "border-red-500" : ""}`}
-            required
-            disabled={isSubmitting}
-          >
-            <option value="">Select a medicine</option>
-            {medicines.map((med) => (
-              <option key={med.id} value={med.medicine_name}>
-                {med.medicine_name}
-              </option>
-            ))}
-          </select>
+          <div className="relative w-full">
+            <button
+              type="button"
+              onClick={() => setIsMedicineDropdownOpen(!isMedicineDropdownOpen)}
+              className={`w-full p-2 pl-3 pr-10 border rounded text-sm flex items-center justify-between ${
+                theme === "dark"
+                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                  : "bg-white text-black border-gray-300 hover:bg-gray-100"
+              } ${errors.medicine_name ? "border-red-500" : ""} ${
+                isSubmitting || medicines.length === 0
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              disabled={isSubmitting || medicines.length === 0}
+            >
+              <span>{formData.medicine_name || "Select a medicine"}</span>
+              <svg
+                className={`w-5 h-5 ml-2 transition-transform ${
+                  isMedicineDropdownOpen ? "rotate-180" : ""
+                } ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            {isMedicineDropdownOpen && (
+              <div
+                className={`absolute z-10 w-full mt-1 border rounded-md shadow-lg ${
+                  theme === "dark"
+                    ? "bg-gray-800 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-black"
+                }`}
+              >
+                <div className="p-2">
+                  <input
+                    type="text"
+                    value={medicineSearchTerm}
+                    onChange={(e) => setMedicineSearchTerm(e.target.value)}
+                    placeholder="Search medicines"
+                    className={`w-full p-2 border rounded text-sm placeholder-gray-400 ${
+                      theme === "dark"
+                        ? "bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                        : "bg-gray-100 text-black border-gray-300 placeholder-gray-500"
+                    }`}
+                    autoFocus
+                  />
+                </div>
+                <ul className="max-h-40 overflow-y-auto">
+                  {filteredMedicines.length > 0 ? (
+                    filteredMedicines.map((med) => (
+                      <li
+                        key={med.id}
+                        className={`px-4 py-2 text-sm cursor-pointer ${
+                          theme === "dark"
+                            ? "hover:bg-gray-700 text-white"
+                            : "hover:bg-gray-100 text-black"
+                        } ${
+                          formData.medicine_name === med.medicine_name
+                            ? "font-bold"
+                            : ""
+                        }`}
+                        onClick={() => handleMedicineSelect(med.medicine_name)}
+                      >
+                        {med.medicine_name}
+                      </li>
+                    ))
+                  ) : medicineSearchTerm ? (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No medicines found
+                    </li>
+                  ) : (
+                    <li
+                      className={`px-4 py-2 text-sm ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No medicines available
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
           {errors.medicine_name && (
             <p
               className={`text-sm mt-1 ${
@@ -369,6 +587,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
             </p>
           )}
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -397,6 +616,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
             <option value="EBIRR">Ebirr</option>
           </select>
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -419,6 +639,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
             disabled={isSubmitting}
           />
         </div>
+
         <div>
           <label
             className={`block text-sm font-medium ${
@@ -439,7 +660,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
             accept="image/jpeg,image/png,application/pdf"
             disabled={isSubmitting}
           />
-          {credit?.id && formData.payment_file && (
+          {(id || credit?.id) && formData.payment_file && (
             <p
               className={`text-sm mt-1 ${
                 theme === "dark" ? "text-gray-400" : "text-gray-600"
@@ -459,7 +680,7 @@ const SupplierCreditForm = ({ supplierId, credit, onSave, onCancel }) => {
           }`}
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Saving..." : credit?.id ? "Save" : "Add"}
+          {isSubmitting ? "Saving..." : id || credit?.id ? "Save" : "Add"}
         </button>
         <button
           type="button"

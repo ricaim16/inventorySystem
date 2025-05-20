@@ -680,7 +680,7 @@ const SalesList = ({ showToast }) => {
                       theme === "dark" ? "border-gray-700" : "border-gray-200"
                     }`}
                   >
-                    Price
+                  Sell  Price
                   </th>
                   <th
                     className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider hidden lg:table-cell min-w-[100px] ${

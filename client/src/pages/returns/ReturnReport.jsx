@@ -478,24 +478,7 @@ const ReturnReport = ({ showToast }) => {
       {showReport && report && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-            <div
-              className={`p-4 rounded-lg shadow ${
-                theme === "dark" ? "bg-orange-900" : "bg-orange-200"
-              }`}
-              style={{
-                backgroundColor: theme === "dark" ? "#DD6B20" : "#FBD38D",
-              }}
-            >
-              <div className="flex items-center mb-2">
-                <span className="text-blue-500 mr-3 text-xl">⏰</span>
-                <h3 className="text-base sm:text-lg font-semibold">
-                  Return Count
-                </h3>
-              </div>
-              <p className="text-xl sm:text-2xl font-bold">
-                {report.summary.returnCount || 0}
-              </p>
-            </div>
+            {/* Total Quantity Card */}
             <div
               className={`p-4 rounded-lg shadow ${
                 theme === "dark" ? "bg-blue-900" : "bg-blue-200"
@@ -512,6 +495,25 @@ const ReturnReport = ({ showToast }) => {
               </div>
               <p className="text-xl sm:text-2xl font-bold">
                 {report.summary.totalQuantity || 0}
+              </p>
+            </div>
+            {/* Return Count Card */}
+            <div
+              className={`p-4 rounded-lg shadow ${
+                theme === "dark" ? "bg-orange-900" : "bg-orange-200"
+              }`}
+              style={{
+                backgroundColor: theme === "dark" ? "#DD6B20" : "#FBD38D",
+              }}
+            >
+              <div className="flex items-center mb-2">
+                <span className="text-blue-500 mr-3 text-xl">⏰</span>
+                <h3 className="text-base sm:text-lg font-semibold">
+                  Return Count
+                </h3>
+              </div>
+              <p className="text-xl sm:text-2xl font-bold">
+                {report.summary.returnCount || 0}
               </p>
             </div>
           </div>

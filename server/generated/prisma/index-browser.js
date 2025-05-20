@@ -195,6 +195,7 @@ exports.Prisma.MedicinesScalarFieldEnum = {
   Payment_file: 'Payment_file',
   details: 'details',
   createdById: 'createdById',
+  updatedById: 'updatedById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

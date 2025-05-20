@@ -26,9 +26,9 @@ const mailTransporter = nodemailer.createTransport({
 async function testEmail() {
   try {
     const info = await mailTransporter.sendMail({
-      from: `"Pharmacy System" <${process.env.EMAIL_USER}>`,
+      from: `"Yusra Pharmacy" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER, // Send to self for testing
-      subject: "Test Email from Pharmacy System",
+      subject: "Test Email from Yusra Pharmacy",
       text: "This is a test email to verify Nodemailer configuration.",
     });
     console.log("Test email sent:", info.response);
@@ -68,7 +68,7 @@ function sendNotificationEmail(subject, textMessage, htmlMessage, callback) {
 
       const mailDetails = {
         from: {
-          name: "Pharmacy Management System",
+          name: "Yusra Pharmacy",
           address: process.env.EMAIL_USER,
         },
         to: managerEmail,
@@ -102,7 +102,7 @@ async function checkLowStock() {
     const lowStockMedicines = await prisma.medicines.findMany({
       where: { quantity: { lte: LOW_STOCK_THRESHOLD } },
       include: {
-        supplier: true,
+        supplier: { select: { supplier_name: true } },
         category: true,
       },
     });
@@ -110,29 +110,29 @@ async function checkLowStock() {
     console.log(`Found ${lowStockMedicines.length} low stock medicines`);
     if (lowStockMedicines.length > 0) {
       const textMessage =
-        `Pharmacy Management System\n` +
+        `Yusra Pharmacy\n` +
         `Low Stock Alert\n` +
         `Dear Manager,\n\n` +
         `The following medicines are low in stock (≤ ${LOW_STOCK_THRESHOLD} units):\n\n` +
-        `No. | Medicine Name | Batch No. | Expire Date | Quantity | Category | Supplier | Status\n` +
+        `No. | Medicine Name | Batch Number | Expire Date | Quantity | Category | Supplier | Status\n` +
         `------------------------------------------------------------\n` +
         lowStockMedicines
           .map(
             (med, index) =>
               `${index + 1} | ${med.medicine_name} | ${
-                med.batch_no || "N/A"
+                med.batch_number || "Not Assigned"
               } | ${med.expire_date?.toISOString().split("T")[0] || "N/A"} | ${
                 med.quantity
               } | ${med.category?.name || "N/A"} | ${
-                med.supplier?.name || "N/A"
+                med.supplier?.supplier_name || "Not Assigned"
               } | Low Stock`
           )
           .join("\n") +
-        `\n\nPlease restock these items.\n\nBest regards,\nPharmacy Management System`;
+        `\n\nPlease restock these items.\n\nBest regards,\nYusra Pharmacy`;
 
       const htmlMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; background-color: #f5f6fa; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #2c3e50; text-align: center;">Pharmacy Management System</h2>
+          <h2 style="color: #2c3e50; text-align: center;">Yusra Pharmacy</h2>
           <h3 style="color: #e74c3c; text-align: center;">Low Stock Alert</h3>
           <p style="color: #34495e;">Dear Manager,</p>
           <p style="color: #34495e;">The following medicines are low in stock (≤ ${LOW_STOCK_THRESHOLD} units):</p>
@@ -141,7 +141,7 @@ async function checkLowStock() {
               <tr style="background-color: #3498db; color: #ffffff;">
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">No.</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Medicine Name</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Batch No.</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Batch Number</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Expire Date</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Quantity</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Category</th>
@@ -161,7 +161,7 @@ async function checkLowStock() {
                       med.medicine_name
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">${
-                      med.batch_no || "N/A"
+                      med.batch_number || "Not Assigned"
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">${
                       med.expire_date?.toISOString().split("T")[0] || "N/A"
@@ -173,7 +173,7 @@ async function checkLowStock() {
                       med.category?.name || "N/A"
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">${
-                      med.supplier?.name || "N/A"
+                      med.supplier?.supplier_name || "Not Assigned"
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px; color: #e74c3c;">Low Stock</td>
                   </tr>
@@ -183,11 +183,9 @@ async function checkLowStock() {
             </tbody>
           </table>
           <p style="color: #34495e;">Please restock these items.</p>
-          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Pharmacy Management System</p>
+          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Yusra Pharmacy</p>
           <hr style="border-top: 1px solid #ddd; margin: 20px 0;">
-          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">
-            This is an automated email. Do not reply.
-          </p>
+          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">This is an automated email. Do not reply.</p>
         </div>
       `;
 
@@ -245,7 +243,7 @@ async function checkExpiringMedicines() {
       const expiringMedicines = await prisma.medicines.findMany({
         where: whereClause,
         include: {
-          supplier: true,
+          supplier: { select: { supplier_name: true } },
           category: true,
         },
       });
@@ -253,7 +251,10 @@ async function checkExpiringMedicines() {
         ...expiringMedicines.map((med) => ({
           ...med,
           status:
-            threshold.weeks === 0 ? "Expired" : `Expiring ${threshold.label}`,
+            threshold.weeks === 0
+              ? "Expired"
+              : `Expiring in ${threshold.label}`,
+          batch_number: med.batch_number || "Not Assigned",
         }))
       );
     }
@@ -263,29 +264,29 @@ async function checkExpiringMedicines() {
     );
     if (allExpiringMedicines.length > 0) {
       const textMessage =
-        `Pharmacy Management System\n` +
+        `Yusra Pharmacy\n` +
         `Expiration Alert\n` +
         `Dear Manager,\n\n` +
         `The following medicines are expiring or have expired:\n\n` +
-        `No. | Medicine Name | Batch No. | Expire Date | Quantity | Category | Supplier | Status\n` +
+        `No. | Medicine Name | Batch Number | Expire Date | Quantity | Category | Supplier | Expiration Status\n` +
         `------------------------------------------------------------\n` +
         allExpiringMedicines
           .map(
             (med, index) =>
               `${index + 1} | ${med.medicine_name} | ${
-                med.batch_no || "N/A"
+                med.batch_number || "Not Assigned"
               } | ${med.expire_date?.toISOString().split("T")[0] || "N/A"} | ${
                 med.quantity
               } | ${med.category?.name || "N/A"} | ${
-                med.supplier?.name || "N/A"
+                med.supplier?.supplier_name || "Not Assigned"
               } | ${med.status}`
           )
           .join("\n") +
-        `\n\nPlease take action.\n\nBest regards,\nPharmacy Management System`;
+        `\n\nPlease take action to manage these expiration dates.\n\nBest regards,\nYusra Pharmacy`;
 
       const htmlMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; background-color: #f5f6fa; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #2c3e50; text-align: center;">Pharmacy Management System</h2>
+          <h2 style="color: #2c3e50; text-align: center;">Yusra Pharmacy</h2>
           <h3 style="color: #e74c3c; text-align: center;">Expiration Alert</h3>
           <p style="color: #34495e;">Dear Manager,</p>
           <p style="color: #34495e;">The following medicines are expiring or have expired:</p>
@@ -294,12 +295,12 @@ async function checkExpiringMedicines() {
               <tr style="background-color: #3498db; color: #ffffff;">
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">No.</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Medicine Name</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Batch No.</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Batch Number</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Expire Date</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Quantity</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Category</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Supplier</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Status</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Expiration Status</th>
               </tr>
             </thead>
             <tbody>
@@ -314,7 +315,7 @@ async function checkExpiringMedicines() {
                       med.medicine_name
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">${
-                      med.batch_no || "N/A"
+                      med.batch_number || "Not Assigned"
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">${
                       med.expire_date?.toISOString().split("T")[0] || "N/A"
@@ -326,7 +327,7 @@ async function checkExpiringMedicines() {
                       med.category?.name || "N/A"
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px;">${
-                      med.supplier?.name || "N/A"
+                      med.supplier?.supplier_name || "Not Assigned"
                     }</td>
                     <td style="border: 1px solid #ddd; padding: 12px; color: ${
                       med.status === "Expired" ? "#e74c3c" : "#f39c12"
@@ -337,12 +338,10 @@ async function checkExpiringMedicines() {
                 .join("")}
             </tbody>
           </table>
-          <p style="color: #34495e;">Please take action.</p>
-          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Pharmacy Management System</p>
+          <p style="color: #34495e;">Please take action to manage these expiration dates.</p>
+          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Yusra Pharmacy</p>
           <hr style="border-top: 1px solid #ddd; margin: 20px 0;">
-          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">
-            This is an automated email. Do not reply.
-          </p>
+          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">This is an automated email. Do not reply.</p>
         </div>
       `;
 
@@ -373,7 +372,7 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName) {
     const medicine = await prisma.medicines.findUnique({
       where: { id: medicineId },
       include: {
-        supplier: true,
+        supplier: { select: { supplier_name: true } },
         category: true,
       },
     });
@@ -387,22 +386,22 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName) {
     console.log(`New quantity for ${medicineName}: ${newQuantity}`);
     if (newQuantity <= 10) {
       const textMessage =
-        `Pharmacy Management System\n` +
+        `Yusra Pharmacy\n` +
         `Low Stock After Sale\n` +
         `Dear Manager,\n\n` +
         `A recent sale has updated the stock level:\n\n` +
-        `No. | Medicine Name | Batch No. | Expire Date | Quantity | Category | Supplier | Status\n` +
+        `No. | Medicine Name | Batch Number | Expire Date | Quantity | Category | Supplier | Status\n` +
         `------------------------------------------------------------\n` +
-        `1 | ${medicineName} | ${medicine.batch_no || "N/A"} | ${
+        `1 | ${medicineName} | ${medicine.batch_number || "Not Assigned"} | ${
           medicine.expire_date?.toISOString().split("T")[0] || "N/A"
         } | ${newQuantity} | ${medicine.category?.name || "N/A"} | ${
-          medicine.supplier?.name || "N/A"
+          medicine.supplier?.supplier_name || "Not Assigned"
         } | Low Stock\n\n` +
-        `The stock is now at or below the threshold (10 units).\n\nBest regards,\nPharmacy Management System`;
+        `The stock is now at or below the threshold (10 units).\n\nBest regards,\nYusra Pharmacy`;
 
       const htmlMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; background-color: #f5f6fa; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #2c3e50; text-align: center;">Pharmacy Management System</h2>
+          <h2 style="color: #2c3e50; text-align: center;">Yusra Pharmacy</h2>
           <h3 style="color: #e74c3c; text-align: center;">Low Stock After Sale</h3>
           <p style="color: #34495e;">Dear Manager,</p>
           <p style="color: #34495e;">A recent sale has updated the stock level:</p>
@@ -411,7 +410,7 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName) {
               <tr style="background-color: #3498db; color: #ffffff;">
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">No.</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Medicine Name</th>
-                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Batch No.</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Batch Number</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Expire Date</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Quantity</th>
                 <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Category</th>
@@ -424,7 +423,7 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName) {
                 <td style="border: 1px solid #ddd; padding: 12px;">1</td>
                 <td style="border: 1px solid #ddd; padding: 12px;">${medicineName}</td>
                 <td style="border: 1px solid #ddd; padding: 12px;">${
-                  medicine.batch_no || "N/A"
+                  medicine.batch_number || "Not Assigned"
                 }</td>
                 <td style="border: 1px solid #ddd; padding: 12px;">${
                   medicine.expire_date?.toISOString().split("T")[0] || "N/A"
@@ -434,18 +433,16 @@ async function handleSaleNotification(medicineId, quantitySold, medicineName) {
                   medicine.category?.name || "N/A"
                 }</td>
                 <td style="border: 1px solid #ddd; padding: 12px;">${
-                  medicine.supplier?.name || "N/A"
+                  medicine.supplier?.supplier_name || "Not Assigned"
                 }</td>
                 <td style="border: 1px solid #ddd; padding: 12px; color: #e74c3c;">Low Stock</td>
               </tr>
             </tbody>
           </table>
           <p style="color: #34495e;">The stock is now at or below the threshold (10 units).</p>
-          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Pharmacy Management System</p>
+          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Yusra Pharmacy</p>
           <hr style="border-top: 1px solid #ddd; margin: 20px 0;">
-          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">
-            This is an automated email. Do not reply.
-          </p>
+          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">This is an automated email. Do not reply.</p>
         </div>
       `;
 
@@ -515,7 +512,7 @@ async function checkSupplierCredits() {
     console.log(`Found ${allUnpaidCredits.length} unpaid supplier credits`);
     if (allUnpaidCredits.length > 0) {
       const textMessage =
-        `Pharmacy Management System\n` +
+        `Yusra Pharmacy\n` +
         `Unpaid Supplier Credits Alert\n` +
         `Dear Manager,\n\n` +
         `The following supplier credits are unpaid and overdue:\n\n` +
@@ -531,11 +528,11 @@ async function checkSupplierCredits() {
               } | ${credit.overduePeriod} | ${credit.payment_status}`
           )
           .join("\n") +
-        `\n\nPlease settle these amounts.\n\nBest regards,\nPharmacy Management System`;
+        `\n\nPlease settle these amounts.\n\nBest regards,\nYusra Pharmacy`;
 
       const htmlMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; background-color: #f5f6fa; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #2c3e50; text-align: center;">Pharmacy Management System</h2>
+          <h2 style="color: #2c3e50; text-align: center;">Yusra Pharmacy</h2>
           <h3 style="color: #e74c3c; text-align: center;">Unpaid Supplier Credits Alert</h3>
           <p style="color: #34495e;">Dear Manager,</p>
           <p style="color: #34495e;">The following supplier credits are unpaid and overdue:</p>
@@ -588,11 +585,9 @@ async function checkSupplierCredits() {
             </tbody>
           </table>
           <p style="color: #34495e;">Please settle these amounts.</p>
-          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Pharmacy Management System</p>
+          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Yusra Pharmacy</p>
           <hr style="border-top: 1px solid #ddd; margin: 20px 0;">
-          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">
-            This is an automated email. Do not reply.
-          </p>
+          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">This is an automated email. Do not reply.</p>
         </div>
       `;
 
@@ -664,7 +659,7 @@ async function checkCustomerCredits() {
     console.log(`Found ${allUnpaidCredits.length} unpaid customer credits`);
     if (allUnpaidCredits.length > 0) {
       const textMessage =
-        `Pharmacy Management System\n` +
+        `Yusra Pharmacy\n` +
         `Unpaid Customer Credits Alert\n` +
         `Dear Manager,\n\n` +
         `The following customer credits are unpaid and overdue:\n\n` +
@@ -680,11 +675,11 @@ async function checkCustomerCredits() {
               } | ${credit.overduePeriod} | ${credit.status}`
           )
           .join("\n") +
-        `\n\nPlease collect these amounts.\n\nBest regards,\nPharmacy Management System`;
+        `\n\nPlease collect these amounts.\n\nBest regards,\nYusra Pharmacy`;
 
       const htmlMessage = `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; background-color: #f5f6fa; padding: 20px; border-radius: 8px;">
-          <h2 style="color: #2c3e50; text-align: center;">Pharmacy Management System</h2>
+          <h2 style="color: #2c3e50; text-align: center;">Yusra Pharmacy</h2>
           <h3 style="color: #e74c3c; text-align: center;">Unpaid Customer Credits Alert</h3>
           <p style="color: #34495e;">Dear Manager,</p>
           <p style="color: #34495e;">The following customer credits are unpaid and overdue:</p>
@@ -737,11 +732,9 @@ async function checkCustomerCredits() {
             </tbody>
           </table>
           <p style="color: #34495e;">Please collect these amounts.</p>
-          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Pharmacy Management System</p>
+          <p style="color: #34495e; margin-top: 20px;">Best regards,<br>Yusra Pharmacy</p>
           <hr style="border-top: 1px solid #ddd; margin: 20px 0;">
-          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">
-            This is an automated email. Do not reply.
-          </p>
+          <p style="font-size: 12px; color: #7f8c8d; text-align: center;">This is an automated email. Do not reply.</p>
         </div>
       `;
 
@@ -768,7 +761,7 @@ async function checkCustomerCredits() {
   }
 }
 
-// Initialize database with test data
+// Function to initialize test data
 async function initializeTestData() {
   try {
     // Check for existing manager
@@ -786,6 +779,19 @@ async function initializeTestData() {
       console.log("Test manager created");
     }
 
+    // Check for supplier
+    let supplier = await prisma.suppliers.findFirst();
+    if (!supplier) {
+      supplier = await prisma.suppliers.create({
+        data: {
+          supplier_name: "Test Supplier",
+          contact_info: "+251912345678",
+          location: "Addis Ababa",
+        },
+      });
+      console.log("Test supplier created");
+    }
+
     // Check for low stock medicines
     const lowStock = await prisma.medicines.findFirst({
       where: { quantity: { lte: 10 } },
@@ -796,7 +802,8 @@ async function initializeTestData() {
           medicine_name: "Test Medicine",
           quantity: 5,
           expire_date: new Date(),
-          batch_no: "BATCH001",
+          batch_number: "BATCH001",
+          supplier: { connect: { id: supplier.id } },
         },
       });
       console.log("Test low stock medicine created");
@@ -812,23 +819,25 @@ async function initializeTestData() {
           medicine_name: "Test Expiring Medicine",
           quantity: 20,
           expire_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
-          batch_no: "BATCH002",
+          batch_number: "BATCH002",
+          supplier: { connect: { id: supplier.id } },
         },
       });
       console.log("Test expiring medicine created");
     }
 
-    // Check for supplier
-    let supplier = await prisma.suppliers.findFirst();
-    if (!supplier) {
-      supplier = await prisma.suppliers.create({
+    // Check for customer
+    let customer = await prisma.customers.findFirst();
+    if (!customer) {
+      customer = await prisma.customers.create({
         data: {
-          supplier_name: "Test Supplier",
-          contact_info: "+251912345678",
-          location: "Addis Ababa",
+          name: "Test Customer",
+          phone: "+251912345679",
+          address: "Addis Ababa",
+          status: "ACTIVE",
         },
       });
-      console.log("Test supplier created");
+      console.log("Test customer created");
     }
 
     // Check for unpaid supplier credit
@@ -847,20 +856,6 @@ async function initializeTestData() {
         },
       });
       console.log("Test unpaid supplier credit created");
-    }
-
-    // Check for customer
-    let customer = await prisma.customers.findFirst();
-    if (!customer) {
-      customer = await prisma.customers.create({
-        data: {
-          name: "Test Customer",
-          phone: "+251912345679",
-          address: "Addis Ababa",
-          status: "ACTIVE",
-        },
-      });
-      console.log("Test customer created");
     }
 
     // Check for unpaid customer credit
@@ -886,22 +881,8 @@ async function initializeTestData() {
 }
 
 // Schedule notifications
-// cron.schedule(
-//   "*/5 * * * *", // Every 5 minutes
-//   async () => {
-//     console.log("Running scheduled notification checks...");
-//     await checkLowStock();
-//     await checkExpiringMedicines();
-//     await checkSupplierCredits();
-//     await checkCustomerCredits();
-//   },
-//   {
-//     timezone: "Africa/Addis_Ababa",
-//   }
-// );
-
 cron.schedule(
-  "0 1 * * *", //   async () => {
+  "0 1 * * *", // Runs daily at 1:00 AM EAT
   async () => {
     console.log("Running scheduled notification checks...");
     await checkLowStock();

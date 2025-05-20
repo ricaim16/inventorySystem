@@ -29,8 +29,8 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
     if (returnData) {
       setFormData({
         sale_id: returnData.sale_id?.toString() || "",
-        medicine_id: returnData.medicine_id || "",
-        dosage_form_id: returnData.dosage_form_id || "",
+        medicine_id: returnData.medicine_id?.toString() || "",
+        dosage_form_id: returnData.dosage_form_id?.toString() || "",
         quantity: returnData.quantity?.toString() || "",
         reason_for_return: returnData.reason_for_return || "",
         product_name: returnData.product_name || "",
@@ -64,10 +64,26 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
         getAllMedicines(),
         getAllDosageForms(),
       ]);
-      console.log("Fetched sales:", salesRes);
       setSales(salesRes.filter((sale) => sale.quantity > 0));
       setMedicines(medRes);
       setDosageForms(doseRes);
+
+      // If returnData exists, ensure formData is updated after sales are fetched
+      if (returnData && salesRes.length > 0) {
+        const selectedSale = salesRes.find(
+          (sale) => sale.id.toString() === returnData.sale_id?.toString()
+        );
+        if (selectedSale) {
+          setFormData((prev) => ({
+            ...prev,
+            sale_id: returnData.sale_id?.toString() || "",
+            medicine_id: selectedSale.medicine_id?.toString() || "",
+            dosage_form_id: selectedSale.dosage_form_id?.toString() || "",
+            product_name: selectedSale.product_name || "",
+            product_batch_number: selectedSale.product_batch_number || "",
+          }));
+        }
+      }
     } catch (err) {
       setErrors({ generic: "Failed to load dropdown data: " + err.message });
     }
@@ -75,17 +91,15 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
 
   const handleSaleChange = (e) => {
     const saleId = e.target.value;
-    console.log("Selected sale_id:", saleId);
     if (saleId === "") {
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         sale_id: "",
         medicine_id: "",
         dosage_form_id: "",
-        quantity: "",
-        reason_for_return: "",
         product_name: "",
         product_batch_number: "",
-      });
+      }));
       setErrors({
         sale_id: null,
         medicine_id: null,
@@ -98,15 +112,14 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
     } else {
       const selectedSale = sales.find((sale) => sale.id.toString() === saleId);
       if (selectedSale) {
-        setFormData({
+        setFormData((prev) => ({
+          ...prev,
           sale_id: saleId,
           medicine_id: selectedSale.medicine_id?.toString() || "",
           dosage_form_id: selectedSale.dosage_form_id?.toString() || "",
-          quantity: "",
-          reason_for_return: "",
           product_name: selectedSale.product_name || "",
           product_batch_number: selectedSale.product_batch_number || "",
-        });
+        }));
         setErrors({
           sale_id: null,
           medicine_id: null,
@@ -118,12 +131,11 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
         });
       }
     }
-    console.log("Updated formData:", formData);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value.trim() }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
@@ -188,7 +200,6 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
       };
 
       if (returnData?.id) {
-        // Update existing return
         const existingReturn = await returnsApi.getReturnById(returnData.id);
         const quantityDifference = parsedQuantity - existingReturn.quantity;
         await returnsApi.updateReturn(returnData.id, payload);
@@ -200,7 +211,6 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
         }
         showToast("Return updated successfully!");
       } else {
-        // Add new return
         await returnsApi.addReturn(payload);
         await editSale(selectedSale.id, {
           ...selectedSale,
@@ -212,8 +222,6 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
       if (typeof onSave === "function") {
         onSave();
       }
-      // Dispatch event to update SalesList
-      console.log("Dispatching returnsUpdated event");
       const event = new Event("returnsUpdated");
       window.dispatchEvent(event);
       navigate("/returns/list");
@@ -244,8 +252,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
+    <div
       className={`returns-form p-4 rounded-lg shadow-lg ${
         theme === "dark" ? "bg-gray-900" : "bg-white"
       }`}
@@ -340,7 +347,6 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
         `}
       </style>
 
-      {/* Progress Bar */}
       <div className="w-full h-2 bg-gray-100 rounded-full mb-4">
         <div
           className="h-2 rounded-full transition-all duration-300"
@@ -356,7 +362,6 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
         ></div>
       </div>
 
-      {/* Section: Return Details */}
       <div className="mb-6">
         <h2
           className={`text-lg font-bold mb-4 ${
@@ -379,7 +384,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
             </label>
             <select
               name="sale_id"
-              value={formData.sale_id}
+              value={formData.sale_id || ""} // Ensure controlled component
               onChange={handleSaleChange}
               className={`w-full p-2 border ${
                 theme === "dark" ? "border-gray-500" : "border-black"
@@ -387,9 +392,11 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
                 errors.sale_id ? "border-[#5DB5B5]" : ""
               }`}
               required
-              disabled={isSubmitting}
+              disabled={isSubmitting || returnData?.sale_id} // Disable when submitting or editing
             >
-              <option value="">Select Sale</option>
+              <option value="" disabled>
+                Select Sale
+              </option>
               {sales.map((sale) => (
                 <option key={sale.id} value={sale.id.toString()}>
                   {sale.medicine?.medicine_name || "Unknown"} (Dosage:{" "}
@@ -580,10 +587,10 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
         </div>
       </div>
 
-      {/* Buttons */}
       <div className="flex space-x-3">
         <button
-          type="submit"
+          type="button"
+          onClick={handleSubmit}
           className={`bg-[#10B981] text-white px-4 py-2 rounded hover:bg-[#0E8C6A] transition-colors ${
             isSubmitting ? "opacity-50 cursor-not-allowed" : ""
           }`}
@@ -602,7 +609,7 @@ const ReturnForm = ({ returnData, onSave, onCancel, showToast }) => {
           Cancel
         </button>
       </div>
-    </form>
+    </div>
   );
 };
 

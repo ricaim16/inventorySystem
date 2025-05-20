@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { expenseApi } from "../../api/expenseApi";
 import { useTheme } from "../../context/ThemeContext";
+import { FaCalendarAlt } from "react-icons/fa"; // Import calendar icon from react-icons
 
 const ExpenseEntryForm = ({
   expense: propExpense,
@@ -27,6 +28,7 @@ const ExpenseEntryForm = ({
   const { state } = useLocation();
   const expense = propExpense || state?.expense;
   const BASE_URL = "http://localhost:8080";
+  const dateInputRef = useRef(null); // Ref for the date input
 
   const paymentMethods = [
     "NONE",
@@ -184,6 +186,14 @@ const ExpenseEntryForm = ({
     onCancel ? onCancel() : navigate("/expense/list");
   };
 
+  // Function to open the calendar picker
+  const openCalendar = () => {
+    if (dateInputRef.current && !isSubmitting) {
+      dateInputRef.current.showPicker(); // Programmatically open the calendar
+      dateInputRef.current.focus(); // Ensure input is focused
+    }
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -279,6 +289,43 @@ const ExpenseEntryForm = ({
               theme === "dark" ? "#6B7280" : "#000000"
             } !important;
           }
+
+          /* Ensure native date picker arrow is visible */
+          .expense-form input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: ${
+              theme === "dark" ? "invert(1)" : "none"
+            }; /* Adjust icon color for dark theme */
+            cursor: pointer;
+            opacity: 1;
+            background: transparent;
+          }
+
+          /* Style for the date input container */
+          .date-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+
+          .date-input-container input {
+            flex: 1;
+          }
+
+          .date-input-container .calendar-icon {
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+            color: ${theme === "dark" ? "#FFFFFF" : "#4B5563"};
+          }
+
+          .date-input-container .calendar-icon:hover {
+            color: ${theme === "dark" ? "#9CA3AF" : "#000000"};
+          }
+
+          .date-input-container input:disabled + .calendar-icon {
+            color: ${theme === "dark" ? "#6B7280" : "#9CA3AF"};
+            cursor: not-allowed;
+          }
         `}
       </style>
 
@@ -369,17 +416,27 @@ const ExpenseEntryForm = ({
             >
               Date <span className="text-[#EF4444]">*</span>
             </label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className={`w-full p-2 border rounded focus:outline-none hover:border-gray-400 ${
-                errors.date ? "border-[#5DB5B5]" : ""
-              }`}
-              required
-              disabled={isSubmitting}
-            />
+            <div className="date-input-container">
+              <input
+                ref={dateInputRef}
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                className={`w-full p-2 border rounded focus:outline-none hover:border-gray-400 ${
+                  errors.date ? "border-[#5DB5B5]" : ""
+                }`}
+                required
+                disabled={isSubmitting}
+                onClick={openCalendar} // Ensure calendar opens on input click
+              />
+              <FaCalendarAlt
+                className="calendar-icon"
+                onClick={openCalendar}
+                size={20}
+                title="Open Calendar"
+              />
+            </div>
             {errors.date && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.date}</p>
             )}

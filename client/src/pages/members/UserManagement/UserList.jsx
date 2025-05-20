@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { deleteUser, updateUser } from "../../../api/userApi";
-import { FiEdit, FiTrash2, FiAlertCircle } from "react-icons/fi";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { HiExclamationCircle } from "react-icons/hi";
 import { useTheme } from "../../../context/ThemeContext";
 
 const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
@@ -44,75 +45,94 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
     setUserIdToDelete(null);
   };
 
+  const actionButtonClass = `p-2 rounded-md transition-colors duration-200 ${
+    theme === "dark"
+      ? "text-gray-300 hover:bg-[#4B5563]"
+      : "text-gray-600 hover:bg-[#f7f7f7]"
+  }`;
+
   return (
     <div
-      className={`p-4 sm:p-6 rounded-lg shadow-lg w-full ${
-        theme === "dark" ? "bg-gray-800" : "bg-[#f7f7f7]"
+      className={`p-4 sm:p-6 md:p-8 rounded-xl shadow-lg w-full font-sans transition-all duration-300 ${
+        theme === "dark" ? "bg-gray-900" : "bg-white"
       }`}
     >
       <h2
-        className={`text-lg sm:text-xl font-bold mb-4 ${
-          theme === "dark" ? "text-gray-200" : "text-gray-800"
+        className={`text-2xl sm:text-3xl font-semibold mb-6 ${
+          theme === "dark" ? "text-gray-100" : "text-gray-900"
         }`}
+        style={{ color: "#10B981" }}
       >
         User List
       </h2>
       {error && (
-        <p className="text-red-500 mb-4 text-sm sm:text-base">{error}</p>
+        <div
+          className={`${
+            theme === "dark"
+              ? "text-red-400 bg-red-900/20"
+              : "text-red-500 bg-red-100"
+          } mb-6 flex items-center text-base p-4 rounded-lg`}
+        >
+          {error}
+        </div>
       )}
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
+      <div className="overflow-x-auto min-w-full rounded-lg shadow-sm border border-gray-200">
+        <table
+          className={`w-full border-collapse text-sm sm:text-base font-sans table-auto ${
+            theme === "dark" ? "bg-gray-900" : "bg-white"
+          }`}
+        >
           <thead>
             <tr
-              className={`border-b ${
-                theme === "dark" ? "border-gray-700" : "border-gray-300"
-              }`}
+              className={`${
+                theme === "dark" ? "bg-teal-700" : "bg-teal-600"
+              } text-white`}
             >
               <th
-                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                  theme === "dark" ? "border-gray-700" : "border-gray-200"
                 }`}
               >
                 First Name
               </th>
               <th
-                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                  theme === "dark" ? "border-gray-700" : "border-gray-200"
                 }`}
               >
                 Last Name
               </th>
               <th
-                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                  theme === "dark" ? "border-gray-700" : "border-gray-200"
                 }`}
               >
                 Username
               </th>
               <th
-                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                  theme === "dark" ? "border-gray-700" : "border-gray-200"
                 }`}
               >
                 Email
               </th>
               <th
-                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                  theme === "dark" ? "border-gray-700" : "border-gray-200"
                 }`}
               >
                 Role
               </th>
               <th
-                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                  theme === "dark" ? "border-gray-700" : "border-gray-200"
                 }`}
               >
                 Status
               </th>
               <th
-                className={`py-2 px-3 text-left text-xs sm:text-sm font-bold uppercase tracking-wider ${
-                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                className={`border-b border-gray-300 px-4 py-3 text-left font-semibold text-xs sm:text-sm uppercase tracking-wider ${
+                  theme === "dark" ? "border-gray-700" : "border-gray-200"
                 }`}
               >
                 Actions
@@ -120,127 +140,179 @@ const UserList = ({ users, onEditUser, onUserUpdated, showToast }) => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
-              <tr
-                key={user.id}
-                className={`border-b ${
-                  theme === "dark" ? "border-gray-700" : "border-gray-300"
-                }`}
-              >
-                <td
-                  className={`py-2 px-3 text-xs sm:text-sm ${
-                    theme === "dark" ? "text-gray-300" : "text-gray-600"
+            {users.length > 0 ? (
+              users.map((user, index) => (
+                <tr
+                  key={user.id || `row-${index}`}
+                  className={`${
+                    index % 2 === 0
+                      ? theme === "dark"
+                        ? "bg-gray-900"
+                        : "bg-gray-50"
+                      : theme === "dark"
+                      ? "bg-gray-800"
+                      : "bg-white"
+                  } transition-colors duration-200 ${
+                    theme === "dark"
+                      ? "hover:bg-[#4B5563]"
+                      : "hover:bg-[#f7f7f7]"
                   }`}
                 >
-                  {user.FirstName}
-                </td>
-                <td
-                  className={`py-2 px-3 text-xs sm:text-sm ${
-                    theme === "dark" ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
-                  {user.LastName}
-                </td>
-                <td
-                  className={`py-2 px-3 text-xs sm:text-sm ${
-                    theme === "dark" ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
-                  {user.username}
-                </td>
-                <td
-                  className={`py-2 px-3 text-xs sm:text-sm ${
-                    theme === "dark" ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
-                  {user.email || "-"}
-                </td>
-                <td
-                  className={`py-2 px-3 text-xs sm:text-sm ${
-                    theme === "dark" ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
-                  {user.role}
-                </td>
-                <td className="py-2 px-3">
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                      user.status === "ACTIVE"
-                        ? "bg-green-600 text-white"
-                        : "bg-red-600 text-white"
-                    }`}
-                  >
-                    {user.status}
-                  </span>
-                </td>
-                <td className="py-2 px-3 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => handleToggleStatus(user.id, user.status)}
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      user.status === "ACTIVE"
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "bg-green-600 hover:bg-green-700"
-                    } text-white`}
-                    title={user.status === "ACTIVE" ? "Deactivate" : "Activate"}
-                  >
-                    {user.status === "ACTIVE" ? "Deactivate" : "Activate"}
-                  </button>
-                  <button
-                    onClick={() => onEditUser(user)}
-                    className={`p-1 ${
+                  <td
+                    className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
                       theme === "dark"
-                        ? "text-gray-400 hover:text-white"
-                        : "text-gray-600 hover:text-gray-800"
+                        ? "text-gray-300 border-gray-700"
+                        : "text-gray-700 border-gray-200"
                     }`}
-                    title="Edit"
                   >
-                    <FiEdit size={16} />
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal(user.id)}
-                    className={`p-1 ${
+                    {user.FirstName}
+                  </td>
+                  <td
+                    className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
                       theme === "dark"
-                        ? "text-gray-400 hover:text-white"
-                        : "text-gray-600 hover:text-gray-800"
+                        ? "text-gray-300 border-gray-700"
+                        : "text-gray-700 border-gray-200"
                     }`}
-                    title="Delete"
                   >
-                    <FiTrash2 size={16} />
-                  </button>
+                    {user.LastName}
+                  </td>
+                  <td
+                    className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
+                      theme === "dark"
+                        ? "text-gray-300 border-gray-700"
+                        : "text-gray-700 border-gray-200"
+                    }`}
+                  >
+                    {user.username}
+                  </td>
+                  <td
+                    className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
+                      theme === "dark"
+                        ? "text-gray-300 border-gray-700"
+                        : "text-gray-700 border-gray-200"
+                    }`}
+                  >
+                    {user.email || "-"}
+                  </td>
+                  <td
+                    className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
+                      theme === "dark"
+                        ? "text-gray-300 border-gray-700"
+                        : "text-gray-700 border-gray-200"
+                    }`}
+                  >
+                    {user.role}
+                  </td>
+                  <td
+                    className={`border-b border-gray-300 px-4 py-3 text-sm sm:text-base ${
+                      theme === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                        user.status === "ACTIVE"
+                          ? "bg-green-600 text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                    >
+                      {user.status}
+                    </span>
+                  </td>
+                  <td
+                    className={`border-b border-gray-300 px-4 py-3 flex flex-wrap gap-2 items-center justify-start ${
+                      theme === "dark"
+                        ? "text-gray-300 border-gray-700"
+                        : "text-gray-700 border-gray-200"
+                    }`}
+                  >
+                    <button
+                      onClick={() => handleToggleStatus(user.id, user.status)}
+                      className={`px-3 py-1 rounded-lg text-sm sm:text-base font-semibold ${
+                        user.status === "ACTIVE"
+                          ? "bg-red-600 hover:bg-red-700"
+                          : "bg-green-600 hover:bg-green-700"
+                      } text-white`}
+                      title={
+                        user.status === "ACTIVE" ? "Deactivate" : "Activate"
+                      }
+                    >
+                      {user.status === "ACTIVE" ? "Deactivate" : "Activate"}
+                    </button>
+                    <button
+                      onClick={() => onEditUser(user)}
+                      className={actionButtonClass}
+                      title="Edit"
+                      aria-label={`Edit user ${user.username}`}
+                    >
+                      <FiEdit size={18} />
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(user.id)}
+                      className={actionButtonClass}
+                      title="Delete"
+                      aria-label={`Delete user ${user.username}`}
+                    >
+                      <FiTrash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={7}
+                  className={`border-b border-gray-300 px-4 py-3 text-center text-sm sm:text-base ${
+                    theme === "dark"
+                      ? "text-gray-300 border-gray-700 bg-gray-900"
+                      : "text-gray-600 border-gray-200 bg-white"
+                  }`}
+                >
+                  No users found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50">
           <div
-            className={`p-4 sm:p-6 rounded-lg shadow-lg w-11/12 max-w-sm ${
+            className={`p-6 rounded-xl shadow-lg w-11/12 max-w-md ${
               theme === "dark"
-                ? "bg-[#f4f4f4] text-gray-800"
-                : "bg-[#f4f4f4] text-gray-800"
-            }`}
+                ? "bg-gray-800 text-gray-200 border-gray-700"
+                : "bg-white text-gray-800 border-gray-200"
+            } border transition-all duration-300`}
           >
             <div className="flex flex-col items-center">
-              <div className="mb-3">
-                <FiAlertCircle size={24} className="text-gray-500" />
+              <div className="mb-4">
+                <HiExclamationCircle
+                  size={36}
+                  className={theme === "dark" ? "text-red-400" : "text-red-500"}
+                />
               </div>
-              <p className="text-sm sm:text-base mb-4 text-center">
+              <p
+                className={`text-sm sm:text-base mb-6 text-center font-semibold ${
+                  theme === "dark" ? "text-gray-200" : "text-gray-800"
+                }`}
+              >
                 Are you sure you want to delete this user?
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center w-full">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
                 <button
                   onClick={() => handleDelete(userIdToDelete)}
-                  className="py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300 text-sm sm:text-base"
+                  className={`py-2 px-6 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300 text-sm sm:text-base font-semibold w-full sm:w-auto`}
                 >
                   Yes, I'm sure
                 </button>
                 <button
                   onClick={closeDeleteModal}
-                  className="py-2 px-4 text-gray-600 hover:text-gray-800 text-sm sm:text-base"
+                  className={`py-2 px-6 rounded-lg font-semibold text-sm sm:text-base transition-colors duration-200 w-full sm:w-auto ${
+                    theme === "dark"
+                      ? "bg-gray-700 text-gray-200 hover:bg-[#4B5563]"
+                      : "bg-gray-200 text-gray-600 hover:bg-[#f7f7f7]"
+                  }`}
                 >
                   No, cancel
                 </button>

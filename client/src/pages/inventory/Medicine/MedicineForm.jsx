@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { addMedicine, editMedicine } from "../../../api/medicineApi";
 import { getAllCategories } from "../../../api/categoryApi";
 import { getAllDosageForms } from "../../../api/dosageApi";
 import { getAllSuppliers } from "../../../api/supplierApi";
 import { useTheme } from "../../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+import { FaCalendarAlt } from "react-icons/fa";
 
 const MedicineForm = ({ medicine, onSave, onCancel }) => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     unit_price: "",
     sell_price: "",
     total_price: "",
-    expire_date: new Date().toISOString().slice(0, 10),
+    expire_date: "",
     required_prescription: false,
     payment_method: "NONE",
     Payment_file: null,
@@ -38,6 +39,17 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [dosageSearch, setDosageSearch] = useState("");
+  const [supplierSearch, setSupplierSearch] = useState("");
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showDosageDropdown, setShowDosageDropdown] = useState(false);
+  const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
+
+  const categoryDropdownRef = useRef(null);
+  const dosageDropdownRef = useRef(null);
+  const supplierDropdownRef = useRef(null);
+  const expireDateInputRef = useRef(null);
 
   const paymentMethods = [
     { value: "AWASH", label: "Awash" },
@@ -48,6 +60,27 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     { value: "EBIRR", label: "Ebirr" },
     { value: "NONE", label: "None" },
   ].sort((a, b) => a.label.localeCompare(b.label));
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, dosRes, supRes] = await Promise.all([
+          getAllCategories(),
+          getAllDosageForms(),
+          getAllSuppliers(),
+        ]);
+        setCategories(catRes.sort((a, b) => a.name.localeCompare(b.name)));
+        setDosageForms(dosRes.sort((a, b) => a.name.localeCompare(b.name)));
+        setSuppliers(
+          supRes.sort((a, b) => a.supplier_name.localeCompare(b.supplier_name))
+        );
+      } catch (err) {
+        console.error("Error fetching dropdown data:", err);
+        setErrors({ general: "Failed to load dropdown data" });
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (medicine) {
@@ -71,15 +104,34 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         total_price: calculatedTotalPrice,
         expire_date: medicine.expire_date
           ? new Date(medicine.expire_date).toISOString().slice(0, 10)
-          : new Date().toISOString().slice(0, 10),
+          : "",
         required_prescription: medicine.required_prescription || false,
         payment_method: medicine.payment_method || "NONE",
-        Payment_file: null,
+        Payment_file: null, // Do not pre-populate file input
         details: medicine.details || "",
       });
+
+      setCategorySearch(
+        categories.find((cat) => cat.id === medicine.category_id)?.name || ""
+      );
+      setDosageSearch(
+        dosageForms.find((dos) => dos.id === medicine.dosage_form_id)?.name ||
+          ""
+      );
+      setSupplierSearch(
+        suppliers.find((sup) => sup.id === medicine.supplier_id)
+          ?.supplier_name || ""
+      );
+    } else {
+      setFormData({
+        ...initialFormData,
+        expire_date: "",
+      });
+      setCategorySearch("");
+      setDosageSearch("");
+      setSupplierSearch("");
     }
-    fetchDropdownData();
-  }, [medicine]);
+  }, [medicine, categories, dosageForms, suppliers]);
 
   useEffect(() => {
     const requiredFields = [
@@ -112,38 +164,45 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     }));
   }, [formData.unit_price, formData.quantity]);
 
-  const fetchDropdownData = async () => {
-    try {
-      const [catRes, dosRes, supRes] = await Promise.all([
-        getAllCategories(),
-        getAllDosageForms(),
-        getAllSuppliers(),
-      ]);
-      console.log("Dropdown data:", {
-        categories: catRes,
-        dosageForms: dosRes,
-        suppliers: supRes,
-      });
-      setCategories(catRes.sort((a, b) => a.name.localeCompare(b.name)));
-      setDosageForms(dosRes.sort((a, b) => a.name.localeCompare(b.name)));
-      setSuppliers(
-        supRes.sort((a, b) => a.supplier_name.localeCompare(b.supplier_name))
-      );
-    } catch (err) {
-      console.error("Error fetching dropdown data:", {
-        message: err.message,
-        stack: err.stack,
-      });
-      setErrors({ general: "Failed to load dropdown data" });
-    }
-  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        categoryDropdownRef.current &&
+        !categoryDropdownRef.current.contains(event.target)
+      ) {
+        setShowCategoryDropdown(false);
+      }
+      if (
+        dosageDropdownRef.current &&
+        !dosageDropdownRef.current.contains(event.target)
+      ) {
+        setShowDosageDropdown(false);
+      }
+      if (
+        supplierDropdownRef.current &&
+        !supplierDropdownRef.current.contains(event.target)
+      ) {
+        setShowSupplierDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     let newValue = value;
 
     if (
-      ["quantity", "unit_price", "sell_price", "medicine_weight"].includes(name)
+      [
+        "quantity",
+        "initial_quantity",
+        "unit_price",
+        "sell_price",
+        "medicine_weight",
+      ].includes(name)
     ) {
       newValue = value === "" ? "" : parseFloat(value) || "";
     } else if (name === "batch_number") {
@@ -183,6 +242,13 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
+  const openCalendar = () => {
+    if (expireDateInputRef.current && !isSubmitting) {
+      expireDateInputRef.current.showPicker();
+      expireDateInputRef.current.focus();
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.medicine_name)
@@ -205,12 +271,12 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
       newErrors.expire_date = "Expire date is required";
 
     if (formData.quantity !== "" && isNaN(parseInt(formData.quantity)))
-      newErrors.quantity = "Quantity must be a valid number";
+      newErrors.quantity = "Quantity must be a valid integer";
     if (
       formData.initial_quantity !== "" &&
       isNaN(parseInt(formData.initial_quantity))
     )
-      newErrors.initial_quantity = "Initial quantity must be a valid number";
+      newErrors.initial_quantity = "Initial quantity must be a valid integer";
     if (formData.unit_price !== "" && isNaN(parseFloat(formData.unit_price)))
       newErrors.unit_price = "Unit price must be a valid number";
     if (formData.sell_price !== "" && isNaN(parseFloat(formData.sell_price)))
@@ -276,14 +342,19 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         "batch_number",
         "invoice_number",
         "details",
+        "payment_method",
       ];
 
+      // Append all relevant fields
       for (const key in formData) {
         if (formData[key] === null || formData[key] === undefined) {
           continue;
         }
         if (numericFields.includes(key)) {
-          const value = parseFloat(formData[key]);
+          const value =
+            key === "quantity" || key === "initial_quantity"
+              ? parseInt(formData[key])
+              : parseFloat(formData[key]);
           if (!isNaN(value)) {
             submissionData.append(key, value.toString());
           }
@@ -293,12 +364,15 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
           submissionData.append(key, formData[key]);
         } else if (optionalFields.includes(key)) {
           submissionData.append(key, formData[key] || "");
-        } else {
+        } else if (key !== "total_price") {
           submissionData.append(key, formData[key].toString());
         }
       }
 
-      console.log("FormData payload:", [...submissionData.entries()]);
+      // For edits, explicitly handle Payment_file if unchanged
+      if (medicine && !formData.Payment_file) {
+        submissionData.append("Payment_file", ""); // Indicate no new file
+      }
 
       let response;
       if (medicine) {
@@ -312,25 +386,21 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     } catch (err) {
       console.error("Submit error:", {
         message: err.message,
-        details: err.details,
         response: err.response?.data,
-        stack: err.stack,
+        status: err.response?.status,
       });
-      const errorMessage = err.message || "Failed to save medicine";
-      const errorDetails =
-        err.details || err.response?.data?.error?.details || null;
-      // Sanitize error details to ensure strings
-      const sanitizedDetails = errorDetails
-        ? Object.fromEntries(
-            Object.entries(errorDetails).map(([key, value]) => [
-              key,
-              typeof value === "string" ? value : JSON.stringify(value),
-            ])
-          )
-        : null;
+      let errorMessage = "Failed to save medicine";
+      const errorDetails = err.response?.data?.error?.details || null;
+
+      if (err.response?.status === 500) {
+        errorMessage = "Server error: Unable to update medicine";
+      } else if (err.response?.data?.error?.message) {
+        errorMessage = err.response.data.error.message;
+      }
+
       setErrors({
         general: errorMessage,
-        ...sanitizedDetails,
+        ...(errorDetails || {}),
       });
     } finally {
       setIsSubmitting(false);
@@ -343,6 +413,16 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
     setProgress(0);
     onCancel();
   };
+
+  const filteredCategories = categories.filter((cat) =>
+    cat.name.toLowerCase().includes(categorySearch.toLowerCase())
+  );
+  const filteredDosageForms = dosageForms.filter((dos) =>
+    dos.name.toLowerCase().includes(dosageSearch.toLowerCase())
+  );
+  const filteredSuppliers = suppliers.filter((sup) =>
+    sup.supplier_name.toLowerCase().includes(supplierSearch.toLowerCase())
+  );
 
   return (
     <form
@@ -390,28 +470,14 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
           }
 
           .medicine-form input:-webkit-autofill,
-          .medicine-form input:-webkit-autofill:hover,
-          .medicine-form input:-webkit-autofill:focus,
-          .medicine-form input:-webkit-autofill:active,
           .medicine-form textarea:-webkit-autofill,
-          .medicine-form textarea:-webkit-autofill:hover,
-          .medicine-form textarea:-webkit-autofill:focus,
-          .medicine-form select:-webkit-autofill,
-          .medicine-form select:-webkit-autofill:hover,
-          .medicine-form select:-webkit-autofill:focus {
+          .medicine-form select:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px ${
               theme === "dark" ? "#1F2937" : "#FFFFFF"
             } inset !important;
             -webkit-text-fill-color: ${
               theme === "dark" ? "#FFFFFF" : "#4B5563"
             } !important;
-            background-color: ${
-              theme === "dark" ? "#1F2937" : "#FFFFFF"
-            } !important;
-            border-color: ${
-              theme === "dark" ? "#6B7280" : "#000000"
-            } !important;
-            transition: background-color 5000s ease-in-out 0s !important;
           }
 
           .medicine-form select option {
@@ -421,45 +487,49 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
             color: ${theme === "dark" ? "#FFFFFF" : "#4B5563"} !important;
           }
 
-          .medicine-form select option:hover {
-            background-color: ${
-              theme === "dark" ? "#4B5563" : "#D4C392"
-            } !important;
-          }
-
           .medicine-form input[type="checkbox"] {
             accent-color: #10B981 !important;
-            background-color: ${
-              theme === "dark" ? "#1F2937" : "#FFFFFF"
-            } !important;
-            border-color: ${
-              theme === "dark" ? "#6B7280" : "#000000"
-            } !important;
-            width: 16px !important;
-            height: 16px !important;
-            cursor: pointer;
-          }
-
-          .medicine-form input[type="checkbox"]:hover {
-            border-color: ${
-              theme === "dark" ? "#9CA3AF" : "#4B5563"
-            } !important;
-          }
-
-          .medicine-form input[type="checkbox"]:focus {
-            outline: none !important;
-            box-shadow: 0 0 0 2px ${
-              theme === "dark" ? "#9CA3AF" : "#4B5563"
-            } !important;
           }
 
           .medicine-form input[type="file"] {
             color: ${theme === "dark" ? "#FFFFFF" : "#4B5563"} !important;
           }
+
+          .medicine-form input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: ${theme === "dark" ? "invert(1)" : "none"};
+            cursor: pointer;
+            opacity: 1;
+            background: transparent;
+          }
+
+          .date-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+
+          .date-input-container input {
+            flex: 1;
+          }
+
+          .date-input-container .calendar-icon {
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+            color: ${theme === "dark" ? "#FFFFFF" : "#4B5563"};
+          }
+
+          .date-input-container .calendar-icon:hover {
+            color: ${theme === "dark" ? "#9CA3AF" : "#000000"};
+          }
+
+          .date-input-container input:disabled + .calendar-icon {
+            color: ${theme === "dark" ? "#6B7280" : "#9CA3AF"};
+            cursor: not-allowed;
+          }
         `}
       </style>
 
-      {/* Progress Bar */}
       <div className="w-full h-2 bg-gray-100 rounded-full mb-4">
         <div
           className="h-2 rounded-full transition-all duration-300"
@@ -475,7 +545,6 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         ></div>
       </div>
 
-      {/* Section 1: Medicine Details */}
       <div className="mb-6">
         <h2
           className={`text-lg font-bold mb-4 ${
@@ -485,16 +554,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
           1. Medicine Details
         </h2>
         {errors.general && (
-          <div className="text-[#5DB5B5] mb-4">
-            {errors.general}
-            {errors.details && typeof errors.details === "object" && (
-              <ul className="list-disc ml-4">
-                {Object.entries(errors.details).map(([key, value]) => (
-                  <li key={key}>{`${key}: ${value}`}</li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <div className="text-[#5DB5B5] mb-4">{errors.general}</div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -510,19 +570,16 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="medicine_name"
               value={formData.medicine_name}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
+              className={`w-full p-2 border rounded focus:outline-none ${
                 errors.medicine_name ? "border-[#5DB5B5]" : ""
               }`}
               disabled={isSubmitting}
             />
-            {errors.medicine_name &&
-              typeof errors.medicine_name === "string" && (
-                <p className="text-[#5DB5B5] text-sm mt-1">
-                  {errors.medicine_name}
-                </p>
-              )}
+            {errors.medicine_name && (
+              <p className="text-[#5DB5B5] text-sm mt-1">
+                {errors.medicine_name}
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -537,9 +594,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="brand_name"
               value={formData.brand_name}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400`}
+              className="w-full p-2 border rounded focus:outline-none"
               disabled={isSubmitting}
             />
           </div>
@@ -556,14 +611,12 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="batch_number"
               value={formData.batch_number}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
+              className={`w-full p-2 border rounded focus:outline-none ${
                 errors.batch_number ? "border-[#5DB5B5]" : ""
               }`}
               disabled={isSubmitting}
             />
-            {errors.batch_number && typeof errors.batch_number === "string" && (
+            {errors.batch_number && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.batch_number}
               </p>
@@ -582,9 +635,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="invoice_number"
               value={formData.invoice_number}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400`}
+              className="w-full p-2 border rounded focus:outline-none"
               disabled={isSubmitting}
             />
           </div>
@@ -596,25 +647,58 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
             >
               Category <span className="text-[#EF4444]">*</span>
             </label>
-            <select
-              name="category_id"
-              value={formData.category_id}
-              onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
-                errors.category_id ? "border-[#5DB5B5]" : ""
-              }`}
-              disabled={isSubmitting}
-            >
-              <option value="">Select Category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {errors.category_id && typeof errors.category_id === "string" && (
+            <div className="relative" ref={categoryDropdownRef}>
+              <input
+                type="text"
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+                onFocus={() => setShowCategoryDropdown(true)}
+                placeholder="Search Category..."
+                className={`w-full p-2 border rounded focus:outline-none ${
+                  errors.category_id ? "border-[#5DB5B5]" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              {showCategoryDropdown && (
+                <div
+                  className={`absolute w-full mt-1 max-h-48 overflow-y-auto border rounded shadow-lg z-10 ${
+                    theme === "dark"
+                      ? "bg-gray-800 border-gray-600"
+                      : "bg-white border-gray-300"
+                  }`}
+                >
+                  {filteredCategories.length > 0 ? (
+                    filteredCategories.map((cat) => (
+                      <div
+                        key={cat.id}
+                        className={`p-2 cursor-pointer hover:${
+                          theme === "dark" ? "bg-gray-700" : "bg-gray-100"
+                        } ${theme === "dark" ? "text-white" : "text-gray-800"}`}
+                        onMouseDown={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            category_id: cat.id,
+                          }));
+                          setCategorySearch(cat.name);
+                          setShowCategoryDropdown(false);
+                        }}
+                      >
+                        {cat.name}
+                      </div>
+                    ))
+                  ) : (
+                    <div
+                      className={`p-2 ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No categories found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {errors.category_id && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.category_id}
               </p>
@@ -628,30 +712,62 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
             >
               Dosage Form <span className="text-[#EF4444]">*</span>
             </label>
-            <select
-              name="dosage_form_id"
-              value={formData.dosage_form_id}
-              onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
-                errors.dosage_form_id ? "border-[#5DB5B5]" : ""
-              }`}
-              disabled={isSubmitting}
-            >
-              <option value="">Select Dosage Form</option>
-              {dosageForms.map((dos) => (
-                <option key={dos.id} value={dos.id}>
-                  {dos.name}
-                </option>
-              ))}
-            </select>
-            {errors.dosage_form_id &&
-              typeof errors.dosage_form_id === "string" && (
-                <p className="text-[#5DB5B5] text-sm mt-1">
-                  {errors.dosage_form_id}
-                </p>
+            <div className="relative" ref={dosageDropdownRef}>
+              <input
+                type="text"
+                value={dosageSearch}
+                onChange={(e) => setDosageSearch(e.target.value)}
+                onFocus={() => setShowDosageDropdown(true)}
+                placeholder="Search Dosage Form..."
+                className={`w-full p-2 border rounded focus:outline-none ${
+                  errors.dosage_form_id ? "border-[#5DB5B5]" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              {showDosageDropdown && (
+                <div
+                  className={`absolute w-full mt-1 max-h-48 overflow-y-auto border rounded shadow-lg z-10 ${
+                    theme === "dark"
+                      ? "bg-gray-800 border-gray-600"
+                      : "bg-white border-gray-300"
+                  }`}
+                >
+                  {filteredDosageForms.length > 0 ? (
+                    filteredDosageForms.map((dos) => (
+                      <div
+                        key={dos.id}
+                        className={`p-2 cursor-pointer hover:${
+                          theme === "dark" ? "bg-gray-700" : "bg-gray-100"
+                        } ${theme === "dark" ? "text-white" : "text-gray-800"}`}
+                        onMouseDown={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            dosage_form_id: dos.id,
+                          }));
+                          setDosageSearch(dos.name);
+                          setShowDosageDropdown(false);
+                        }}
+                      >
+                        {dos.name}
+                      </div>
+                    ))
+                  ) : (
+                    <div
+                      className={`p-2 ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No dosage forms found
+                    </div>
+                  )}
+                </div>
               )}
+            </div>
+            {errors.dosage_form_id && (
+              <p className="text-[#5DB5B5] text-sm mt-1">
+                {errors.dosage_form_id}
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -666,20 +782,17 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="medicine_weight"
               value={formData.medicine_weight}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
+              className={`w-full p-2 border rounded focus:outline-none ${
                 errors.medicine_weight ? "border-[#5DB5B5]" : ""
               }`}
               step="0.01"
               disabled={isSubmitting}
             />
-            {errors.medicine_weight &&
-              typeof errors.medicine_weight === "string" && (
-                <p className="text-[#5DB5B5] text-sm mt-1">
-                  {errors.medicine_weight}
-                </p>
-              )}
+            {errors.medicine_weight && (
+              <p className="text-[#5DB5B5] text-sm mt-1">
+                {errors.medicine_weight}
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -694,14 +807,13 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="quantity"
               value={formData.quantity}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
+              className={`w-full p-2 border rounded focus:outline-none ${
                 errors.quantity ? "border-[#5DB5B5]" : ""
               }`}
+              step="1"
               disabled={isSubmitting}
             />
-            {errors.quantity && typeof errors.quantity === "string" && (
+            {errors.quantity && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.quantity}</p>
             )}
           </div>
@@ -713,25 +825,58 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
             >
               Supplier <span className="text-[#EF4444]">*</span>
             </label>
-            <select
-              name="supplier_id"
-              value={formData.supplier_id}
-              onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
-                errors.supplier_id ? "border-[#5DB5B5]" : ""
-              }`}
-              disabled={isSubmitting}
-            >
-              <option value="">Select Supplier</option>
-              {suppliers.map((sup) => (
-                <option key={sup.id} value={sup.id}>
-                  {sup.supplier_name}
-                </option>
-              ))}
-            </select>
-            {errors.supplier_id && typeof errors.supplier_id === "string" && (
+            <div className="relative" ref={supplierDropdownRef}>
+              <input
+                type="text"
+                value={supplierSearch}
+                onChange={(e) => setSupplierSearch(e.target.value)}
+                onFocus={() => setShowSupplierDropdown(true)}
+                placeholder="Search Supplier..."
+                className={`w-full p-2 border rounded focus:outline-none ${
+                  errors.supplier_id ? "border-[#5DB5B5]" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              {showSupplierDropdown && (
+                <div
+                  className={`absolute w-full mt-1 max-h-48 overflow-y-auto border rounded shadow-lg z-10 ${
+                    theme === "dark"
+                      ? "bg-gray-800 border-gray-600"
+                      : "bg-white border-gray-300"
+                  }`}
+                >
+                  {filteredSuppliers.length > 0 ? (
+                    filteredSuppliers.map((sup) => (
+                      <div
+                        key={sup.id}
+                        className={`p-2 cursor-pointer hover:${
+                          theme === "dark" ? "bg-gray-700" : "bg-gray-100"
+                        } ${theme === "dark" ? "text-white" : "text-gray-800"}`}
+                        onMouseDown={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            supplier_id: sup.id,
+                          }));
+                          setSupplierSearch(sup.supplier_name);
+                          setShowSupplierDropdown(false);
+                        }}
+                      >
+                        {sup.supplier_name}
+                      </div>
+                    ))
+                  ) : (
+                    <div
+                      className={`p-2 ${
+                        theme === "dark" ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      No suppliers found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {errors.supplier_id && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.supplier_id}
               </p>
@@ -750,15 +895,13 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="unit_price"
               value={formData.unit_price}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
+              className={`w-full p-2 border rounded focus:outline-none ${
                 errors.unit_price ? "border-[#5DB5B5]" : ""
               }`}
               step="0.01"
               disabled={isSubmitting}
             />
-            {errors.unit_price && typeof errors.unit_price === "string" && (
+            {errors.unit_price && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.unit_price}</p>
             )}
           </div>
@@ -775,15 +918,13 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="sell_price"
               value={formData.sell_price}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
+              className={`w-full p-2 border rounded focus:outline-none ${
                 errors.sell_price ? "border-[#5DB5B5]" : ""
               }`}
               step="0.01"
               disabled={isSubmitting}
             />
-            {errors.sell_price && typeof errors.sell_price === "string" && (
+            {errors.sell_price && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.sell_price}</p>
             )}
           </div>
@@ -799,9 +940,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               type="number"
               name="total_price"
               value={formData.total_price}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 bg-gray-100 cursor-not-allowed`}
+              className="w-full p-2 border rounded focus:outline-none bg-gray-100 cursor-not-allowed"
               step="0.01"
               disabled
             />
@@ -814,19 +953,27 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
             >
               Expire Date <span className="text-[#EF4444]">*</span>
             </label>
-            <input
-              type="date"
-              name="expire_date"
-              value={formData.expire_date}
-              onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 ${
-                errors.expire_date ? "border-[#5DB5B5]" : ""
-              }`}
-              disabled={isSubmitting}
-            />
-            {errors.expire_date && typeof errors.expire_date === "string" && (
+            <div className="date-input-container">
+              <input
+                ref={expireDateInputRef}
+                type="date"
+                name="expire_date"
+                value={formData.expire_date}
+                onChange={handleChange}
+                onClick={openCalendar}
+                className={`w-full p-2 border rounded focus:outline-none ${
+                  errors.expire_date ? "border-[#5DB5B5]" : ""
+                }`}
+                disabled={isSubmitting}
+              />
+              <FaCalendarAlt
+                className="calendar-icon"
+                onClick={openCalendar}
+                size={20}
+                title="Open Calendar"
+              />
+            </div>
+            {errors.expire_date && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.expire_date}
               </p>
@@ -844,9 +991,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="payment_method"
               value={formData.payment_method}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400`}
+              className="w-full p-2 border rounded focus:outline-none"
               disabled={isSubmitting}
             >
               <option value="">Select Payment Method</option>
@@ -863,9 +1008,7 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="required_prescription"
               checked={formData.required_prescription}
               onChange={handleChange}
-              className={`mr-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400`}
+              className="mr-2 border rounded focus:outline-none"
               disabled={isSubmitting}
             />
             <label
@@ -879,7 +1022,6 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         </div>
       </div>
 
-      {/* Section 2: Additional Details */}
       <div className="mb-6">
         <h2
           className={`text-lg font-bold mb-4 ${
@@ -901,22 +1043,19 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               name="details"
               value={formData.details}
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 break-words ${
+              className={`w-full p-2 border rounded focus:outline-none break-words ${
                 errors.details ? "border-[#5DB5B5]" : ""
               }`}
               disabled={isSubmitting}
               rows={4}
             />
-            {errors.details && typeof errors.details === "string" && (
+            {errors.details && (
               <p className="text-[#5DB5B5] text-sm mt-1">{errors.details}</p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Section 3: Upload Document */}
       <div className="mb-6">
         <h2
           className={`text-lg font-bold mb-4 ${
@@ -957,15 +1096,11 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
               type="file"
               name="Payment_file"
               onChange={handleChange}
-              className={`w-full p-2 border ${
-                theme === "dark" ? "border-gray-500" : "border-black"
-              } rounded focus:outline-none hover:border-gray-400 text-${
-                theme === "dark" ? "white" : "gray-600"
-              }`}
+              className="w-full p-2 border rounded focus:outline-none"
               disabled={isSubmitting}
               accept="image/jpeg,image/png,application/pdf"
             />
-            {errors.Payment_file && typeof errors.Payment_file === "string" && (
+            {errors.Payment_file && (
               <p className="text-[#5DB5B5] text-sm mt-1">
                 {errors.Payment_file}
               </p>
@@ -974,7 +1109,6 @@ const MedicineForm = ({ medicine, onSave, onCancel }) => {
         </div>
       </div>
 
-      {/* Buttons */}
       <div className="flex space-x-3">
         <button
           type="submit"

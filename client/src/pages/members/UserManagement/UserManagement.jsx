@@ -78,23 +78,34 @@ const UserManagement = ({ showToast }) => {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 pt-6 pr-6 pb-6">
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+      <div
+        className={`flex-1 p-4 sm:p-6 md:p-8 w-full rounded-xl shadow-lg transition-all duration-300 ${
+          theme === "dark" ? "bg-gray-900" : "bg-white"
+        }`}
+      >
+        {error && (
+          <div
+            className={`${
+              theme === "dark"
+                ? "text-red-400 bg-red-900/20"
+                : "text-red-500 bg-red-100"
+            } mb-6 flex items-center text-base p-4 rounded-lg`}
+          >
+            {error}
+          </div>
+        )}
         <div className="flex justify-between items-center mb-6">
           <h1
-            className={`text-3xl font-bold ${
-              theme === "dark" ? "text-gray-200" : "text-gray-800"
+            className={`text-2xl sm:text-3xl font-semibold ${
+              theme === "dark" ? "text-gray-100" : "text-gray-900"
             }`}
+            style={{ color: "#10B981" }}
           >
             User Management
           </h1>
           <button
             onClick={() => setIsFormOpen(true)}
-            className={`py-2 px-4 text-lg rounded-md transition duration-300 font-bold ${
-              theme === "dark"
-                ? "bg-[#10B981] text-white hover:bg-gray-600"
-                : "bg-[#10B981] text-gray-800 hover:bg-opacity-80"
-            }`}
+            className={`py-2 px-4 rounded-lg text-sm sm:text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 transition-colors duration-300`}
           >
             Add User
           </button>
@@ -106,13 +117,21 @@ const UserManagement = ({ showToast }) => {
           showToast={showToast}
         />
         {isFormOpen && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <UserForm
-              onUserCreated={handleUserCreated}
-              initialData={editingUser}
-              onCancel={handleCancel}
-              showToast={showToast}
-            />
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+            <div
+              className={`p-6 rounded-xl shadow-lg w-11/12 max-w-md ${
+                theme === "dark"
+                  ? "bg-gray-800 text-gray-200 border-gray-700"
+                  : "bg-white text-gray-800 border-gray-200"
+              } border transition-all duration-300`}
+            >
+              <UserForm
+                onUserCreated={handleUserCreated}
+                initialData={editingUser}
+                onCancel={handleCancel}
+                showToast={showToast}
+              />
+            </div>
           </div>
         )}
       </div>

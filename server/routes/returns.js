@@ -10,7 +10,7 @@ router.get("/:id", returnsController.getReturnById);
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   returnsController.addReturn
 );
 router.put(

@@ -2125,6 +2125,7 @@ export namespace Prisma {
   export type UsersCountOutputType = {
     credits: number
     medicines: number
+    updatedMedicines: number
     customerCredits: number
     updatedCustomerCredits: number
     updatedSupplierCredits: number
@@ -2135,6 +2136,7 @@ export namespace Prisma {
   export type UsersCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     credits?: boolean | UsersCountOutputTypeCountCreditsArgs
     medicines?: boolean | UsersCountOutputTypeCountMedicinesArgs
+    updatedMedicines?: boolean | UsersCountOutputTypeCountUpdatedMedicinesArgs
     customerCredits?: boolean | UsersCountOutputTypeCountCustomerCreditsArgs
     updatedCustomerCredits?: boolean | UsersCountOutputTypeCountUpdatedCustomerCreditsArgs
     updatedSupplierCredits?: boolean | UsersCountOutputTypeCountUpdatedSupplierCreditsArgs
@@ -2164,6 +2166,13 @@ export namespace Prisma {
    * UsersCountOutputType without action
    */
   export type UsersCountOutputTypeCountMedicinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MedicinesWhereInput
+  }
+
+  /**
+   * UsersCountOutputType without action
+   */
+  export type UsersCountOutputTypeCountUpdatedMedicinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MedicinesWhereInput
   }
 
@@ -2671,6 +2680,7 @@ export namespace Prisma {
     member?: boolean | Users$memberArgs<ExtArgs>
     credits?: boolean | Users$creditsArgs<ExtArgs>
     medicines?: boolean | Users$medicinesArgs<ExtArgs>
+    updatedMedicines?: boolean | Users$updatedMedicinesArgs<ExtArgs>
     customerCredits?: boolean | Users$customerCreditsArgs<ExtArgs>
     updatedCustomerCredits?: boolean | Users$updatedCustomerCreditsArgs<ExtArgs>
     updatedSupplierCredits?: boolean | Users$updatedSupplierCreditsArgs<ExtArgs>
@@ -2720,6 +2730,7 @@ export namespace Prisma {
     member?: boolean | Users$memberArgs<ExtArgs>
     credits?: boolean | Users$creditsArgs<ExtArgs>
     medicines?: boolean | Users$medicinesArgs<ExtArgs>
+    updatedMedicines?: boolean | Users$updatedMedicinesArgs<ExtArgs>
     customerCredits?: boolean | Users$customerCreditsArgs<ExtArgs>
     updatedCustomerCredits?: boolean | Users$updatedCustomerCreditsArgs<ExtArgs>
     updatedSupplierCredits?: boolean | Users$updatedSupplierCreditsArgs<ExtArgs>
@@ -2736,6 +2747,7 @@ export namespace Prisma {
       member: Prisma.$MembersPayload<ExtArgs> | null
       credits: Prisma.$SupplierCreditsPayload<ExtArgs>[]
       medicines: Prisma.$MedicinesPayload<ExtArgs>[]
+      updatedMedicines: Prisma.$MedicinesPayload<ExtArgs>[]
       customerCredits: Prisma.$CustomerCreditPayload<ExtArgs>[]
       updatedCustomerCredits: Prisma.$CustomerCreditPayload<ExtArgs>[]
       updatedSupplierCredits: Prisma.$SupplierCreditsPayload<ExtArgs>[]
@@ -3149,6 +3161,7 @@ export namespace Prisma {
     member<T extends Users$memberArgs<ExtArgs> = {}>(args?: Subset<T, Users$memberArgs<ExtArgs>>): Prisma__MembersClient<$Result.GetResult<Prisma.$MembersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     credits<T extends Users$creditsArgs<ExtArgs> = {}>(args?: Subset<T, Users$creditsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierCreditsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     medicines<T extends Users$medicinesArgs<ExtArgs> = {}>(args?: Subset<T, Users$medicinesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MedicinesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    updatedMedicines<T extends Users$updatedMedicinesArgs<ExtArgs> = {}>(args?: Subset<T, Users$updatedMedicinesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MedicinesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     customerCredits<T extends Users$customerCreditsArgs<ExtArgs> = {}>(args?: Subset<T, Users$customerCreditsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerCreditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     updatedCustomerCredits<T extends Users$updatedCustomerCreditsArgs<ExtArgs> = {}>(args?: Subset<T, Users$updatedCustomerCreditsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomerCreditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     updatedSupplierCredits<T extends Users$updatedSupplierCreditsArgs<ExtArgs> = {}>(args?: Subset<T, Users$updatedSupplierCreditsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SupplierCreditsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3626,6 +3639,30 @@ export namespace Prisma {
    * Users.medicines
    */
   export type Users$medicinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Medicines
+     */
+    select?: MedicinesSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Medicines
+     */
+    omit?: MedicinesOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MedicinesInclude<ExtArgs> | null
+    where?: MedicinesWhereInput
+    orderBy?: MedicinesOrderByWithRelationInput | MedicinesOrderByWithRelationInput[]
+    cursor?: MedicinesWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MedicinesScalarFieldEnum | MedicinesScalarFieldEnum[]
+  }
+
+  /**
+   * Users.updatedMedicines
+   */
+  export type Users$updatedMedicinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Medicines
      */
@@ -8352,6 +8389,7 @@ export namespace Prisma {
     Payment_file: string | null
     details: string | null
     createdById: string | null
+    updatedById: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8377,6 +8415,7 @@ export namespace Prisma {
     Payment_file: string | null
     details: string | null
     createdById: string | null
+    updatedById: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8402,6 +8441,7 @@ export namespace Prisma {
     Payment_file: number
     details: number
     createdById: number
+    updatedById: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -8447,6 +8487,7 @@ export namespace Prisma {
     Payment_file?: true
     details?: true
     createdById?: true
+    updatedById?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8472,6 +8513,7 @@ export namespace Prisma {
     Payment_file?: true
     details?: true
     createdById?: true
+    updatedById?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8497,6 +8539,7 @@ export namespace Prisma {
     Payment_file?: true
     details?: true
     createdById?: true
+    updatedById?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -8609,6 +8652,7 @@ export namespace Prisma {
     Payment_file: string | null
     details: string | null
     createdById: string
+    updatedById: string | null
     createdAt: Date
     updatedAt: Date
     _count: MedicinesCountAggregateOutputType | null
@@ -8653,12 +8697,14 @@ export namespace Prisma {
     Payment_file?: boolean
     details?: boolean
     createdById?: boolean
+    updatedById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     category?: boolean | CategoriesDefaultArgs<ExtArgs>
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
     supplier?: boolean | SuppliersDefaultArgs<ExtArgs>
     createdBy?: boolean | UsersDefaultArgs<ExtArgs>
+    updatedBy?: boolean | Medicines$updatedByArgs<ExtArgs>
     Sales?: boolean | Medicines$SalesArgs<ExtArgs>
     Returns?: boolean | Medicines$ReturnsArgs<ExtArgs>
     _count?: boolean | MedicinesCountOutputTypeDefaultArgs<ExtArgs>
@@ -8685,12 +8731,14 @@ export namespace Prisma {
     Payment_file?: boolean
     details?: boolean
     createdById?: boolean
+    updatedById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     category?: boolean | CategoriesDefaultArgs<ExtArgs>
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
     supplier?: boolean | SuppliersDefaultArgs<ExtArgs>
     createdBy?: boolean | UsersDefaultArgs<ExtArgs>
+    updatedBy?: boolean | Medicines$updatedByArgs<ExtArgs>
   }, ExtArgs["result"]["medicines"]>
 
   export type MedicinesSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8714,12 +8762,14 @@ export namespace Prisma {
     Payment_file?: boolean
     details?: boolean
     createdById?: boolean
+    updatedById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     category?: boolean | CategoriesDefaultArgs<ExtArgs>
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
     supplier?: boolean | SuppliersDefaultArgs<ExtArgs>
     createdBy?: boolean | UsersDefaultArgs<ExtArgs>
+    updatedBy?: boolean | Medicines$updatedByArgs<ExtArgs>
   }, ExtArgs["result"]["medicines"]>
 
   export type MedicinesSelectScalar = {
@@ -8743,16 +8793,18 @@ export namespace Prisma {
     Payment_file?: boolean
     details?: boolean
     createdById?: boolean
+    updatedById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type MedicinesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "medicine_name" | "brand_name" | "batch_number" | "category_id" | "dosage_form_id" | "medicine_weight" | "quantity" | "initial_quantity" | "supplier_id" | "invoice_number" | "unit_price" | "sell_price" | "total_price" | "expire_date" | "required_prescription" | "payment_method" | "Payment_file" | "details" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["medicines"]>
+  export type MedicinesOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "medicine_name" | "brand_name" | "batch_number" | "category_id" | "dosage_form_id" | "medicine_weight" | "quantity" | "initial_quantity" | "supplier_id" | "invoice_number" | "unit_price" | "sell_price" | "total_price" | "expire_date" | "required_prescription" | "payment_method" | "Payment_file" | "details" | "createdById" | "updatedById" | "createdAt" | "updatedAt", ExtArgs["result"]["medicines"]>
   export type MedicinesInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     category?: boolean | CategoriesDefaultArgs<ExtArgs>
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
     supplier?: boolean | SuppliersDefaultArgs<ExtArgs>
     createdBy?: boolean | UsersDefaultArgs<ExtArgs>
+    updatedBy?: boolean | Medicines$updatedByArgs<ExtArgs>
     Sales?: boolean | Medicines$SalesArgs<ExtArgs>
     Returns?: boolean | Medicines$ReturnsArgs<ExtArgs>
     _count?: boolean | MedicinesCountOutputTypeDefaultArgs<ExtArgs>
@@ -8762,12 +8814,14 @@ export namespace Prisma {
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
     supplier?: boolean | SuppliersDefaultArgs<ExtArgs>
     createdBy?: boolean | UsersDefaultArgs<ExtArgs>
+    updatedBy?: boolean | Medicines$updatedByArgs<ExtArgs>
   }
   export type MedicinesIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     category?: boolean | CategoriesDefaultArgs<ExtArgs>
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
     supplier?: boolean | SuppliersDefaultArgs<ExtArgs>
     createdBy?: boolean | UsersDefaultArgs<ExtArgs>
+    updatedBy?: boolean | Medicines$updatedByArgs<ExtArgs>
   }
 
   export type $MedicinesPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8777,6 +8831,7 @@ export namespace Prisma {
       dosage_form: Prisma.$DosageFormsPayload<ExtArgs>
       supplier: Prisma.$SuppliersPayload<ExtArgs>
       createdBy: Prisma.$UsersPayload<ExtArgs>
+      updatedBy: Prisma.$UsersPayload<ExtArgs> | null
       Sales: Prisma.$SalesPayload<ExtArgs>[]
       Returns: Prisma.$ReturnsPayload<ExtArgs>[]
     }
@@ -8801,6 +8856,7 @@ export namespace Prisma {
       Payment_file: string | null
       details: string | null
       createdById: string
+      updatedById: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["medicines"]>
@@ -9201,6 +9257,7 @@ export namespace Prisma {
     dosage_form<T extends DosageFormsDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DosageFormsDefaultArgs<ExtArgs>>): Prisma__DosageFormsClient<$Result.GetResult<Prisma.$DosageFormsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     supplier<T extends SuppliersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SuppliersDefaultArgs<ExtArgs>>): Prisma__SuppliersClient<$Result.GetResult<Prisma.$SuppliersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     createdBy<T extends UsersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UsersDefaultArgs<ExtArgs>>): Prisma__UsersClient<$Result.GetResult<Prisma.$UsersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    updatedBy<T extends Medicines$updatedByArgs<ExtArgs> = {}>(args?: Subset<T, Medicines$updatedByArgs<ExtArgs>>): Prisma__UsersClient<$Result.GetResult<Prisma.$UsersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     Sales<T extends Medicines$SalesArgs<ExtArgs> = {}>(args?: Subset<T, Medicines$SalesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SalesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     Returns<T extends Medicines$ReturnsArgs<ExtArgs> = {}>(args?: Subset<T, Medicines$ReturnsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReturnsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -9252,6 +9309,7 @@ export namespace Prisma {
     readonly Payment_file: FieldRef<"Medicines", 'String'>
     readonly details: FieldRef<"Medicines", 'String'>
     readonly createdById: FieldRef<"Medicines", 'String'>
+    readonly updatedById: FieldRef<"Medicines", 'String'>
     readonly createdAt: FieldRef<"Medicines", 'DateTime'>
     readonly updatedAt: FieldRef<"Medicines", 'DateTime'>
   }
@@ -9647,6 +9705,25 @@ export namespace Prisma {
      * Limit how many Medicines to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Medicines.updatedBy
+   */
+  export type Medicines$updatedByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Users
+     */
+    select?: UsersSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Users
+     */
+    omit?: UsersOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UsersInclude<ExtArgs> | null
+    where?: UsersWhereInput
   }
 
   /**
@@ -19318,6 +19395,7 @@ export namespace Prisma {
     Payment_file: 'Payment_file',
     details: 'details',
     createdById: 'createdById',
+    updatedById: 'updatedById',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -19672,6 +19750,7 @@ export namespace Prisma {
     member?: XOR<MembersNullableScalarRelationFilter, MembersWhereInput> | null
     credits?: SupplierCreditsListRelationFilter
     medicines?: MedicinesListRelationFilter
+    updatedMedicines?: MedicinesListRelationFilter
     customerCredits?: CustomerCreditListRelationFilter
     updatedCustomerCredits?: CustomerCreditListRelationFilter
     updatedSupplierCredits?: SupplierCreditsListRelationFilter
@@ -19692,6 +19771,7 @@ export namespace Prisma {
     member?: MembersOrderByWithRelationInput
     credits?: SupplierCreditsOrderByRelationAggregateInput
     medicines?: MedicinesOrderByRelationAggregateInput
+    updatedMedicines?: MedicinesOrderByRelationAggregateInput
     customerCredits?: CustomerCreditOrderByRelationAggregateInput
     updatedCustomerCredits?: CustomerCreditOrderByRelationAggregateInput
     updatedSupplierCredits?: SupplierCreditsOrderByRelationAggregateInput
@@ -19715,6 +19795,7 @@ export namespace Prisma {
     member?: XOR<MembersNullableScalarRelationFilter, MembersWhereInput> | null
     credits?: SupplierCreditsListRelationFilter
     medicines?: MedicinesListRelationFilter
+    updatedMedicines?: MedicinesListRelationFilter
     customerCredits?: CustomerCreditListRelationFilter
     updatedCustomerCredits?: CustomerCreditListRelationFilter
     updatedSupplierCredits?: SupplierCreditsListRelationFilter
@@ -20059,12 +20140,14 @@ export namespace Prisma {
     Payment_file?: StringNullableFilter<"Medicines"> | string | null
     details?: StringNullableFilter<"Medicines"> | string | null
     createdById?: StringFilter<"Medicines"> | string
+    updatedById?: StringNullableFilter<"Medicines"> | string | null
     createdAt?: DateTimeFilter<"Medicines"> | Date | string
     updatedAt?: DateTimeFilter<"Medicines"> | Date | string
     category?: XOR<CategoriesScalarRelationFilter, CategoriesWhereInput>
     dosage_form?: XOR<DosageFormsScalarRelationFilter, DosageFormsWhereInput>
     supplier?: XOR<SuppliersScalarRelationFilter, SuppliersWhereInput>
     createdBy?: XOR<UsersScalarRelationFilter, UsersWhereInput>
+    updatedBy?: XOR<UsersNullableScalarRelationFilter, UsersWhereInput> | null
     Sales?: SalesListRelationFilter
     Returns?: ReturnsListRelationFilter
   }
@@ -20090,12 +20173,14 @@ export namespace Prisma {
     Payment_file?: SortOrderInput | SortOrder
     details?: SortOrderInput | SortOrder
     createdById?: SortOrder
+    updatedById?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     category?: CategoriesOrderByWithRelationInput
     dosage_form?: DosageFormsOrderByWithRelationInput
     supplier?: SuppliersOrderByWithRelationInput
     createdBy?: UsersOrderByWithRelationInput
+    updatedBy?: UsersOrderByWithRelationInput
     Sales?: SalesOrderByRelationAggregateInput
     Returns?: ReturnsOrderByRelationAggregateInput
   }
@@ -20124,12 +20209,14 @@ export namespace Prisma {
     Payment_file?: StringNullableFilter<"Medicines"> | string | null
     details?: StringNullableFilter<"Medicines"> | string | null
     createdById?: StringFilter<"Medicines"> | string
+    updatedById?: StringNullableFilter<"Medicines"> | string | null
     createdAt?: DateTimeFilter<"Medicines"> | Date | string
     updatedAt?: DateTimeFilter<"Medicines"> | Date | string
     category?: XOR<CategoriesScalarRelationFilter, CategoriesWhereInput>
     dosage_form?: XOR<DosageFormsScalarRelationFilter, DosageFormsWhereInput>
     supplier?: XOR<SuppliersScalarRelationFilter, SuppliersWhereInput>
     createdBy?: XOR<UsersScalarRelationFilter, UsersWhereInput>
+    updatedBy?: XOR<UsersNullableScalarRelationFilter, UsersWhereInput> | null
     Sales?: SalesListRelationFilter
     Returns?: ReturnsListRelationFilter
   }, "id" | "batch_number">
@@ -20155,6 +20242,7 @@ export namespace Prisma {
     Payment_file?: SortOrderInput | SortOrder
     details?: SortOrderInput | SortOrder
     createdById?: SortOrder
+    updatedById?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: MedicinesCountOrderByAggregateInput
@@ -20188,6 +20276,7 @@ export namespace Prisma {
     Payment_file?: StringNullableWithAggregatesFilter<"Medicines"> | string | null
     details?: StringNullableWithAggregatesFilter<"Medicines"> | string | null
     createdById?: StringWithAggregatesFilter<"Medicines"> | string
+    updatedById?: StringNullableWithAggregatesFilter<"Medicines"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Medicines"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Medicines"> | Date | string
   }
@@ -20921,6 +21010,7 @@ export namespace Prisma {
     member?: MembersCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
@@ -20941,6 +21031,7 @@ export namespace Prisma {
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -20961,6 +21052,7 @@ export namespace Prisma {
     member?: MembersUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
@@ -20981,6 +21073,7 @@ export namespace Prisma {
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -21364,6 +21457,7 @@ export namespace Prisma {
     dosage_form: DosageFormsCreateNestedOneWithoutMedicinesInput
     supplier: SuppliersCreateNestedOneWithoutMedicinesInput
     createdBy: UsersCreateNestedOneWithoutMedicinesInput
+    updatedBy?: UsersCreateNestedOneWithoutUpdatedMedicinesInput
     Sales?: SalesCreateNestedManyWithoutMedicineInput
     Returns?: ReturnsCreateNestedManyWithoutMedicineInput
   }
@@ -21389,6 +21483,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     Sales?: SalesUncheckedCreateNestedManyWithoutMedicineInput
@@ -21418,6 +21513,7 @@ export namespace Prisma {
     dosage_form?: DosageFormsUpdateOneRequiredWithoutMedicinesNestedInput
     supplier?: SuppliersUpdateOneRequiredWithoutMedicinesNestedInput
     createdBy?: UsersUpdateOneRequiredWithoutMedicinesNestedInput
+    updatedBy?: UsersUpdateOneWithoutUpdatedMedicinesNestedInput
     Sales?: SalesUpdateManyWithoutMedicineNestedInput
     Returns?: ReturnsUpdateManyWithoutMedicineNestedInput
   }
@@ -21443,6 +21539,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Sales?: SalesUncheckedUpdateManyWithoutMedicineNestedInput
@@ -21470,6 +21567,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -21516,6 +21614,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -22808,6 +22907,11 @@ export namespace Prisma {
     isNot?: SuppliersWhereInput
   }
 
+  export type UsersNullableScalarRelationFilter = {
+    is?: UsersWhereInput | null
+    isNot?: UsersWhereInput | null
+  }
+
   export type MedicinesCountOrderByAggregateInput = {
     id?: SortOrder
     medicine_name?: SortOrder
@@ -22829,6 +22933,7 @@ export namespace Prisma {
     Payment_file?: SortOrder
     details?: SortOrder
     createdById?: SortOrder
+    updatedById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -22863,6 +22968,7 @@ export namespace Prisma {
     Payment_file?: SortOrder
     details?: SortOrder
     createdById?: SortOrder
+    updatedById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -22888,6 +22994,7 @@ export namespace Prisma {
     Payment_file?: SortOrder
     details?: SortOrder
     createdById?: SortOrder
+    updatedById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -22959,11 +23066,6 @@ export namespace Prisma {
   export type MedicinesScalarRelationFilter = {
     is?: MedicinesWhereInput
     isNot?: MedicinesWhereInput
-  }
-
-  export type UsersNullableScalarRelationFilter = {
-    is?: UsersWhereInput | null
-    isNot?: UsersWhereInput | null
   }
 
   export type SalesCountOrderByAggregateInput = {
@@ -23502,6 +23604,13 @@ export namespace Prisma {
     connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
   }
 
+  export type MedicinesCreateNestedManyWithoutUpdatedByInput = {
+    create?: XOR<MedicinesCreateWithoutUpdatedByInput, MedicinesUncheckedCreateWithoutUpdatedByInput> | MedicinesCreateWithoutUpdatedByInput[] | MedicinesUncheckedCreateWithoutUpdatedByInput[]
+    connectOrCreate?: MedicinesCreateOrConnectWithoutUpdatedByInput | MedicinesCreateOrConnectWithoutUpdatedByInput[]
+    createMany?: MedicinesCreateManyUpdatedByInputEnvelope
+    connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+  }
+
   export type CustomerCreditCreateNestedManyWithoutCreatedByInput = {
     create?: XOR<CustomerCreditCreateWithoutCreatedByInput, CustomerCreditUncheckedCreateWithoutCreatedByInput> | CustomerCreditCreateWithoutCreatedByInput[] | CustomerCreditUncheckedCreateWithoutCreatedByInput[]
     connectOrCreate?: CustomerCreditCreateOrConnectWithoutCreatedByInput | CustomerCreditCreateOrConnectWithoutCreatedByInput[]
@@ -23554,6 +23663,13 @@ export namespace Prisma {
     create?: XOR<MedicinesCreateWithoutCreatedByInput, MedicinesUncheckedCreateWithoutCreatedByInput> | MedicinesCreateWithoutCreatedByInput[] | MedicinesUncheckedCreateWithoutCreatedByInput[]
     connectOrCreate?: MedicinesCreateOrConnectWithoutCreatedByInput | MedicinesCreateOrConnectWithoutCreatedByInput[]
     createMany?: MedicinesCreateManyCreatedByInputEnvelope
+    connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+  }
+
+  export type MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput = {
+    create?: XOR<MedicinesCreateWithoutUpdatedByInput, MedicinesUncheckedCreateWithoutUpdatedByInput> | MedicinesCreateWithoutUpdatedByInput[] | MedicinesUncheckedCreateWithoutUpdatedByInput[]
+    connectOrCreate?: MedicinesCreateOrConnectWithoutUpdatedByInput | MedicinesCreateOrConnectWithoutUpdatedByInput[]
+    createMany?: MedicinesCreateManyUpdatedByInputEnvelope
     connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
   }
 
@@ -23651,6 +23767,20 @@ export namespace Prisma {
     connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
     update?: MedicinesUpdateWithWhereUniqueWithoutCreatedByInput | MedicinesUpdateWithWhereUniqueWithoutCreatedByInput[]
     updateMany?: MedicinesUpdateManyWithWhereWithoutCreatedByInput | MedicinesUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: MedicinesScalarWhereInput | MedicinesScalarWhereInput[]
+  }
+
+  export type MedicinesUpdateManyWithoutUpdatedByNestedInput = {
+    create?: XOR<MedicinesCreateWithoutUpdatedByInput, MedicinesUncheckedCreateWithoutUpdatedByInput> | MedicinesCreateWithoutUpdatedByInput[] | MedicinesUncheckedCreateWithoutUpdatedByInput[]
+    connectOrCreate?: MedicinesCreateOrConnectWithoutUpdatedByInput | MedicinesCreateOrConnectWithoutUpdatedByInput[]
+    upsert?: MedicinesUpsertWithWhereUniqueWithoutUpdatedByInput | MedicinesUpsertWithWhereUniqueWithoutUpdatedByInput[]
+    createMany?: MedicinesCreateManyUpdatedByInputEnvelope
+    set?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    disconnect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    delete?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    update?: MedicinesUpdateWithWhereUniqueWithoutUpdatedByInput | MedicinesUpdateWithWhereUniqueWithoutUpdatedByInput[]
+    updateMany?: MedicinesUpdateManyWithWhereWithoutUpdatedByInput | MedicinesUpdateManyWithWhereWithoutUpdatedByInput[]
     deleteMany?: MedicinesScalarWhereInput | MedicinesScalarWhereInput[]
   }
 
@@ -23759,6 +23889,20 @@ export namespace Prisma {
     connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
     update?: MedicinesUpdateWithWhereUniqueWithoutCreatedByInput | MedicinesUpdateWithWhereUniqueWithoutCreatedByInput[]
     updateMany?: MedicinesUpdateManyWithWhereWithoutCreatedByInput | MedicinesUpdateManyWithWhereWithoutCreatedByInput[]
+    deleteMany?: MedicinesScalarWhereInput | MedicinesScalarWhereInput[]
+  }
+
+  export type MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput = {
+    create?: XOR<MedicinesCreateWithoutUpdatedByInput, MedicinesUncheckedCreateWithoutUpdatedByInput> | MedicinesCreateWithoutUpdatedByInput[] | MedicinesUncheckedCreateWithoutUpdatedByInput[]
+    connectOrCreate?: MedicinesCreateOrConnectWithoutUpdatedByInput | MedicinesCreateOrConnectWithoutUpdatedByInput[]
+    upsert?: MedicinesUpsertWithWhereUniqueWithoutUpdatedByInput | MedicinesUpsertWithWhereUniqueWithoutUpdatedByInput[]
+    createMany?: MedicinesCreateManyUpdatedByInputEnvelope
+    set?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    disconnect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    delete?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    connect?: MedicinesWhereUniqueInput | MedicinesWhereUniqueInput[]
+    update?: MedicinesUpdateWithWhereUniqueWithoutUpdatedByInput | MedicinesUpdateWithWhereUniqueWithoutUpdatedByInput[]
+    updateMany?: MedicinesUpdateManyWithWhereWithoutUpdatedByInput | MedicinesUpdateManyWithWhereWithoutUpdatedByInput[]
     deleteMany?: MedicinesScalarWhereInput | MedicinesScalarWhereInput[]
   }
 
@@ -24142,6 +24286,12 @@ export namespace Prisma {
     connect?: UsersWhereUniqueInput
   }
 
+  export type UsersCreateNestedOneWithoutUpdatedMedicinesInput = {
+    create?: XOR<UsersCreateWithoutUpdatedMedicinesInput, UsersUncheckedCreateWithoutUpdatedMedicinesInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutUpdatedMedicinesInput
+    connect?: UsersWhereUniqueInput
+  }
+
   export type SalesCreateNestedManyWithoutMedicineInput = {
     create?: XOR<SalesCreateWithoutMedicineInput, SalesUncheckedCreateWithoutMedicineInput> | SalesCreateWithoutMedicineInput[] | SalesUncheckedCreateWithoutMedicineInput[]
     connectOrCreate?: SalesCreateOrConnectWithoutMedicineInput | SalesCreateOrConnectWithoutMedicineInput[]
@@ -24224,6 +24374,16 @@ export namespace Prisma {
     upsert?: UsersUpsertWithoutMedicinesInput
     connect?: UsersWhereUniqueInput
     update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutMedicinesInput, UsersUpdateWithoutMedicinesInput>, UsersUncheckedUpdateWithoutMedicinesInput>
+  }
+
+  export type UsersUpdateOneWithoutUpdatedMedicinesNestedInput = {
+    create?: XOR<UsersCreateWithoutUpdatedMedicinesInput, UsersUncheckedCreateWithoutUpdatedMedicinesInput>
+    connectOrCreate?: UsersCreateOrConnectWithoutUpdatedMedicinesInput
+    upsert?: UsersUpsertWithoutUpdatedMedicinesInput
+    disconnect?: UsersWhereInput | boolean
+    delete?: UsersWhereInput | boolean
+    connect?: UsersWhereUniqueInput
+    update?: XOR<XOR<UsersUpdateToOneWithWhereWithoutUpdatedMedicinesInput, UsersUpdateWithoutUpdatedMedicinesInput>, UsersUncheckedUpdateWithoutUpdatedMedicinesInput>
   }
 
   export type SalesUpdateManyWithoutMedicineNestedInput = {
@@ -25089,6 +25249,7 @@ export namespace Prisma {
     category: CategoriesCreateNestedOneWithoutMedicinesInput
     dosage_form: DosageFormsCreateNestedOneWithoutMedicinesInput
     supplier: SuppliersCreateNestedOneWithoutMedicinesInput
+    updatedBy?: UsersCreateNestedOneWithoutUpdatedMedicinesInput
     Sales?: SalesCreateNestedManyWithoutMedicineInput
     Returns?: ReturnsCreateNestedManyWithoutMedicineInput
   }
@@ -25113,6 +25274,7 @@ export namespace Prisma {
     payment_method?: $Enums.PaymentMethod
     Payment_file?: string | null
     details?: string | null
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     Sales?: SalesUncheckedCreateNestedManyWithoutMedicineInput
@@ -25126,6 +25288,70 @@ export namespace Prisma {
 
   export type MedicinesCreateManyCreatedByInputEnvelope = {
     data: MedicinesCreateManyCreatedByInput | MedicinesCreateManyCreatedByInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MedicinesCreateWithoutUpdatedByInput = {
+    id?: string
+    medicine_name: string
+    brand_name?: string | null
+    batch_number?: string | null
+    medicine_weight?: number | null
+    quantity: number
+    initial_quantity: number
+    invoice_number?: string | null
+    unit_price: number
+    sell_price?: number | null
+    total_price: number
+    expire_date: Date | string
+    required_prescription: boolean
+    payment_method?: $Enums.PaymentMethod
+    Payment_file?: string | null
+    details?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    category: CategoriesCreateNestedOneWithoutMedicinesInput
+    dosage_form: DosageFormsCreateNestedOneWithoutMedicinesInput
+    supplier: SuppliersCreateNestedOneWithoutMedicinesInput
+    createdBy: UsersCreateNestedOneWithoutMedicinesInput
+    Sales?: SalesCreateNestedManyWithoutMedicineInput
+    Returns?: ReturnsCreateNestedManyWithoutMedicineInput
+  }
+
+  export type MedicinesUncheckedCreateWithoutUpdatedByInput = {
+    id?: string
+    medicine_name: string
+    brand_name?: string | null
+    batch_number?: string | null
+    category_id: string
+    dosage_form_id: string
+    medicine_weight?: number | null
+    quantity: number
+    initial_quantity: number
+    supplier_id: string
+    invoice_number?: string | null
+    unit_price: number
+    sell_price?: number | null
+    total_price: number
+    expire_date: Date | string
+    required_prescription: boolean
+    payment_method?: $Enums.PaymentMethod
+    Payment_file?: string | null
+    details?: string | null
+    createdById: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    Sales?: SalesUncheckedCreateNestedManyWithoutMedicineInput
+    Returns?: ReturnsUncheckedCreateNestedManyWithoutMedicineInput
+  }
+
+  export type MedicinesCreateOrConnectWithoutUpdatedByInput = {
+    where: MedicinesWhereUniqueInput
+    create: XOR<MedicinesCreateWithoutUpdatedByInput, MedicinesUncheckedCreateWithoutUpdatedByInput>
+  }
+
+  export type MedicinesCreateManyUpdatedByInputEnvelope = {
+    data: MedicinesCreateManyUpdatedByInput | MedicinesCreateManyUpdatedByInput[]
     skipDuplicates?: boolean
   }
 
@@ -25487,8 +25713,25 @@ export namespace Prisma {
     Payment_file?: StringNullableFilter<"Medicines"> | string | null
     details?: StringNullableFilter<"Medicines"> | string | null
     createdById?: StringFilter<"Medicines"> | string
+    updatedById?: StringNullableFilter<"Medicines"> | string | null
     createdAt?: DateTimeFilter<"Medicines"> | Date | string
     updatedAt?: DateTimeFilter<"Medicines"> | Date | string
+  }
+
+  export type MedicinesUpsertWithWhereUniqueWithoutUpdatedByInput = {
+    where: MedicinesWhereUniqueInput
+    update: XOR<MedicinesUpdateWithoutUpdatedByInput, MedicinesUncheckedUpdateWithoutUpdatedByInput>
+    create: XOR<MedicinesCreateWithoutUpdatedByInput, MedicinesUncheckedCreateWithoutUpdatedByInput>
+  }
+
+  export type MedicinesUpdateWithWhereUniqueWithoutUpdatedByInput = {
+    where: MedicinesWhereUniqueInput
+    data: XOR<MedicinesUpdateWithoutUpdatedByInput, MedicinesUncheckedUpdateWithoutUpdatedByInput>
+  }
+
+  export type MedicinesUpdateManyWithWhereWithoutUpdatedByInput = {
+    where: MedicinesScalarWhereInput
+    data: XOR<MedicinesUpdateManyMutationInput, MedicinesUncheckedUpdateManyWithoutUpdatedByInput>
   }
 
   export type CustomerCreditUpsertWithWhereUniqueWithoutCreatedByInput = {
@@ -25627,6 +25870,7 @@ export namespace Prisma {
     status?: $Enums.Status
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
@@ -25646,6 +25890,7 @@ export namespace Prisma {
     status?: $Enums.Status
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -25681,6 +25926,7 @@ export namespace Prisma {
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
@@ -25700,6 +25946,7 @@ export namespace Prisma {
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -25777,6 +26024,7 @@ export namespace Prisma {
     category: CategoriesCreateNestedOneWithoutMedicinesInput
     dosage_form: DosageFormsCreateNestedOneWithoutMedicinesInput
     createdBy: UsersCreateNestedOneWithoutMedicinesInput
+    updatedBy?: UsersCreateNestedOneWithoutUpdatedMedicinesInput
     Sales?: SalesCreateNestedManyWithoutMedicineInput
     Returns?: ReturnsCreateNestedManyWithoutMedicineInput
   }
@@ -25801,6 +26049,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     Sales?: SalesUncheckedCreateNestedManyWithoutMedicineInput
@@ -25871,6 +26120,7 @@ export namespace Prisma {
     dosage_form: DosageFormsCreateNestedOneWithoutMedicinesInput
     supplier: SuppliersCreateNestedOneWithoutMedicinesInput
     createdBy: UsersCreateNestedOneWithoutMedicinesInput
+    updatedBy?: UsersCreateNestedOneWithoutUpdatedMedicinesInput
     Sales?: SalesCreateNestedManyWithoutMedicineInput
     Returns?: ReturnsCreateNestedManyWithoutMedicineInput
   }
@@ -25895,6 +26145,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     Sales?: SalesUncheckedCreateNestedManyWithoutMedicineInput
@@ -25949,6 +26200,7 @@ export namespace Prisma {
     category: CategoriesCreateNestedOneWithoutMedicinesInput
     supplier: SuppliersCreateNestedOneWithoutMedicinesInput
     createdBy: UsersCreateNestedOneWithoutMedicinesInput
+    updatedBy?: UsersCreateNestedOneWithoutUpdatedMedicinesInput
     Sales?: SalesCreateNestedManyWithoutMedicineInput
     Returns?: ReturnsCreateNestedManyWithoutMedicineInput
   }
@@ -25973,6 +26225,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     Sales?: SalesUncheckedCreateNestedManyWithoutMedicineInput
@@ -26206,6 +26459,7 @@ export namespace Prisma {
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
@@ -26225,6 +26479,7 @@ export namespace Prisma {
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -26235,6 +26490,51 @@ export namespace Prisma {
   export type UsersCreateOrConnectWithoutMedicinesInput = {
     where: UsersWhereUniqueInput
     create: XOR<UsersCreateWithoutMedicinesInput, UsersUncheckedCreateWithoutMedicinesInput>
+  }
+
+  export type UsersCreateWithoutUpdatedMedicinesInput = {
+    id?: string
+    FirstName: string
+    LastName: string
+    username: string
+    email?: string | null
+    password: string
+    otp?: number | null
+    role: $Enums.Role
+    status?: $Enums.Status
+    member?: MembersCreateNestedOneWithoutUserInput
+    credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
+    medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
+    updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
+    updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
+    createdSales?: SalesCreateNestedManyWithoutCreatedByInput
+    updatedSales?: SalesCreateNestedManyWithoutUpdatedByInput
+  }
+
+  export type UsersUncheckedCreateWithoutUpdatedMedicinesInput = {
+    id?: string
+    FirstName: string
+    LastName: string
+    username: string
+    email?: string | null
+    password: string
+    otp?: number | null
+    role: $Enums.Role
+    status?: $Enums.Status
+    member?: MembersUncheckedCreateNestedOneWithoutUserInput
+    credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
+    medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
+    updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
+    createdSales?: SalesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedSales?: SalesUncheckedCreateNestedManyWithoutUpdatedByInput
+  }
+
+  export type UsersCreateOrConnectWithoutUpdatedMedicinesInput = {
+    where: UsersWhereUniqueInput
+    create: XOR<UsersCreateWithoutUpdatedMedicinesInput, UsersUncheckedCreateWithoutUpdatedMedicinesInput>
   }
 
   export type SalesCreateWithoutMedicineInput = {
@@ -26421,6 +26721,7 @@ export namespace Prisma {
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
@@ -26440,6 +26741,58 @@ export namespace Prisma {
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
+    customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
+    updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
+    createdSales?: SalesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedSales?: SalesUncheckedUpdateManyWithoutUpdatedByNestedInput
+  }
+
+  export type UsersUpsertWithoutUpdatedMedicinesInput = {
+    update: XOR<UsersUpdateWithoutUpdatedMedicinesInput, UsersUncheckedUpdateWithoutUpdatedMedicinesInput>
+    create: XOR<UsersCreateWithoutUpdatedMedicinesInput, UsersUncheckedCreateWithoutUpdatedMedicinesInput>
+    where?: UsersWhereInput
+  }
+
+  export type UsersUpdateToOneWithWhereWithoutUpdatedMedicinesInput = {
+    where?: UsersWhereInput
+    data: XOR<UsersUpdateWithoutUpdatedMedicinesInput, UsersUncheckedUpdateWithoutUpdatedMedicinesInput>
+  }
+
+  export type UsersUpdateWithoutUpdatedMedicinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    FirstName?: StringFieldUpdateOperationsInput | string
+    LastName?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    member?: MembersUpdateOneWithoutUserNestedInput
+    credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
+    medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
+    updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
+    updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
+    createdSales?: SalesUpdateManyWithoutCreatedByNestedInput
+    updatedSales?: SalesUpdateManyWithoutUpdatedByNestedInput
+  }
+
+  export type UsersUncheckedUpdateWithoutUpdatedMedicinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    FirstName?: StringFieldUpdateOperationsInput | string
+    LastName?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    otp?: NullableIntFieldUpdateOperationsInput | number | null
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
+    member?: MembersUncheckedUpdateOneWithoutUserNestedInput
+    credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
+    medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -26544,6 +26897,7 @@ export namespace Prisma {
     dosage_form: DosageFormsCreateNestedOneWithoutMedicinesInput
     supplier: SuppliersCreateNestedOneWithoutMedicinesInput
     createdBy: UsersCreateNestedOneWithoutMedicinesInput
+    updatedBy?: UsersCreateNestedOneWithoutUpdatedMedicinesInput
     Returns?: ReturnsCreateNestedManyWithoutMedicineInput
   }
 
@@ -26568,6 +26922,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     Returns?: ReturnsUncheckedCreateNestedManyWithoutMedicineInput
@@ -26591,6 +26946,7 @@ export namespace Prisma {
     member?: MembersCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
@@ -26610,6 +26966,7 @@ export namespace Prisma {
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -26634,6 +26991,7 @@ export namespace Prisma {
     member?: MembersCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
@@ -26653,6 +27011,7 @@ export namespace Prisma {
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -26752,6 +27111,7 @@ export namespace Prisma {
     dosage_form?: DosageFormsUpdateOneRequiredWithoutMedicinesNestedInput
     supplier?: SuppliersUpdateOneRequiredWithoutMedicinesNestedInput
     createdBy?: UsersUpdateOneRequiredWithoutMedicinesNestedInput
+    updatedBy?: UsersUpdateOneWithoutUpdatedMedicinesNestedInput
     Returns?: ReturnsUpdateManyWithoutMedicineNestedInput
   }
 
@@ -26776,6 +27136,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Returns?: ReturnsUncheckedUpdateManyWithoutMedicineNestedInput
@@ -26805,6 +27166,7 @@ export namespace Prisma {
     member?: MembersUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
@@ -26824,6 +27186,7 @@ export namespace Prisma {
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -26854,6 +27217,7 @@ export namespace Prisma {
     member?: MembersUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
@@ -26873,6 +27237,7 @@ export namespace Prisma {
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -26921,6 +27286,7 @@ export namespace Prisma {
     dosage_form: DosageFormsCreateNestedOneWithoutMedicinesInput
     supplier: SuppliersCreateNestedOneWithoutMedicinesInput
     createdBy: UsersCreateNestedOneWithoutMedicinesInput
+    updatedBy?: UsersCreateNestedOneWithoutUpdatedMedicinesInput
     Sales?: SalesCreateNestedManyWithoutMedicineInput
   }
 
@@ -26945,6 +27311,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     Sales?: SalesUncheckedCreateNestedManyWithoutMedicineInput
@@ -27014,6 +27381,7 @@ export namespace Prisma {
     dosage_form?: DosageFormsUpdateOneRequiredWithoutMedicinesNestedInput
     supplier?: SuppliersUpdateOneRequiredWithoutMedicinesNestedInput
     createdBy?: UsersUpdateOneRequiredWithoutMedicinesNestedInput
+    updatedBy?: UsersUpdateOneWithoutUpdatedMedicinesNestedInput
     Sales?: SalesUpdateManyWithoutMedicineNestedInput
   }
 
@@ -27038,6 +27406,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Sales?: SalesUncheckedUpdateManyWithoutMedicineNestedInput
@@ -27212,6 +27581,7 @@ export namespace Prisma {
     status?: $Enums.Status
     member?: MembersCreateNestedOneWithoutUserInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
@@ -27231,6 +27601,7 @@ export namespace Prisma {
     status?: $Enums.Status
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
@@ -27256,6 +27627,7 @@ export namespace Prisma {
     member?: MembersCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     createdSales?: SalesCreateNestedManyWithoutCreatedByInput
@@ -27275,6 +27647,7 @@ export namespace Prisma {
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     createdSales?: SalesUncheckedCreateNestedManyWithoutCreatedByInput
@@ -27348,6 +27721,7 @@ export namespace Prisma {
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUpdateOneWithoutUserNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
@@ -27367,6 +27741,7 @@ export namespace Prisma {
     status?: EnumStatusFieldUpdateOperationsInput | $Enums.Status
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
@@ -27398,6 +27773,7 @@ export namespace Prisma {
     member?: MembersUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     createdSales?: SalesUpdateManyWithoutCreatedByNestedInput
@@ -27417,6 +27793,7 @@ export namespace Prisma {
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     createdSales?: SalesUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -27459,6 +27836,7 @@ export namespace Prisma {
     member?: MembersCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     updatedCustomerCredits?: CustomerCreditCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
     createdSales?: SalesCreateNestedManyWithoutCreatedByInput
@@ -27478,6 +27856,7 @@ export namespace Prisma {
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedCustomerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutUpdatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
     createdSales?: SalesUncheckedCreateNestedManyWithoutCreatedByInput
@@ -27502,6 +27881,7 @@ export namespace Prisma {
     member?: MembersCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditCreateNestedManyWithoutCreatedByInput
     updatedSupplierCredits?: SupplierCreditsCreateNestedManyWithoutUpdatedByInput
     createdSales?: SalesCreateNestedManyWithoutCreatedByInput
@@ -27521,6 +27901,7 @@ export namespace Prisma {
     member?: MembersUncheckedCreateNestedOneWithoutUserInput
     credits?: SupplierCreditsUncheckedCreateNestedManyWithoutCreatedByInput
     medicines?: MedicinesUncheckedCreateNestedManyWithoutCreatedByInput
+    updatedMedicines?: MedicinesUncheckedCreateNestedManyWithoutUpdatedByInput
     customerCredits?: CustomerCreditUncheckedCreateNestedManyWithoutCreatedByInput
     updatedSupplierCredits?: SupplierCreditsUncheckedCreateNestedManyWithoutUpdatedByInput
     createdSales?: SalesUncheckedCreateNestedManyWithoutCreatedByInput
@@ -27585,6 +27966,7 @@ export namespace Prisma {
     member?: MembersUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
     createdSales?: SalesUpdateManyWithoutCreatedByNestedInput
@@ -27604,6 +27986,7 @@ export namespace Prisma {
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedCustomerCredits?: CustomerCreditUncheckedUpdateManyWithoutUpdatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
     createdSales?: SalesUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -27634,6 +28017,7 @@ export namespace Prisma {
     member?: MembersUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUpdateManyWithoutCreatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUpdateManyWithoutUpdatedByNestedInput
     createdSales?: SalesUpdateManyWithoutCreatedByNestedInput
@@ -27653,6 +28037,7 @@ export namespace Prisma {
     member?: MembersUncheckedUpdateOneWithoutUserNestedInput
     credits?: SupplierCreditsUncheckedUpdateManyWithoutCreatedByNestedInput
     medicines?: MedicinesUncheckedUpdateManyWithoutCreatedByNestedInput
+    updatedMedicines?: MedicinesUncheckedUpdateManyWithoutUpdatedByNestedInput
     customerCredits?: CustomerCreditUncheckedUpdateManyWithoutCreatedByNestedInput
     updatedSupplierCredits?: SupplierCreditsUncheckedUpdateManyWithoutUpdatedByNestedInput
     createdSales?: SalesUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -27819,6 +28204,32 @@ export namespace Prisma {
     payment_method?: $Enums.PaymentMethod
     Payment_file?: string | null
     details?: string | null
+    updatedById?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MedicinesCreateManyUpdatedByInput = {
+    id?: string
+    medicine_name: string
+    brand_name?: string | null
+    batch_number?: string | null
+    category_id: string
+    dosage_form_id: string
+    medicine_weight?: number | null
+    quantity: number
+    initial_quantity: number
+    supplier_id: string
+    invoice_number?: string | null
+    unit_price: number
+    sell_price?: number | null
+    total_price: number
+    expire_date: Date | string
+    required_prescription: boolean
+    payment_method?: $Enums.PaymentMethod
+    Payment_file?: string | null
+    details?: string | null
+    createdById: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -27993,6 +28404,7 @@ export namespace Prisma {
     category?: CategoriesUpdateOneRequiredWithoutMedicinesNestedInput
     dosage_form?: DosageFormsUpdateOneRequiredWithoutMedicinesNestedInput
     supplier?: SuppliersUpdateOneRequiredWithoutMedicinesNestedInput
+    updatedBy?: UsersUpdateOneWithoutUpdatedMedicinesNestedInput
     Sales?: SalesUpdateManyWithoutMedicineNestedInput
     Returns?: ReturnsUpdateManyWithoutMedicineNestedInput
   }
@@ -28017,6 +28429,7 @@ export namespace Prisma {
     payment_method?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Sales?: SalesUncheckedUpdateManyWithoutMedicineNestedInput
@@ -28043,6 +28456,86 @@ export namespace Prisma {
     payment_method?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MedicinesUpdateWithoutUpdatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    medicine_name?: StringFieldUpdateOperationsInput | string
+    brand_name?: NullableStringFieldUpdateOperationsInput | string | null
+    batch_number?: NullableStringFieldUpdateOperationsInput | string | null
+    medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
+    unit_price?: FloatFieldUpdateOperationsInput | number
+    sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    total_price?: FloatFieldUpdateOperationsInput | number
+    expire_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    required_prescription?: BoolFieldUpdateOperationsInput | boolean
+    payment_method?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: CategoriesUpdateOneRequiredWithoutMedicinesNestedInput
+    dosage_form?: DosageFormsUpdateOneRequiredWithoutMedicinesNestedInput
+    supplier?: SuppliersUpdateOneRequiredWithoutMedicinesNestedInput
+    createdBy?: UsersUpdateOneRequiredWithoutMedicinesNestedInput
+    Sales?: SalesUpdateManyWithoutMedicineNestedInput
+    Returns?: ReturnsUpdateManyWithoutMedicineNestedInput
+  }
+
+  export type MedicinesUncheckedUpdateWithoutUpdatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    medicine_name?: StringFieldUpdateOperationsInput | string
+    brand_name?: NullableStringFieldUpdateOperationsInput | string | null
+    batch_number?: NullableStringFieldUpdateOperationsInput | string | null
+    category_id?: StringFieldUpdateOperationsInput | string
+    dosage_form_id?: StringFieldUpdateOperationsInput | string
+    medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
+    supplier_id?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
+    unit_price?: FloatFieldUpdateOperationsInput | number
+    sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    total_price?: FloatFieldUpdateOperationsInput | number
+    expire_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    required_prescription?: BoolFieldUpdateOperationsInput | boolean
+    payment_method?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    createdById?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    Sales?: SalesUncheckedUpdateManyWithoutMedicineNestedInput
+    Returns?: ReturnsUncheckedUpdateManyWithoutMedicineNestedInput
+  }
+
+  export type MedicinesUncheckedUpdateManyWithoutUpdatedByInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    medicine_name?: StringFieldUpdateOperationsInput | string
+    brand_name?: NullableStringFieldUpdateOperationsInput | string | null
+    batch_number?: NullableStringFieldUpdateOperationsInput | string | null
+    category_id?: StringFieldUpdateOperationsInput | string
+    dosage_form_id?: StringFieldUpdateOperationsInput | string
+    medicine_weight?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    initial_quantity?: IntFieldUpdateOperationsInput | number
+    supplier_id?: StringFieldUpdateOperationsInput | string
+    invoice_number?: NullableStringFieldUpdateOperationsInput | string | null
+    unit_price?: FloatFieldUpdateOperationsInput | number
+    sell_price?: NullableFloatFieldUpdateOperationsInput | number | null
+    total_price?: FloatFieldUpdateOperationsInput | number
+    expire_date?: DateTimeFieldUpdateOperationsInput | Date | string
+    required_prescription?: BoolFieldUpdateOperationsInput | boolean
+    payment_method?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    createdById?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28359,6 +28852,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -28442,6 +28936,7 @@ export namespace Prisma {
     category?: CategoriesUpdateOneRequiredWithoutMedicinesNestedInput
     dosage_form?: DosageFormsUpdateOneRequiredWithoutMedicinesNestedInput
     createdBy?: UsersUpdateOneRequiredWithoutMedicinesNestedInput
+    updatedBy?: UsersUpdateOneWithoutUpdatedMedicinesNestedInput
     Sales?: SalesUpdateManyWithoutMedicineNestedInput
     Returns?: ReturnsUpdateManyWithoutMedicineNestedInput
   }
@@ -28466,6 +28961,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Sales?: SalesUncheckedUpdateManyWithoutMedicineNestedInput
@@ -28492,6 +28988,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28516,6 +29013,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -28542,6 +29040,7 @@ export namespace Prisma {
     dosage_form?: DosageFormsUpdateOneRequiredWithoutMedicinesNestedInput
     supplier?: SuppliersUpdateOneRequiredWithoutMedicinesNestedInput
     createdBy?: UsersUpdateOneRequiredWithoutMedicinesNestedInput
+    updatedBy?: UsersUpdateOneWithoutUpdatedMedicinesNestedInput
     Sales?: SalesUpdateManyWithoutMedicineNestedInput
     Returns?: ReturnsUpdateManyWithoutMedicineNestedInput
   }
@@ -28566,6 +29065,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Sales?: SalesUncheckedUpdateManyWithoutMedicineNestedInput
@@ -28592,6 +29092,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28616,6 +29117,7 @@ export namespace Prisma {
     Payment_file?: string | null
     details?: string | null
     createdById: string
+    updatedById?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -28670,6 +29172,7 @@ export namespace Prisma {
     category?: CategoriesUpdateOneRequiredWithoutMedicinesNestedInput
     supplier?: SuppliersUpdateOneRequiredWithoutMedicinesNestedInput
     createdBy?: UsersUpdateOneRequiredWithoutMedicinesNestedInput
+    updatedBy?: UsersUpdateOneWithoutUpdatedMedicinesNestedInput
     Sales?: SalesUpdateManyWithoutMedicineNestedInput
     Returns?: ReturnsUpdateManyWithoutMedicineNestedInput
   }
@@ -28694,6 +29197,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Sales?: SalesUncheckedUpdateManyWithoutMedicineNestedInput
@@ -28720,6 +29224,7 @@ export namespace Prisma {
     Payment_file?: NullableStringFieldUpdateOperationsInput | string | null
     details?: NullableStringFieldUpdateOperationsInput | string | null
     createdById?: StringFieldUpdateOperationsInput | string
+    updatedById?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

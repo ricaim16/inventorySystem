@@ -25,7 +25,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware(["MANAGER"]),
+  roleMiddleware(["MANAGER", "EMPLOYEE"]),
   dosageFormController.deleteDosageForm
 );
 

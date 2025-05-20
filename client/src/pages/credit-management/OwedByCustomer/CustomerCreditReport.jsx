@@ -19,7 +19,7 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
   const [selectedCustomerId, setSelectedCustomerId] = useState(
     customerIdFromUrl || ""
   );
-  const [searchTerm, setSearchTerm] = useState("");
+  const [customerSearchTerm, setCustomerSearchTerm] = useState("");
   const [report, setReport] = useState(null);
   const [filters, setFilters] = useState({
     start_date: "",
@@ -32,6 +32,7 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
   const [error, setError] = useState("");
   const [showReport, setShowReport] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
 
   const formatEAT = useCallback((date) => {
     try {
@@ -81,6 +82,16 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
     setLoading(true);
     setError("");
     setCurrentPage(1);
+
+    // Validate start and end dates
+    const startDate = new Date(filters.start_date);
+    const endDate = new Date(filters.end_date);
+    if (filters.start_date && filters.end_date && startDate > endDate) {
+      setError("You cannot filter this because the end date must be the last.");
+      setLoading(false);
+      return false;
+    }
+
     try {
       const cleanedFilters = Object.fromEntries(
         Object.entries(filters).filter(([_, v]) => v !== "")
@@ -131,8 +142,7 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
     }));
   };
 
-  const handleCustomerChange = (e) => {
-    const customerId = e.target.value;
+  const handleCustomerChange = (customerId) => {
     setSelectedCustomerId(customerId);
     setFilters((prev) => ({
       ...prev,
@@ -204,7 +214,6 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
       "Unpaid Amount",
       "Medicine",
       "Payment Method",
-      "Description",
       "Status",
       "Date",
       ...(userRole === "MANAGER" ? ["Created By", "Updated By"] : []),
@@ -222,7 +231,6 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
       parseFloat(cred.unpaid_amount || 0).toFixed(2),
       cred.medicine_name || "N/A",
       cred.payment_method || "N/A",
-      cred.description || "N/A",
       cred.status || "N/A",
       formatEAT(cred.credit_date),
       ...(userRole === "MANAGER"
@@ -250,14 +258,12 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
       else if (index === 6)
         columnStyles[index] = { cellWidth: baseWidth * 1.0 };
       else if (index === 7)
-        columnStyles[index] = { cellWidth: baseWidth * 1.2 };
-      else if (index === 8)
         columnStyles[index] = { cellWidth: baseWidth * 0.7 };
-      else if (index === 9)
+      else if (index === 8)
         columnStyles[index] = { cellWidth: baseWidth * 1.0 };
-      else if (index === 10)
+      else if (index === 9)
         columnStyles[index] = { cellWidth: baseWidth * 0.9 };
-      else if (index === 11)
+      else if (index === 10)
         columnStyles[index] = { cellWidth: baseWidth * 0.9 };
     });
 
@@ -316,7 +322,7 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
   );
 
   const filteredCustomers = customers.filter((customer) =>
-    customer?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    customer?.name?.toLowerCase().includes(customerSearchTerm.toLowerCase())
   );
 
   const totalPages = report?.summary?.totalRecords
@@ -357,7 +363,10 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
         theme === "dark" ? "bg-gray-900 text-white" : "bg-[#F7F7F7] text-black"
       } min-h-screen`}
     >
-      <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6">
+      <h2
+        className="text-2xl sm:text-3xl font-bold text-center mb-6"
+        style={{ color: "#10B981" }}
+      >
         Customer Credit Report
       </h2>
 
@@ -418,35 +427,107 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
             >
               Customer
             </label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search customers..."
-              className={`w-full p-2 border rounded text-sm ${
-                theme === "dark"
-                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                  : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#F7F7F7]"
-              }`}
-              disabled={loading}
-            />
-            <select
-              value={selectedCustomerId}
-              onChange={handleCustomerChange}
-              className={`mt-2 w-full p-2 border rounded text-sm ${
-                theme === "dark"
-                  ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                  : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#F7F7F7]"
-              }`}
-              disabled={loading || customers.length === 0}
-            >
-              <option value="">All Customers</option>
-              {filteredCustomers.map((cust) => (
-                <option key={cust.id} value={cust.id}>
-                  {cust.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-full">
+              <button
+                type="button"
+                onClick={() =>
+                  setIsCustomerDropdownOpen(!isCustomerDropdownOpen)
+                }
+                className={`w-full p-2 pl-3 pr-10 border rounded text-sm flex items-center justify-between ${
+                  theme === "dark"
+                    ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                    : "bg-white text-black border-gray-300 hover:bg-gray-100"
+                } ${loading || customers.length === 0 ? "opacity-50" : ""}`}
+                disabled={loading || customers.length === 0}
+              >
+                <span>
+                  {selectedCustomerId
+                    ? customers.find((cust) => cust.id === selectedCustomerId)
+                        ?.name || "All Customers"
+                    : "All Customers"}
+                </span>
+                <svg
+                  className={`w-5 h-5 ml-2 transition-transform ${
+                    isCustomerDropdownOpen ? "rotate-180" : ""
+                  } ${theme === "dark" ? "text-gray-400" : "text-gray-600"}`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+              {isCustomerDropdownOpen && (
+                <div
+                  className={`absolute z-10 w-full mt-1 border rounded-md shadow-lg ${
+                    theme === "dark"
+                      ? "bg-gray-800 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-black"
+                  }`}
+                >
+                  <div className="p-2">
+                    <input
+                      type="text"
+                      value={customerSearchTerm}
+                      onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                      placeholder="Search items"
+                      className={`w-full p-2 border rounded text-sm placeholder-gray-400 ${
+                        theme === "dark"
+                          ? "bg-gray-700 text-white border-gray-600 placeholder-gray-400"
+                          : "bg-gray-100 text-black border-gray-300 placeholder-gray-500"
+                      }`}
+                      autoFocus
+                    />
+                  </div>
+                  <ul className="max-h-40 overflow-y-auto">
+                    <li
+                      className={`px-4 py-2 text-sm cursor-pointer ${
+                        theme === "dark"
+                          ? "hover:bg-gray-700 text-white"
+                          : "hover:bg-gray-100 text-black"
+                      } ${!selectedCustomerId ? "font-bold" : ""}`}
+                      onClick={() => {
+                        handleCustomerChange("");
+                        setIsCustomerDropdownOpen(false);
+                      }}
+                    >
+                      All Customers
+                    </li>
+                    {filteredCustomers.length > 0 ? (
+                      filteredCustomers.map((cust) => (
+                        <li
+                          key={cust.id}
+                          className={`px-4 py-2 text-sm cursor-pointer ${
+                            theme === "dark"
+                              ? "hover:bg-gray-700 text-white"
+                              : "hover:bg-gray-100 text-black"
+                          } ${
+                            selectedCustomerId === cust.id ? "font-bold" : ""
+                          }`}
+                          onClick={() => {
+                            handleCustomerChange(cust.id);
+                            setIsCustomerDropdownOpen(false);
+                          }}
+                        >
+                          {cust.name}
+                        </li>
+                      ))
+                    ) : customerSearchTerm ? (
+                      <li
+                        className={`px-4 py-2 text-sm ${
+                          theme === "dark" ? "text-gray-400" : "text-gray-500"
+                        }`}
+                      >
+                        No customers found
+                      </li>
+                    ) : null}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <label
@@ -461,6 +542,8 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
               name="start_date"
               value={filters.start_date}
               onChange={handleFilterChange}
+              onClick={(e) => e.target.showPicker()}
+              onFocus={(e) => e.target.showPicker()}
               className={`w-full p-2 border rounded text-sm ${
                 theme === "dark"
                   ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
@@ -482,6 +565,8 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
               name="end_date"
               value={filters.end_date}
               onChange={handleFilterChange}
+              onClick={(e) => e.target.showPicker()}
+              onFocus={(e) => e.target.showPicker()}
               className={`w-full p-2 border rounded text-sm ${
                 theme === "dark"
                   ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
@@ -660,13 +745,6 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
                           theme === "dark" ? "text-gray-200" : "text-gray-800"
                         }`}
                       >
-                        Description
-                      </th>
-                      <th
-                        className={`border p-1 sm:p-2 text-left font-bold uppercase tracking-wider ${
-                          theme === "dark" ? "text-gray-200" : "text-gray-800"
-                        }`}
-                      >
                         Status
                       </th>
                       <th
@@ -758,13 +836,6 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
                         <td
                           className={`border p-1 sm:p-2 ${
                             theme === "dark" ? "text-gray-300" : "text-gray-600"
-                          }`}
-                        >
-                          {cred.description || "N/A"}
-                        </td>
-                        <td
-                          className={`border p-1 sm:p-2 ${
-                            theme === "dark" ? "text-gray-300" : "text-gray-600"
                           } ${
                             cred.status === "UNPAID"
                               ? "text-red-600"
@@ -826,7 +897,7 @@ const CustomerCreditReport = ({ showToast = (msg) => console.log(msg) }) => {
                       onClick={() => setCurrentPage(page)}
                       className={`px-3 py-1 border rounded text-xs sm:text-sm ${
                         currentPage === page
-                          ? "bg-[#8B1E1E] text-white"
+                          ? "bg-[#5DB5B5] text-white"
                           : theme === "dark"
                           ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
                           : "bg-white text-gray-600 hover:bg-gray-100"

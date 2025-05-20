@@ -467,7 +467,7 @@ const MedicineReport = () => {
                             theme === "dark" ? "text-gray-200" : "text-gray-800"
                           }`}
                         >
-                          Price
+                         Unit Price
                         </th>
                         <th
                           className={`border p-2 text-left w-[100px] font-medium text-lg font-sans ${

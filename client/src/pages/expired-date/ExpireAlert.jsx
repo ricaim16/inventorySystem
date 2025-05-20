@@ -66,12 +66,12 @@ const ExpireAlert = ({ onSelectMedicine, showToast }) => {
 
   const getStatus = (daysRemaining) => {
     if (daysRemaining <= 90) return "Expiring Soon";
-    return ""; // No other status since we only want "Expiring Soon"
+    return "";
   };
 
   const getStatusColor = (daysRemaining) => {
-    if (daysRemaining <= 90) return "#F59E0B"; // Amber for Expiring Soon
-    return "#000000"; // Default color (black) since no other status is shown
+    if (daysRemaining <= 90) return "#F59E0B";
+    return "#000000";
   };
 
   const getRowBackground = (status) => {
@@ -640,7 +640,7 @@ const ExpireAlert = ({ onSelectMedicine, showToast }) => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {formatEAT(medicineToView.created_at) || "N/A"}
+                        {formatEAT(medicineToView.createdAt) || "N/A"}
                       </span>
                     </div>
                     <div className="flex flex-col">
@@ -656,7 +656,7 @@ const ExpireAlert = ({ onSelectMedicine, showToast }) => {
                           theme === "dark" ? "text-gray-400" : "text-gray-600"
                         }`}
                       >
-                        {formatEAT(medicineToView.updated_at) || "N/A"}
+                        {formatEAT(medicineToView.updatedAt) || "N/A"}
                       </span>
                     </div>
                   </>
