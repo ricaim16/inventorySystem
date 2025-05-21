@@ -46,7 +46,8 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
 
   useEffect(() => {
     if (sale) {
-      setFormData({
+      // Initialize form data with sale details
+      const initialFormData = {
         customer_id: sale.customer_id || "",
         medicine_id: sale.medicine_id || "",
         dosage_form_id: sale.dosage_form_id || "",
@@ -58,13 +59,43 @@ const SalesEntryForm = ({ sale, onSave, onCancel, showToast }) => {
         product_name: sale.product_name || "",
         product_batch_number: sale.product_batch_number || "",
         dosage_form_name: sale.dosage_form?.name || "",
-        stock_quantity: sale.quantity || 0,
-      });
+        stock_quantity: 0, // Initialize to 0, will be updated after fetching
+      };
+      setFormData(initialFormData);
       setBatchSearch(sale.product_batch_number || "");
+
+      // Fetch the medicine's current stock level
+      if (sale.product_batch_number) {
+        getMedicineByBatchNumber(sale.product_batch_number)
+          .then((medicines) => {
+            const medicine = medicines.find(
+              (med) => med.id === sale.medicine_id
+            );
+            if (medicine) {
+              setFormData((prev) => ({
+                ...prev,
+                stock_quantity: medicine.quantity || 0,
+              }));
+            } else {
+              setErrors((prev) => ({
+                ...prev,
+                generic: "Medicine not found for the given batch number.",
+              }));
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching medicine for stock level:", err);
+            setErrors((prev) => ({
+              ...prev,
+              generic: `Failed to load stock level: ${err.message}`,
+            }));
+          });
+      }
     }
     fetchDropdownData();
   }, [sale]);
-
+  
+  
   useEffect(() => {
     const requiredFields = [
       "medicine_id",

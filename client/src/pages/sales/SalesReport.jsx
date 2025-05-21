@@ -164,8 +164,6 @@ const SalesReport = () => {
       "Price",
       "Total",
       "Payment",
-      "Prescription",
-      "Product Name",
       "Batch No",
       "Sale Date",
       "Updated At",
@@ -184,8 +182,6 @@ const SalesReport = () => {
         sale.price?.toString() || "0",
         sale.total_amount?.toString() || "0",
         sale.payment_method || "N/A",
-        sale.prescription ? "Yes" : "No",
-        sale.product_name || "N/A",
         sale.product_batch_number || "N/A",
         formatEAT(sale.sealed_date),
         formatEAT(sale.updated_at),
@@ -214,21 +210,19 @@ const SalesReport = () => {
         textColor: [0, 0, 0],
       },
       columnStyles: {
-        0: { cellWidth: 10 },
-        1: { cellWidth: 20 },
-        2: { cellWidth: 20 },
-        3: { cellWidth: 15 },
-        4: { cellWidth: 12 },
-        5: { cellWidth: 12 },
-        6: { cellWidth: 12 },
-        7: { cellWidth: 15 },
-        8: { cellWidth: 15 },
-        9: { cellWidth: 20 },
-        10: { cellWidth: 15 },
-        11: { cellWidth: 15 },
-        12: { cellWidth: 15 },
-        13: { cellWidth: 15 },
-        14: { cellWidth: 15 },
+        0: { cellWidth: 10 }, // No.
+        1: { cellWidth: 20 }, // Customer
+        2: { cellWidth: 20 }, // Medicine
+        3: { cellWidth: 15 }, // Dosage Form
+        4: { cellWidth: 12 }, // Quantity
+        5: { cellWidth: 12 }, // Price
+        6: { cellWidth: 12 }, // Total
+        7: { cellWidth: 15 }, // Payment
+        8: { cellWidth: 15 }, // Batch No
+        9: { cellWidth: 15 }, // Sale Date
+        10: { cellWidth: 15 }, // Updated At
+        11: { cellWidth: 15 }, // Created By (Manager only)
+        12: { cellWidth: 15 }, // Updated By (Manager only)
       },
       margin: { left: 14, right: 14 },
       didDrawPage: (data) => {
@@ -507,7 +501,7 @@ const SalesReport = () => {
                   Sales Count
                 </h3>
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-white">
+              <p Dresser className="text-xl sm:text-2xl font-bold text-white">
                 {report.summary.salesCount || 0}
               </p>
             </div>
@@ -563,12 +557,6 @@ const SalesReport = () => {
                       </th>
                       <th className="border p-2 text-left font-bold uppercase tracking-wider sticky top-0 z-10 bg-[#5DB5B5]">
                         Payment
-                      </th>
-                      <th className="border p-2 text-left font-bold uppercase tracking-wider sticky top-0 z-10 bg-[#5DB5B5]">
-                        Prescription
-                      </th>
-                      <th className="border p-2 text-left font-bold uppercase tracking-wider sticky top-0 z-10 bg-[#5DB5B5] max-w-[120px] sm:max-w-[150px]">
-                        Product Name
                       </th>
                       <th className="border p-2 text-left font-bold uppercase tracking-wider sticky top-0 z-10 bg-[#5DB5B5] hidden sm:table-cell">
                         Batch No
@@ -652,20 +640,6 @@ const SalesReport = () => {
                           }`}
                         >
                           {sale.payment_method || "N/A"}
-                        </td>
-                        <td
-                          className={`border p-2 whitespace-normal ${
-                            theme === "dark" ? "text-gray-300" : "text-gray-600"
-                          }`}
-                        >
-                          {sale.prescription ? "Yes" : "No"}
-                        </td>
-                        <td
-                          className={`border p-2 whitespace-normal max-w-[120px] sm:max-w-[150px] truncate ${
-                            theme === "dark" ? "text-gray-300" : "text-gray-600"
-                          }`}
-                        >
-                          {sale.product_name || "N/A"}
                         </td>
                         <td
                           className={`border p-2 whitespace-normal hidden sm:table-cell ${

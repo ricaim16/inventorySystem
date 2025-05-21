@@ -232,6 +232,7 @@ exports.Prisma.ExpensesScalarFieldEnum = {
 
 exports.Prisma.ReturnsScalarFieldEnum = {
   id: 'id',
+  sale_id: 'sale_id',
   product_name: 'product_name',
   product_batch_number: 'product_batch_number',
   dosage_form_id: 'dosage_form_id',

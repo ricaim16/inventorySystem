@@ -187,6 +187,7 @@ model Expenses {
 // Returns Table
 model Returns {
   id                   String      @id @default(uuid())
+  sale_id              String
   product_name         String
   product_batch_number String
   dosage_form_id       String

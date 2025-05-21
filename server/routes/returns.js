@@ -1,3 +1,4 @@
+// routes/returns.js
 import express from "express";
 import { returnsController } from "../controllers/returnsController.js";
 import { authMiddleware, roleMiddleware } from "../middlewares/auth.js";
@@ -5,6 +6,7 @@ import { authMiddleware, roleMiddleware } from "../middlewares/auth.js";
 const router = express.Router();
 
 router.get("/", returnsController.getAllReturns);
+router.get("/by-sale", returnsController.getReturnsBySaleId); // New route for getReturnsBySaleId
 router.get("/:id", returnsController.getReturnById);
 
 router.post(
@@ -19,8 +21,6 @@ router.put(
   roleMiddleware(["MANAGER", "EMPLOYEE"]),
   returnsController.editReturn
 );
-
-
 router.delete(
   "/:id",
   authMiddleware,

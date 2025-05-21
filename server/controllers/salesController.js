@@ -379,44 +379,71 @@ export const salesController = {
 
   deleteSale: async (req, res) => {
     const { id } = req.params;
-
+  
     try {
-      const sale = await prisma.sales.findUnique({ where: { id } });
-      if (!sale) return res.status(404).json({ message: "Sale not found" });
-
+      const sale = await prisma.sales.findUnique({ 
+        where: { id },
+        select: { id: true, medicine_id: true, quantity: true }
+      });
+      if (!sale) {
+        console.log(`Sale ${id} not found for user ${req.user?.id || "unknown"}`);
+        return res.status(404).json({ message: "Sale not found" });
+      }
+  
       const medicine = await prisma.medicines.findUnique({
         where: { id: sale.medicine_id },
-        select: { unit_price: true, medicine_name: true }, // Changed to unit_price
+        select: { id: true, unit_price: true, quantity: true, medicine_name: true },
       });
-
+      if (!medicine) {
+        console.log(`Medicine ${sale.medicine_id} not found for sale ${id}`);
+        return res.status(404).json({ message: "Associated medicine not found" });
+      }
+  
+      if (!Number.isFinite(sale.quantity) || sale.quantity < 0) {
+        console.log(`Invalid sale quantity: ${sale.quantity} for sale ${id}`);
+        return res.status(400).json({ message: "Invalid sale quantity" });
+      }
+      if (!Number.isFinite(medicine.unit_price)) {
+        console.log(`Invalid unit_price: ${medicine.unit_price} for medicine ${sale.medicine_id}`);
+        return res.status(400).json({ message: "Invalid medicine unit price" });
+      }
+  
       await prisma.$transaction([
         prisma.sales.delete({ where: { id } }),
         prisma.medicines.update({
           where: { id: sale.medicine_id },
           data: {
             quantity: { increment: sale.quantity },
-            total_price:
-              (medicine.quantity + sale.quantity) * medicine.unit_price, // Fixed to use unit_price
+            total_price: (medicine.quantity + sale.quantity) * medicine.unit_price,
           },
         }),
       ]);
-
-      await notificationService.handleSaleNotification(
-        sale.medicine_id,
-        -sale.quantity,
-        medicine.medicine_name
-      );
-
+  
+      try {
+        await notificationService.handleSaleNotification(
+          sale.medicine_id,
+          -sale.quantity,
+          medicine.medicine_name
+        );
+      } catch (notificationError) {
+        console.error(`Notification error for sale ${id}:`, notificationError.stack);
+      }
+  
       console.log(`Deleted sale ${id} by user ${req.user?.id || "unknown"}`);
       res.json({ message: "Sale deleted successfully" });
     } catch (error) {
-      console.error(`Error deleting sale ${id}:`, error.stack);
+      console.error(`Error deleting sale ${id}:`, {
+        message: error.message,
+        stack: error.stack,
+        saleId: id,
+        userId: req.user?.id || "unknown",
+      });
       res
         .status(500)
         .json({ message: "Error deleting sale", error: error.message });
     }
   },
-
+  
   generateSalesReport: async (req, res) => {
     const {
       start_date,

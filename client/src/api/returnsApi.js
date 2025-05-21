@@ -21,6 +21,19 @@ const returnsApi = {
     }
   },
 
+  getReturnsBySaleId: async (saleId) => {
+    try {
+      const response = await axiosInstance.get(
+        `/returns/by-sale?sale_id=${saleId}`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Error fetching returns for sale"
+      );
+    }
+  },
+
   addReturn: async (returnData) => {
     try {
       const response = await axiosInstance.post("/returns", returnData);

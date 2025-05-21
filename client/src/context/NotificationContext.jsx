@@ -1,36 +1,52 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { getAllMedicines } from "../api/medicineApi";
+import { useAuth } from "./AuthContext";
 
 const NotificationContext = createContext();
 
 export function NotificationProvider({ children }) {
+  const { user } = useAuth();
   const [notificationCount, setNotificationCount] = useState(0);
   const [seenNotificationIds, setSeenNotificationIds] = useState(
-    new Set(JSON.parse(localStorage.getItem("seenNotificationIds")) || [])
+    new Set(
+      JSON.parse(
+        localStorage.getItem(`seenNotificationIds_${user?.role}_${user?.id}`) ||
+          "[]"
+      )
+    )
   );
   const [deletedIds, setDeletedIds] = useState(
-    new Set(JSON.parse(localStorage.getItem("deletedNotificationIds")) || [])
+    new Set(
+      JSON.parse(
+        localStorage.getItem(
+          `deletedNotificationIds_${user?.role}_${user?.id}`
+        ) || "[]"
+      )
+    )
   );
 
   useEffect(() => {
-    localStorage.setItem(
-      "seenNotificationIds",
-      JSON.stringify(Array.from(seenNotificationIds))
-    );
-  }, [seenNotificationIds]);
+    if (user) {
+      localStorage.setItem(
+        `seenNotificationIds_${user.role}_${user.id}`,
+        JSON.stringify(Array.from(seenNotificationIds))
+      );
+    }
+  }, [seenNotificationIds, user]);
 
   useEffect(() => {
-    localStorage.setItem(
-      "deletedNotificationIds",
-      JSON.stringify(Array.from(deletedIds))
-    );
-  }, [deletedIds]);
+    if (user) {
+      localStorage.setItem(
+        `deletedNotificationIds_${user.role}_${user.id}`,
+        JSON.stringify(Array.from(deletedIds))
+      );
+    }
+  }, [deletedIds, user]);
 
   const syncNotifications = async () => {
     try {
       const allMedicines = await getAllMedicines();
       const now = new Date();
-      const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       const threeMonthsFromNow = new Date(
         now.getTime() + 90 * 24 * 60 * 60 * 1000
       );
@@ -74,10 +90,12 @@ export function NotificationProvider({ children }) {
   };
 
   useEffect(() => {
-    syncNotifications();
-    const interval = setInterval(syncNotifications, 60000);
-    return () => clearInterval(interval);
-  }, [deletedIds, seenNotificationIds]);
+    if (user) {
+      syncNotifications();
+      const interval = setInterval(syncNotifications, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [deletedIds, seenNotificationIds, user]);
 
   const value = {
     notificationCount,

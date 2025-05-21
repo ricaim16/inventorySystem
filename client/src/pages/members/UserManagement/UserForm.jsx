@@ -103,9 +103,13 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
         !formData.FirstName ||
         !formData.LastName ||
         !formData.username ||
-        !formData.password ||
         !formData.status
       ) {
+        setError("Please fill all required fields");
+        return;
+      }
+      // Validate password only in create mode
+      if (!initialData && !formData.password) {
         setError("Please fill all required fields");
         return;
       }
@@ -132,7 +136,6 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
           email: formData.email || null,
           role: formData.role,
           status: formData.status,
-          ...(formData.password && { password: formData.password }),
         });
         showToast("User updated successfully!");
       } else {
@@ -292,7 +295,9 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            onKeyDown={(e) => handleKeyDown(e, passwordRef)}
+            onKeyDown={(e) =>
+              handleKeyDown(e, initialData ? statusRef : passwordRef)
+            }
             ref={emailRef}
             placeholder="Enter Email"
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
@@ -318,29 +323,31 @@ const UserForm = ({ onUserCreated, initialData, onCancel, showToast }) => {
           )}
         </div>
 
-        <div>
-          <label
-            className={`block text-sm font-medium ${
-              theme === "dark" ? "text-gray-200" : "text-gray-700"
-            }`}
-          >
-            Password <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            onKeyDown={(e) => handleKeyDown(e, statusRef)}
-            ref={passwordRef}
-            placeholder="Enter Password"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
-              theme === "dark"
-                ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
-                : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
-            }`}
-          />
-        </div>
+        {!initialData && (
+          <div>
+            <label
+              className={`block text-sm font-medium ${
+                theme === "dark" ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
+              Password <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              onKeyDown={(e) => handleKeyDown(e, statusRef)}
+              ref={passwordRef}
+              placeholder="Enter Password"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm ${
+                theme === "dark"
+                  ? "bg-gray-700 border-gray-500 text-gray-200 placeholder-gray-400"
+                  : "bg-white border-gray-300 text-gray-800 placeholder-gray-500"
+              }`}
+            />
+          </div>
+        )}
 
         <div>
           <label

@@ -1005,13 +1005,15 @@ const MedicineList = () => {
                           >
                             <HiPencil size={18} />
                           </button>
-                          <button
-                            onClick={() => openDeleteModal(med.id)}
-                            className={actionButtonClass}
-                            title="Delete"
-                          >
-                            <HiTrash size={18} />
-                          </button>
+                          {user?.role === "MANAGER" && (
+                            <button
+                              onClick={() => openDeleteModal(med.id)}
+                              className={actionButtonClass}
+                              title="Delete"
+                            >
+                              <HiTrash size={18} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

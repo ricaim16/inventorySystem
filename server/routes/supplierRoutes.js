@@ -61,7 +61,7 @@ router.put(
 );
 router.delete(
   "/:id",
-  roleMiddleware(["MANAGER"]), // Only MANAGER can delete suppliers
+  roleMiddleware(["MANAGER", "EMPLOYEE"]), // Only MANAGER can delete suppliers
   supplierController.deleteSupplier
 );
 

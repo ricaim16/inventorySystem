@@ -5,15 +5,23 @@ import {
   getExpirationAlerts,
 } from "../api/medicineApi";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "../context/AuthContext";
 
 const Notifications = () => {
+  const { user } = useAuth();
   const [lowStockMedicines, setLowStockMedicines] = useState([]);
   const [expiredMedicines, setExpiredMedicines] = useState([]);
   const [expiringSoonMedicines, setExpiringSoonMedicines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deletedIds, setDeletedIds] = useState(
-    new Set(JSON.parse(localStorage.getItem("deletedNotificationIds")) || [])
+    new Set(
+      JSON.parse(
+        localStorage.getItem(
+          `deletedNotificationIds_${user?.role}_${user?.id}`
+        ) || "[]"
+      )
+    )
   );
 
   const fetchNotifications = async () => {
@@ -27,7 +35,7 @@ const Notifications = () => {
       const expiringSoonData = await getExpirationAlerts();
       console.log("Expiring Soon Medicines:", expiringSoonData);
 
-      // Filter out deleted notifications
+      // Filter out deleted notifications for this user and role
       const filteredLowStock = Array.isArray(lowStockData)
         ? lowStockData.filter((med) => !deletedIds.has(med.id))
         : [];
@@ -58,6 +66,15 @@ const Notifications = () => {
     return () => clearInterval(interval);
   }, [deletedIds]);
 
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(
+        `deletedNotificationIds_${user.role}_${user.id}`,
+        JSON.stringify(Array.from(deletedIds))
+      );
+    }
+  }, [deletedIds, user]);
+
   const formatDate = (dateString) => {
     if (!dateString || isNaN(new Date(dateString).getTime())) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -79,10 +96,6 @@ const Notifications = () => {
     const newDeletedIds = new Set(deletedIds);
     newDeletedIds.add(id);
     setDeletedIds(newDeletedIds);
-    localStorage.setItem(
-      "deletedNotificationIds",
-      JSON.stringify(Array.from(newDeletedIds))
-    );
 
     if (type === "lowStock") {
       setLowStockMedicines(lowStockMedicines.filter((med) => med.id !== id));

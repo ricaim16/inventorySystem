@@ -253,6 +253,19 @@ const ExpireReport = () => {
     });
     y += 15;
 
+    // Filter expired and expiring soon medicines based on selected category
+    const filteredExpired = reportFilters.category
+      ? expiredMedicines.filter(
+          (med) => med.category?.name === reportFilters.category
+        )
+      : expiredMedicines;
+    const filteredExpiringSoon = reportFilters.category
+      ? filteredExpiringSoonMedicines.filter(
+          (med) => med.category?.name === reportFilters.category
+        )
+      : filteredExpiringSoonMedicines;
+
+    // Expired Medicines Table
     doc.setFontSize(14);
     doc.text("Expired Medicines", 14, y);
     y += 10;
@@ -271,7 +284,7 @@ const ExpireReport = () => {
           "Status",
         ].filter(Boolean),
       ],
-      body: expiredMedicines.map((med, index) => {
+      body: filteredExpired.map((med, index) => {
         const row = [
           (index + 1).toString(),
           med.medicine_name || "N/A",
@@ -291,6 +304,7 @@ const ExpireReport = () => {
       headStyles: { fillColor: [0, 128, 128] },
     });
 
+    // Expiring Soon Medicines Table
     y = doc.lastAutoTable.finalY + 20;
     doc.setFontSize(14);
     doc.text(
@@ -318,7 +332,7 @@ const ExpireReport = () => {
           "Status",
         ].filter(Boolean),
       ],
-      body: filteredExpiringSoonMedicines.map((med, index) => {
+      body: filteredExpiringSoon.map((med, index) => {
         const row = [
           (index + 1).toString(),
           med.medicine_name || "N/A",
@@ -343,6 +357,7 @@ const ExpireReport = () => {
     );
   };
 
+  
   const pieData = {
     labels: categories,
     datasets: [

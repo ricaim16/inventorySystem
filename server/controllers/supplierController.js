@@ -21,7 +21,12 @@ export const supplierController = {
           contact_info: true,
           location: true,
           email: true,
-        }, // Include all fields needed by SupplierList
+          payment_info_cbe: true,
+          payment_info_coop: true,
+          payment_info_boa: true,
+          payment_info_awash: true,
+          payment_info_ebirr: true,
+        }, // Include payment fields
       });
       console.log(
         `Fetched ${suppliers.length} suppliers by user ${req.user.id}`
@@ -43,7 +48,17 @@ export const supplierController = {
     try {
       const supplier = await prisma.suppliers.findUnique({
         where: { id },
-        include: {
+        select: {
+          id: true,
+          supplier_name: true,
+          contact_info: true,
+          location: true,
+          email: true,
+          payment_info_cbe: true,
+          payment_info_coop: true,
+          payment_info_boa: true,
+          payment_info_awash: true,
+          payment_info_ebirr: true,
           SupplierCredits: {
             select: {
               credit_amount: true,
@@ -191,10 +206,22 @@ export const supplierController = {
         prisma.medicines.count({ where: { supplier_id: id } }),
       ]);
 
-      if (supplierCredits > 0 || medicines > 0) {
+      console.log(
+        `Delete supplier ${id}: Found ${supplierCredits} credits, ${medicines} medicines`
+      );
+
+      if (supplierCredits > 0 && medicines > 0) {
         return res.status(400).json({
           message:
-            "Cannot delete supplier with associated credits or medicines",
+            "Cannot delete supplier with associated credits and medicines",
+        });
+      } else if (supplierCredits > 0) {
+        return res.status(400).json({
+          message: "Cannot delete supplier with associated credits",
+        });
+      } else if (medicines > 0) {
+        return res.status(400).json({
+          message: "Cannot delete supplier with associated medicines",
         });
       }
 
@@ -209,7 +236,7 @@ export const supplierController = {
     }
   },
 
-  // Keeping other credit-related methods unchanged as they are not directly related to the dropdown
+  
   getAllSupplierCredits: async (req, res) => {
     try {
       const supplierCredits = await prisma.supplierCredits.findMany({

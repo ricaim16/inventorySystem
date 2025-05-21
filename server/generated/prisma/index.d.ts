@@ -12196,6 +12196,7 @@ export namespace Prisma {
 
   export type ReturnsMinAggregateOutputType = {
     id: string | null
+    sale_id: string | null
     product_name: string | null
     product_batch_number: string | null
     dosage_form_id: string | null
@@ -12207,6 +12208,7 @@ export namespace Prisma {
 
   export type ReturnsMaxAggregateOutputType = {
     id: string | null
+    sale_id: string | null
     product_name: string | null
     product_batch_number: string | null
     dosage_form_id: string | null
@@ -12218,6 +12220,7 @@ export namespace Prisma {
 
   export type ReturnsCountAggregateOutputType = {
     id: number
+    sale_id: number
     product_name: number
     product_batch_number: number
     dosage_form_id: number
@@ -12239,6 +12242,7 @@ export namespace Prisma {
 
   export type ReturnsMinAggregateInputType = {
     id?: true
+    sale_id?: true
     product_name?: true
     product_batch_number?: true
     dosage_form_id?: true
@@ -12250,6 +12254,7 @@ export namespace Prisma {
 
   export type ReturnsMaxAggregateInputType = {
     id?: true
+    sale_id?: true
     product_name?: true
     product_batch_number?: true
     dosage_form_id?: true
@@ -12261,6 +12266,7 @@ export namespace Prisma {
 
   export type ReturnsCountAggregateInputType = {
     id?: true
+    sale_id?: true
     product_name?: true
     product_batch_number?: true
     dosage_form_id?: true
@@ -12359,6 +12365,7 @@ export namespace Prisma {
 
   export type ReturnsGroupByOutputType = {
     id: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     dosage_form_id: string
@@ -12389,6 +12396,7 @@ export namespace Prisma {
 
   export type ReturnsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    sale_id?: boolean
     product_name?: boolean
     product_batch_number?: boolean
     dosage_form_id?: boolean
@@ -12402,6 +12410,7 @@ export namespace Prisma {
 
   export type ReturnsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    sale_id?: boolean
     product_name?: boolean
     product_batch_number?: boolean
     dosage_form_id?: boolean
@@ -12415,6 +12424,7 @@ export namespace Prisma {
 
   export type ReturnsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    sale_id?: boolean
     product_name?: boolean
     product_batch_number?: boolean
     dosage_form_id?: boolean
@@ -12428,6 +12438,7 @@ export namespace Prisma {
 
   export type ReturnsSelectScalar = {
     id?: boolean
+    sale_id?: boolean
     product_name?: boolean
     product_batch_number?: boolean
     dosage_form_id?: boolean
@@ -12437,7 +12448,7 @@ export namespace Prisma {
     medicine_id?: boolean
   }
 
-  export type ReturnsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "product_name" | "product_batch_number" | "dosage_form_id" | "return_date" | "reason_for_return" | "quantity" | "medicine_id", ExtArgs["result"]["returns"]>
+  export type ReturnsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sale_id" | "product_name" | "product_batch_number" | "dosage_form_id" | "return_date" | "reason_for_return" | "quantity" | "medicine_id", ExtArgs["result"]["returns"]>
   export type ReturnsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     dosage_form?: boolean | DosageFormsDefaultArgs<ExtArgs>
     medicine?: boolean | MedicinesDefaultArgs<ExtArgs>
@@ -12459,6 +12470,7 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      sale_id: string
       product_name: string
       product_batch_number: string
       dosage_form_id: string
@@ -12892,6 +12904,7 @@ export namespace Prisma {
    */
   interface ReturnsFieldRefs {
     readonly id: FieldRef<"Returns", 'String'>
+    readonly sale_id: FieldRef<"Returns", 'String'>
     readonly product_name: FieldRef<"Returns", 'String'>
     readonly product_batch_number: FieldRef<"Returns", 'String'>
     readonly dosage_form_id: FieldRef<"Returns", 'String'>
@@ -19441,6 +19454,7 @@ export namespace Prisma {
 
   export const ReturnsScalarFieldEnum: {
     id: 'id',
+    sale_id: 'sale_id',
     product_name: 'product_name',
     product_batch_number: 'product_batch_number',
     dosage_form_id: 'dosage_form_id',
@@ -20479,6 +20493,7 @@ export namespace Prisma {
     OR?: ReturnsWhereInput[]
     NOT?: ReturnsWhereInput | ReturnsWhereInput[]
     id?: StringFilter<"Returns"> | string
+    sale_id?: StringFilter<"Returns"> | string
     product_name?: StringFilter<"Returns"> | string
     product_batch_number?: StringFilter<"Returns"> | string
     dosage_form_id?: StringFilter<"Returns"> | string
@@ -20492,6 +20507,7 @@ export namespace Prisma {
 
   export type ReturnsOrderByWithRelationInput = {
     id?: SortOrder
+    sale_id?: SortOrder
     product_name?: SortOrder
     product_batch_number?: SortOrder
     dosage_form_id?: SortOrder
@@ -20508,6 +20524,7 @@ export namespace Prisma {
     AND?: ReturnsWhereInput | ReturnsWhereInput[]
     OR?: ReturnsWhereInput[]
     NOT?: ReturnsWhereInput | ReturnsWhereInput[]
+    sale_id?: StringFilter<"Returns"> | string
     product_name?: StringFilter<"Returns"> | string
     product_batch_number?: StringFilter<"Returns"> | string
     dosage_form_id?: StringFilter<"Returns"> | string
@@ -20521,6 +20538,7 @@ export namespace Prisma {
 
   export type ReturnsOrderByWithAggregationInput = {
     id?: SortOrder
+    sale_id?: SortOrder
     product_name?: SortOrder
     product_batch_number?: SortOrder
     dosage_form_id?: SortOrder
@@ -20540,6 +20558,7 @@ export namespace Prisma {
     OR?: ReturnsScalarWhereWithAggregatesInput[]
     NOT?: ReturnsScalarWhereWithAggregatesInput | ReturnsScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Returns"> | string
+    sale_id?: StringWithAggregatesFilter<"Returns"> | string
     product_name?: StringWithAggregatesFilter<"Returns"> | string
     product_batch_number?: StringWithAggregatesFilter<"Returns"> | string
     dosage_form_id?: StringWithAggregatesFilter<"Returns"> | string
@@ -21826,6 +21845,7 @@ export namespace Prisma {
 
   export type ReturnsCreateInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     return_date: Date | string
@@ -21837,6 +21857,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedCreateInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     dosage_form_id: string
@@ -21848,6 +21869,7 @@ export namespace Prisma {
 
   export type ReturnsUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     return_date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -21859,6 +21881,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     dosage_form_id?: StringFieldUpdateOperationsInput | string
@@ -21870,6 +21893,7 @@ export namespace Prisma {
 
   export type ReturnsCreateManyInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     dosage_form_id: string
@@ -21881,6 +21905,7 @@ export namespace Prisma {
 
   export type ReturnsUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     return_date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -21890,6 +21915,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     dosage_form_id?: StringFieldUpdateOperationsInput | string
@@ -23197,6 +23223,7 @@ export namespace Prisma {
 
   export type ReturnsCountOrderByAggregateInput = {
     id?: SortOrder
+    sale_id?: SortOrder
     product_name?: SortOrder
     product_batch_number?: SortOrder
     dosage_form_id?: SortOrder
@@ -23212,6 +23239,7 @@ export namespace Prisma {
 
   export type ReturnsMaxOrderByAggregateInput = {
     id?: SortOrder
+    sale_id?: SortOrder
     product_name?: SortOrder
     product_batch_number?: SortOrder
     dosage_form_id?: SortOrder
@@ -23223,6 +23251,7 @@ export namespace Prisma {
 
   export type ReturnsMinOrderByAggregateInput = {
     id?: SortOrder
+    sale_id?: SortOrder
     product_name?: SortOrder
     product_batch_number?: SortOrder
     dosage_form_id?: SortOrder
@@ -26290,6 +26319,7 @@ export namespace Prisma {
 
   export type ReturnsCreateWithoutDosage_formInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     return_date: Date | string
@@ -26300,6 +26330,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedCreateWithoutDosage_formInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     return_date: Date | string
@@ -26371,6 +26402,7 @@ export namespace Prisma {
     OR?: ReturnsScalarWhereInput[]
     NOT?: ReturnsScalarWhereInput | ReturnsScalarWhereInput[]
     id?: StringFilter<"Returns"> | string
+    sale_id?: StringFilter<"Returns"> | string
     product_name?: StringFilter<"Returns"> | string
     product_batch_number?: StringFilter<"Returns"> | string
     dosage_form_id?: StringFilter<"Returns"> | string
@@ -26585,6 +26617,7 @@ export namespace Prisma {
 
   export type ReturnsCreateWithoutMedicineInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     return_date: Date | string
@@ -26595,6 +26628,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedCreateWithoutMedicineInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     dosage_form_id: string
@@ -29142,6 +29176,7 @@ export namespace Prisma {
 
   export type ReturnsCreateManyDosage_formInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     return_date: Date | string
@@ -29285,6 +29320,7 @@ export namespace Prisma {
 
   export type ReturnsUpdateWithoutDosage_formInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     return_date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29295,6 +29331,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedUpdateWithoutDosage_formInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     return_date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29305,6 +29342,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedUpdateManyWithoutDosage_formInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     return_date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29333,6 +29371,7 @@ export namespace Prisma {
 
   export type ReturnsCreateManyMedicineInput = {
     id?: string
+    sale_id: string
     product_name: string
     product_batch_number: string
     dosage_form_id: string
@@ -29397,6 +29436,7 @@ export namespace Prisma {
 
   export type ReturnsUpdateWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     return_date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -29407,6 +29447,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedUpdateWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     dosage_form_id?: StringFieldUpdateOperationsInput | string
@@ -29417,6 +29458,7 @@ export namespace Prisma {
 
   export type ReturnsUncheckedUpdateManyWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    sale_id?: StringFieldUpdateOperationsInput | string
     product_name?: StringFieldUpdateOperationsInput | string
     product_batch_number?: StringFieldUpdateOperationsInput | string
     dosage_form_id?: StringFieldUpdateOperationsInput | string
