@@ -126,7 +126,7 @@ const OkrTrackProgress = () => {
         { keyResults: objective.KeyResults }
       );
     }
-    return calculatedProgress; // Use the calculated progress
+    return calculatedProgress;
   };
 
   const toggleExpand = (id) => {
@@ -220,9 +220,13 @@ const OkrTrackProgress = () => {
       setError("Key result title cannot be empty.");
       return;
     }
+    const effectiveStatus =
+      parseFloat(newProgress) >= (selectedKeyResult.target_value || 100)
+        ? "Completed"
+        : newStatus;
     if (
       !["Not Started", "In Progress", "Needs Attention", "Completed"].includes(
-        newStatus
+        effectiveStatus
       )
     ) {
       setError("Invalid status selected.");
@@ -233,7 +237,7 @@ const OkrTrackProgress = () => {
         title: newTitle,
         progress: parseFloat(newProgress),
         comment: comment || "",
-        status: newStatus,
+        status: effectiveStatus,
       });
       const data = await fetchObjectives();
       setObjectives(data);
@@ -250,13 +254,8 @@ const OkrTrackProgress = () => {
   };
 
   const handleAddKeyResult = async (objectiveId) => {
-    if (
-      !newKeyResult.title.trim() ||
-      newKeyResult.target_value <= newKeyResult.start_value
-    ) {
-      setError(
-        "Key result title is required and target value must be greater than start value."
-      );
+    if (!newKeyResult.title.trim()) {
+      setError("Key result title is required.");
       return;
     }
     if (
@@ -269,18 +268,14 @@ const OkrTrackProgress = () => {
       return;
     }
     try {
-      const initialProgress =
-        (parseFloat(newKeyResult.start_value) || 0) +
-        0.1 *
-          ((parseFloat(newKeyResult.target_value) || 100) -
-            (parseFloat(newKeyResult.start_value) || 0)); // 10% initial progress
+      const initialProgress = parseFloat(newKeyResult.start_value) || 0;
       await addKeyResult({
         objective_id: objectiveId,
         title: newKeyResult.title,
         description: newKeyResult.description || "",
         start_value: parseFloat(newKeyResult.start_value) || 0,
-        target_value: parseFloat(newKeyResult.target_value) || 100,
-        weight: parseFloat(newKeyResult.weight) || 1,
+        target_value: 100,
+        weight: 1,
         deadline: new Date(newKeyResult.deadline),
         progress: initialProgress,
         status: newKeyResult.status || "Not Started",
@@ -631,9 +626,6 @@ const OkrTrackProgress = () => {
                             theme === "dark" ? "text-gray-400" : "text-gray-500"
                           }`}
                         >
-                          <span className="mr-3 sm:mr-4 mb-1 sm:mb-0">
-                            Weight: {kr.weight}
-                          </span>
                           <span className="mb-1 sm:mb-0">
                             Deadline:{" "}
                             {format(new Date(kr.deadline), "yyyy-MM-dd")}
@@ -828,7 +820,7 @@ const OkrTrackProgress = () => {
                             htmlFor="kr-comment"
                             className={`block text-xs sm:text-sm font-medium ${
                               theme === "dark"
-                                ? "text-gray-400"
+                                ? "text-gray fattori-400"
                                 : "text-gray-600"
                             }`}
                           >
@@ -863,119 +855,23 @@ const OkrTrackProgress = () => {
                         </div>
                         <div>
                           <label
-                            className={`block text-xs sm:text-sm font-medium mb-2 ${
-                              theme === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            Values <span className="text-red-500">*</span>
-                          </label>
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
-                            <div className="w-full sm:flex-1">
-                              <label
-                                htmlFor="start-value"
-                                className={`block text-xs sm:text-sm ${
-                                  theme === "dark"
-                                    ? "text-gray-400"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                Start Value
-                              </label>
-                              <input
-                                id="start-value"
-                                type="number"
-                                value={newKeyResult.start_value}
-                                onChange={(e) =>
-                                  setNewKeyResult({
-                                    ...newKeyResult,
-                                    start_value:
-                                      e.target.value === ""
-                                        ? ""
-                                        : parseFloat(e.target.value),
-                                  })
-                                }
-                                onBlur={(e) =>
-                                  setNewKeyResult({
-                                    ...newKeyResult,
-                                    start_value:
-                                      e.target.value === ""
-                                        ? 0
-                                        : parseFloat(e.target.value),
-                                  })
-                                }
-                                placeholder="0"
-                                className={`mt-1 block w-full border rounded-lg p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm sm:text-base transition-colors duration-200 ${
-                                  theme === "dark"
-                                    ? "bg-gray-800 border-gray-600 text-gray-200"
-                                    : "bg-white border-gray-200 text-gray-800"
-                                }`}
-                              />
-                            </div>
-                            <div className="w-full sm:flex-1">
-                              <label
-                                htmlFor="target-value"
-                                className={`block text-xs sm:text-sm ${
-                                  theme === "dark"
-                                    ? "text-gray-400"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                Target Value
-                              </label>
-                              <input
-                                id="target-value"
-                                type="number"
-                                value={newKeyResult.target_value}
-                                onChange={(e) =>
-                                  setNewKeyResult({
-                                    ...newKeyResult,
-                                    target_value:
-                                      e.target.value === ""
-                                        ? ""
-                                        : parseFloat(e.target.value),
-                                  })
-                                }
-                                onBlur={(e) =>
-                                  setNewKeyResult({
-                                    ...newKeyResult,
-                                    target_value:
-                                      e.target.value === ""
-                                        ? 100
-                                        : parseFloat(e.target.value),
-                                  })
-                                }
-                                placeholder="100"
-                                className={`mt-1 block w-full border rounded-lg p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm sm:text-base transition-colors duration-200 ${
-                                  theme === "dark"
-                                    ? "bg-gray-800 border-gray-600 text-gray-200"
-                                    : "bg-white border-gray-200 text-gray-800"
-                                }`}
-                                required
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="weight"
+                            htmlFor="start-value"
                             className={`block text-xs sm:text-sm font-medium ${
                               theme === "dark"
                                 ? "text-gray-400"
                                 : "text-gray-600"
                             }`}
                           >
-                            Weight <span className="text-red-500">*</span>
+                            Start Value <span className="text-red-500">*</span>
                           </label>
                           <input
-                            id="weight"
+                            id="start-value"
                             type="number"
-                            value={newKeyResult.weight}
+                            value={newKeyResult.start_value}
                             onChange={(e) =>
                               setNewKeyResult({
                                 ...newKeyResult,
-                                weight:
+                                start_value:
                                   e.target.value === ""
                                     ? ""
                                     : parseFloat(e.target.value),
@@ -984,19 +880,18 @@ const OkrTrackProgress = () => {
                             onBlur={(e) =>
                               setNewKeyResult({
                                 ...newKeyResult,
-                                weight:
+                                start_value:
                                   e.target.value === ""
-                                    ? 1
+                                    ? 0
                                     : parseFloat(e.target.value),
                               })
                             }
-                            placeholder="1"
-                            className={`mt-1 block w-24 border rounded-lg p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm sm:text-base transition-colors duration-200 ${
+                            placeholder="0"
+                            className={`mt-1 block w-full border rounded-lg p-2 sm:p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm sm:text-base transition-colors duration-200 ${
                               theme === "dark"
                                 ? "bg-gray-800 border-gray-600 text-gray-200"
                                 : "bg-white border-gray-200 text-gray-800"
                             }`}
-                            required
                           />
                         </div>
                         <div>

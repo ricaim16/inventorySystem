@@ -44,6 +44,8 @@ const Dashboard = () => {
   const [winningProducts, setWinningProducts] = useState([]);
   const [expiredMedicines, setExpiredMedicines] = useState([]);
   const [okrValue, setOkrValue] = useState(0);
+  const [objectives, setObjectives] = useState([]);
+  const [selectedObjectiveId, setSelectedObjectiveId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
@@ -333,11 +335,10 @@ const Dashboard = () => {
         setWinningProducts(medicineReport?.winningProducts || []);
 
         // Fetch OKR data
-        let okrProgress = 0;
         if (user.role === "MANAGER") {
-          let objectives;
+          let objectivesData;
           try {
-            objectives = await fetchObjectives();
+            objectivesData = await fetchObjectives();
           } catch (err) {
             console.error(
               "Failed to fetch OKR objectives:",
@@ -346,15 +347,28 @@ const Dashboard = () => {
             );
             throw new Error("Unable to fetch OKR data");
           }
-          if (objectives && objectives.length > 0) {
-            const totalProgress = objectives.reduce((sum, obj) => {
-              const progress = calculateObjectiveProgress(obj.KeyResults);
-              return sum + progress;
-            }, 0);
-            okrProgress = totalProgress / objectives.length;
+          setObjectives(objectivesData || []);
+
+          // Set okrValue based on selected objective
+          if (selectedObjectiveId) {
+            const selectedObjective = objectivesData.find(
+              (obj) => obj.id === selectedObjectiveId
+            );
+            if (selectedObjective) {
+              const progress = calculateObjectiveProgress(
+                selectedObjective.KeyResults
+              );
+              setOkrValue(progress);
+            } else {
+              setOkrValue(0);
+            }
+          } else {
+            setOkrValue(0); // No objective selected
           }
+        } else {
+          setObjectives([]);
+          setOkrValue(0);
         }
-        setOkrValue(okrProgress);
 
         // Weekly sales data
         if (selectedWeekRange) {
@@ -421,7 +435,7 @@ const Dashboard = () => {
     fetchDashboardData();
     const interval = setInterval(fetchDashboardData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [user, selectedDate, selectedWeekRange]);
+  }, [user, selectedDate, selectedWeekRange, selectedObjectiveId]);
 
   const handleDateChange = (e) => {
     const dateString = e.target.value;
@@ -429,6 +443,26 @@ const Dashboard = () => {
     const weekRange = getWeekRangeFromDate(dateString);
     setSelectedWeekRange(weekRange);
     setWeekDisplay(formatWeekDisplay(weekRange.start_date, weekRange.end_date));
+  };
+
+  const handleObjectiveChange = (e) => {
+    const objectiveId = e.target.value;
+    setSelectedObjectiveId(objectiveId);
+    if (objectiveId) {
+      const selectedObjective = objectives.find(
+        (obj) => obj.id === objectiveId
+      );
+      if (selectedObjective) {
+        const progress = calculateObjectiveProgress(
+          selectedObjective.KeyResults
+        );
+        setOkrValue(progress);
+      } else {
+        setOkrValue(0);
+      }
+    } else {
+      setOkrValue(0);
+    }
   };
 
   // Chart configurations
@@ -559,7 +593,7 @@ const Dashboard = () => {
   };
 
   // OKR Gauge component
-  const OKRGauge = ({ value }) => {
+  const OKRGauge = ({ value, title }) => {
     const percentage = Math.min(Math.max(value, 0), 100);
     const angle = (percentage / 100) * 180 - 90;
 
@@ -602,7 +636,7 @@ const Dashboard = () => {
               theme === "dark" ? "text-gray-300" : "text-gray-600"
             }`}
           >
-            OKR Progress
+            {title || "OKR Progress"}
           </p>
         </div>
       </div>
@@ -761,21 +795,58 @@ const Dashboard = () => {
                 theme === "dark" ? "text-white" : "text-black"
               }`}
             >
-              Sales Filter
+              Filters
             </h3>
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={handleDateChange}
-                max={new Date().toISOString().split("T")[0]}
-                className={`p-2 border rounded text-sm ${
-                  theme === "dark"
-                    ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
-                    : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#E0E0E0]"
-                }`}
-                disabled={loading}
-              />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="w-full sm:w-auto">
+                <label
+                  className={`block text-xs sm:text-sm font-medium mb-1 ${
+                    theme === "dark" ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Sales Date
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  max={new Date().toISOString().split("T")[0]}
+                  className={`p-2 border rounded text-sm w-full sm:w-40 ${
+                    theme === "dark"
+                      ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                      : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#E0E0E0]"
+                  }`}
+                  disabled={loading}
+                />
+              </div>
+              {user.role === "MANAGER" && (
+                <div className="w-full sm:w-auto">
+                  <label
+                    className={`block text-xs sm:text-sm font-medium mb-1 ${
+                      theme === "dark" ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    OKR Objective
+                  </label>
+                  <select
+                    value={selectedObjectiveId}
+                    onChange={handleObjectiveChange}
+                    className={`p-2 border rounded text-sm w-full sm:w-64 ${
+                      theme === "dark"
+                        ? "bg-gray-800 text-white border-gray-600 hover:bg-gray-700"
+                        : "bg-[#F7F7F7] text-black border-gray-300 hover:bg-[#E0E0E0]"
+                    }`}
+                    disabled={loading || objectives.length === 0}
+                  >
+                    <option value="">Select an Objective</option>
+                    {objectives.map((obj) => (
+                      <option key={obj.id} value={obj.id}>
+                        {obj.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
@@ -950,8 +1021,27 @@ const Dashboard = () => {
                 >
                   OKR Progress
                 </h3>
-                <OKRGauge value={okrValue} />
-                {user.role !== "MANAGER" && (
+                {user.role === "MANAGER" ? (
+                  objectives.length > 0 && selectedObjectiveId ? (
+                    <OKRGauge
+                      value={okrValue}
+                      title={
+                        objectives.find((obj) => obj.id === selectedObjectiveId)
+                          ?.title || "Selected Objective"
+                      }
+                    />
+                  ) : (
+                    <p
+                      className={`text-sm ${
+                        theme === "dark" ? "text-gray-300" : "text-gray-600"
+                      }`}
+                    >
+                      {objectives.length === 0
+                        ? "No objectives available"
+                        : "Please select an objective"}
+                    </p>
+                  )
+                ) : (
                   <p
                     className={`text-xs mt-2 ${
                       theme === "dark" ? "text-gray-400" : "text-gray-500"

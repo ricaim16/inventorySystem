@@ -37,12 +37,8 @@ const OkrAdd = () => {
       setError("Objective title and time period are required.");
       return;
     }
-    if (
-      newKeyResults.some(
-        (kr) => !kr.title.trim() || kr.target_value <= (kr.start_value ?? 0)
-      )
-    ) {
-      setError("Key result must have a title and valid start/target values.");
+    if (newKeyResults.some((kr) => !kr.title.trim())) {
+      setError("Key result must have a title.");
       return;
     }
     try {
@@ -58,8 +54,8 @@ const OkrAdd = () => {
           title: kr.title,
           description: kr.description || "",
           start_value: parseFloat(kr.start_value) ?? 0,
-          target_value: parseFloat(kr.target_value) || 100,
-          weight: parseFloat(kr.weight) || 1,
+          target_value: 100,
+          weight: 1,
           deadline: new Date(kr.deadline),
         };
         await addKeyResult(keyResultData);
@@ -337,119 +333,36 @@ const OkrAdd = () => {
               </div>
               <div>
                 <label
-                  className={`block text-xs sm:text-sm font-medium mb-2 ${
-                    theme === "dark" ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
-                  Values <span className="text-red-500">*</span>
-                </label>
-                <div className="flex items-center space-x-3">
-                  <div className="flex-1">
-                    <label
-                      htmlFor={`start-value-${index}`}
-                      className={`block text-xs sm:text-sm ${
-                        theme === "dark" ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Start Value
-                    </label>
-                    <input
-                      id={`start-value-${index}`}
-                      type="number"
-                      name="start_value"
-                      value={kr.start_value}
-                      onChange={(e) => {
-                        const updated = [...newKeyResults];
-                        updated[index][e.target.name] =
-                          e.target.value === ""
-                            ? ""
-                            : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
-                      }}
-                      onBlur={(e) => {
-                        const updated = [...newKeyResults];
-                        updated[index][e.target.name] =
-                          e.target.value === ""
-                            ? 0
-                            : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
-                      }}
-                      placeholder="0"
-                      className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
-                        theme === "dark"
-                          ? "bg-gray-800 border-gray-600 text-gray-200"
-                          : "bg-white border-gray-200 text-gray-800"
-                      }`}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label
-                      htmlFor={`target-value-${index}`}
-                      className={`block text-xs sm:text-sm ${
-                        theme === "dark" ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Target Value
-                    </label>
-                    <input
-                      id={`target-value-${index}`}
-                      type="number"
-                      name="target_value"
-                      value={kr.target_value}
-                      onChange={(e) => {
-                        const updated = [...newKeyResults];
-                        updated[index][e.target.name] =
-                          e.target.value === ""
-                            ? ""
-                            : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
-                      }}
-                      onBlur={(e) => {
-                        const updated = [...newKeyResults];
-                        updated[index][e.target.name] =
-                          e.target.value === ""
-                            ? 100
-                            : parseFloat(e.target.value);
-                        setNewKeyResults(updated);
-                      }}
-                      placeholder="100"
-                      className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
-                        theme === "dark"
-                          ? "bg-gray-800 border-gray-600 text-gray-200"
-                          : "bg-white border-gray-200 text-gray-800"
-                      }`}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor={`weight-${index}`}
+                  htmlFor={`start-value-${index}`}
                   className={`block text-xs sm:text-sm font-medium ${
                     theme === "dark" ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  Weight <span className="text-red-500">*</span>
+                  Start Value <span className="text-red-500">*</span>
                 </label>
                 <input
-                  id={`weight-${index}`}
+                  id={`start-value-${index}`}
                   type="number"
-                  name="weight"
-                  value={kr.weight}
+                  name="start_value"
+                  value={kr.start_value}
                   onChange={(e) => {
                     const updated = [...newKeyResults];
                     updated[index][e.target.name] =
-                      parseFloat(e.target.value) || 1;
+                      e.target.value === "" ? "" : parseFloat(e.target.value);
                     setNewKeyResults(updated);
                   }}
-                  placeholder="1"
-                  className={`mt-1 block w-24 border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs transition-colors duration-200 ${
+                  onBlur={(e) => {
+                    const updated = [...newKeyResults];
+                    updated[index][e.target.name] =
+                      e.target.value === "" ? 0 : parseFloat(e.target.value);
+                    setNewKeyResults(updated);
+                  }}
+                  placeholder="0"
+                  className={`mt-1 block w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm transition-colors duration-200 ${
                     theme === "dark"
                       ? "bg-gray-800 border-gray-600 text-gray-200"
                       : "bg-white border-gray-200 text-gray-800"
                   }`}
-                  required
                 />
               </div>
               <div>

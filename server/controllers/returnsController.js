@@ -115,9 +115,10 @@ export const returnsController = {
         return res.status(401).json({ message: "Authentication required" });
       }
 
-      // Fetch the sale to validate quantity
+      // Fetch the sale
       const sale = await prisma.sales.findUnique({
         where: { id: sale_id },
+        select: { id: true, quantity: true },
       });
       if (!sale) {
         return res.status(404).json({ message: "Sale not found" });
@@ -138,12 +139,29 @@ export const returnsController = {
         return res.status(400).json({ message: "Invalid quantity" });
       }
 
-      // Check if the new return quantity exceeds the remaining sale quantity
-      if (totalReturnedQuantity + parsedQuantity > sale.quantity) {
+      // Check if the new return quantity exceeds the original sale quantity
+      const remainingQuantity = sale.quantity - totalReturnedQuantity;
+      if (remainingQuantity <= 0) {
+        console.log({
+          sale_id,
+          sale_quantity: sale.quantity,
+          total_returned_quantity: totalReturnedQuantity,
+          remaining_quantity: remainingQuantity,
+        });
         return res.status(400).json({
-          message: `Return quantity exceeds available sale quantity. Only ${
-            sale.quantity - totalReturnedQuantity
-          } units remain available for return.`,
+          message: "No units remain available for return.",
+        });
+      }
+      if (parsedQuantity > remainingQuantity) {
+        console.log({
+          sale_id,
+          sale_quantity: sale.quantity,
+          total_returned_quantity: totalReturnedQuantity,
+          requested_quantity: parsedQuantity,
+          remaining_quantity: remainingQuantity,
+        });
+        return res.status(400).json({
+          message: `Return quantity exceeds available sale quantity. Only ${remainingQuantity} units remain available for return.`,
         });
       }
 
@@ -173,39 +191,33 @@ export const returnsController = {
         `Adding return for medicine ${medicine_id}, current quantity: ${medicine.quantity}, incrementing by: ${parsedQuantity}`
       );
 
-      const [returnItem, updatedMedicine, updatedSale] =
-        await prisma.$transaction([
-          prisma.returns.create({
-            data: {
-              sale_id,
-              product_name: product_name || medicine.medicine_name,
-              product_batch_number:
-                product_batch_number || medicine.batch_number || null,
-              dosage_form_id,
-              return_date: currentETTime,
-              reason_for_return,
-              quantity: parsedQuantity,
-              medicine_id,
-            },
-            include: {
-              medicine: { select: { medicine_name: true } },
-              dosage_form: { select: { name: true } },
-            },
-          }),
-          prisma.medicines.update({
-            where: { id: medicine_id },
-            data: { quantity: { increment: parsedQuantity } },
-            select: { quantity: true },
-          }),
-          prisma.sales.update({
-            where: { id: sale_id },
-            data: { quantity: { decrement: parsedQuantity } },
-            select: { quantity: true },
-          }),
-        ]);
+      const [returnItem, updatedMedicine] = await prisma.$transaction([
+        prisma.returns.create({
+          data: {
+            sale_id,
+            product_name: product_name || medicine.medicine_name,
+            product_batch_number:
+              product_batch_number || medicine.batch_number || null,
+            dosage_form_id,
+            return_date: currentETTime,
+            reason_for_return,
+            quantity: parsedQuantity,
+            medicine_id,
+          },
+          include: {
+            medicine: { select: { medicine_name: true } },
+            dosage_form: { select: { name: true } },
+          },
+        }),
+        prisma.medicines.update({
+          where: { id: medicine_id },
+          data: { quantity: { increment: parsedQuantity } },
+          select: { quantity: true },
+        }),
+      ]);
 
       console.log(
-        `Created return by user ${req.user.id}, new medicine quantity: ${updatedMedicine.quantity}, new sale quantity: ${updatedSale.quantity}`
+        `Created return by user ${req.user.id}, new medicine quantity: ${updatedMedicine.quantity}`
       );
 
       res.status(201).json({
@@ -248,6 +260,7 @@ export const returnsController = {
       const saleIdToUse = sale_id || existingReturn.sale_id;
       const sale = await prisma.sales.findUnique({
         where: { id: saleIdToUse },
+        select: { id: true, quantity: true },
       });
       if (!sale) {
         return res.status(404).json({ message: "Sale not found" });
@@ -272,11 +285,28 @@ export const returnsController = {
         return res.status(400).json({ message: "Invalid quantity" });
       }
 
-      if (totalReturnedQuantity + parsedQuantity > sale.quantity) {
+      const remainingQuantity = sale.quantity - totalReturnedQuantity;
+      if (remainingQuantity <= 0) {
+        console.log({
+          sale_id: saleIdToUse,
+          sale_quantity: sale.quantity,
+          total_returned_quantity: totalReturnedQuantity,
+          remaining_quantity: remainingQuantity,
+        });
         return res.status(400).json({
-          message: `Return quantity exceeds available sale quantity. Only ${
-            sale.quantity - totalReturnedQuantity
-          } units remain available for return.`,
+          message: "No units remain available for return.",
+        });
+      }
+      if (parsedQuantity > remainingQuantity) {
+        console.log({
+          sale_id: saleIdToUse,
+          sale_quantity: sale.quantity,
+          total_returned_quantity: totalReturnedQuantity,
+          requested_quantity: parsedQuantity,
+          remaining_quantity: remainingQuantity,
+        });
+        return res.status(400).json({
+          message: `Return quantity exceeds available sale quantity. Only ${remainingQuantity} units remain available for return.`,
         });
       }
 
@@ -339,25 +369,19 @@ export const returnsController = {
             data: {
               quantity: { increment: quantityDifference },
             },
-          }),
-          prisma.sales.update({
-            where: { id: saleIdToUse },
-            data: {
-              quantity: { decrement: quantityDifference },
-            },
+            select: { quantity: true },
           })
         );
       }
 
-      const [updatedReturn] = await prisma.$transaction(transactionOperations);
+      const [updatedReturn, updatedMedicine] = await prisma.$transaction(
+        transactionOperations
+      );
 
-      // Verify the updated medicine quantity
-      const updatedMedicine = await prisma.medicines.findUnique({
-        where: { id: medicineIdToUse },
-        select: { quantity: true },
-      });
       console.log(
-        `Updated return ${id} by user ${req.user.id}, new medicine quantity: ${updatedMedicine.quantity}`
+        `Updated return ${id} by user ${req.user.id}, new medicine quantity: ${
+          updatedMedicine ? updatedMedicine.quantity : medicine.quantity
+        }`
       );
 
       res.status(200).json({
@@ -373,7 +397,6 @@ export const returnsController = {
     }
   },
 
-  
   deleteReturn: async (req, res) => {
     const { id } = req.params;
 
@@ -389,19 +412,15 @@ export const returnsController = {
         `Deleting return ${id} for medicine ${returnItem.medicine_id}, decrementing quantity by: ${returnItem.quantity}`
       );
 
-      await prisma.$transaction([
+      const [_, updatedMedicine] = await prisma.$transaction([
         prisma.returns.delete({ where: { id } }),
         prisma.medicines.update({
           where: { id: returnItem.medicine_id },
           data: { quantity: { decrement: returnItem.quantity } },
+          select: { quantity: true },
         }),
       ]);
 
-      // Verify the updated medicine quantity
-      const updatedMedicine = await prisma.medicines.findUnique({
-        where: { id: returnItem.medicine_id },
-        select: { quantity: true },
-      });
       console.log(
         `Deleted return ${id} by user ${
           req.user?.id || "unknown"
