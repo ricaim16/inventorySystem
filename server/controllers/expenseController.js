@@ -38,6 +38,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 }).single("receipt");
 
+
 export const expenseController = {
   getAllExpenses: async (req, res) => {
     try {
@@ -253,6 +254,7 @@ export const expenseController = {
           return res.status(400).json({ message: "Invalid date" });
         }
 
+        
         const receipt = req.file
           ? `uploads/${req.file.filename}`
           : existing_receipt || existingExpense.receipt;

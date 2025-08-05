@@ -724,7 +724,7 @@ export const medicineController = {
   },
 
   getLowStockMedicines: async (req, res) => {
-    const LOW_STOCK_THRESHOLD = 10;
+    const LOW_STOCK_THRESHOLD = 100;
     try {
       const lowStockMedicines = await prisma.medicines.findMany({
         where: { quantity: { lte: LOW_STOCK_THRESHOLD } },
@@ -760,7 +760,7 @@ export const medicineController = {
     try {
       const today = new Date();
       const thresholdDate = new Date();
-      thresholdDate.setDate(today.getDate() + 30); // Alert for medicines expiring within 30 days
+      thresholdDate.setDate(today.getDate() + 90); // Alert for medicines expiring within 90 days
 
       const expiringMedicines = await prisma.medicines.findMany({
         where: {

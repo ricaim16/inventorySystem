@@ -96,7 +96,7 @@ function sendNotificationEmail(subject, textMessage, htmlMessage, callback) {
 
 // Function to check low stock
 async function checkLowStock() {
-  const LOW_STOCK_THRESHOLD = 10;
+  const LOW_STOCK_THRESHOLD = 100;
   try {
     console.log("Checking low stock medicines...");
     const lowStockMedicines = await prisma.medicines.findMany({
@@ -217,9 +217,10 @@ async function checkExpiringMedicines() {
     return;
   }
   const thresholds = [
+    { weeks: 12, label: "12 weeks" },
+    { weeks: 8, label: "8 weeks" },
     { weeks: 4, label: "4 weeks" },
-    { weeks: 2, label: "2 weeks" },
-    { weeks: 0, label: "expired" },
+  { weeks: 0, label: "expired" },
   ];
 
   try {

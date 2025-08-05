@@ -368,7 +368,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\emu\\OneDrive\\Desktop\\inventorySystem\\server\\generated\\prisma",
+      "value": "C:\\Users\\emu\\OneDrive\\Desktop\\pp\\inventorySystem\\server\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -382,7 +382,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\emu\\OneDrive\\Desktop\\inventorySystem\\server\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\emu\\OneDrive\\Desktop\\pp\\inventorySystem\\server\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

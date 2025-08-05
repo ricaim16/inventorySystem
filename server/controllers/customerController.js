@@ -11,6 +11,8 @@ const __dirname = path.dirname(
   __filename.startsWith("/") ? __filename.slice(1) : __filename
 );
 
+
+
 export const customerController = {
   getAllCustomers: async (req, res) => {
     try {
@@ -35,6 +37,8 @@ export const customerController = {
         .json({ message: "Error fetching customers", error: error.message });
     }
   },
+
+
 
   getCustomerById: async (req, res) => {
     const { id } = req.params;
@@ -68,6 +72,8 @@ export const customerController = {
     }
   },
 
+
+  
   addCustomer: async (req, res) => {
     const { name, phone, address, status } = req.body;
 
@@ -101,6 +107,9 @@ export const customerController = {
         .json({ message: "Error adding customer", error: error.message });
     }
   },
+
+
+
 
   editCustomer: async (req, res) => {
     const { id } = req.params;

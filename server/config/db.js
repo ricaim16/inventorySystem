@@ -10,3 +10,4 @@ export const dbConnect = async () => {
   }
 };
 export default prisma;
+

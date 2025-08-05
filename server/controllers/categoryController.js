@@ -16,6 +16,8 @@ export const categoryController = {
     }
   },
 
+
+
   addCategory: async (req, res) => {
     const { name } = req.body;
     if (!name)
@@ -41,6 +43,8 @@ export const categoryController = {
       }
     }
   },
+
+
 
   editCategory: async (req, res) => {
     const { id } = req.params;
@@ -70,6 +74,8 @@ export const categoryController = {
       }
     }
   },
+
+  
 
   deleteCategory: async (req, res) => {
     const { id } = req.params;

@@ -1,9 +1,9 @@
 import prisma from "../config/db.js";
 import { hashPassword } from "../utils/hashPassword.js";
 
+
 export const seedDatabase = async () => {
   try {
-    // Check if any manager exists in the database
     const existingManager = await prisma.Users.findFirst({
       where: { role: "MANAGER" },
     });
@@ -12,17 +12,20 @@ export const seedDatabase = async () => {
       console.warn(
         `Manager account already exists (username: ${existingManager.username}), skipping database seeding.`
       );
-      return; // Exit early if a manager already exists
+      return; 
     }
+
 
     const managerData = {
       FirstName: "Sample",
       LastName: "Manager",
       username: "Admin",
-      email: "admin@example.com", // Add email
-      password: "1234", // Match the password used in login
+      email: "admin@example.com", 
+      password: "1234",
       role: "MANAGER",
     };
+
+
 
     const hashedPassword = await hashPassword(managerData.password);
     const manager = await prisma.Users.create({
@@ -30,7 +33,7 @@ export const seedDatabase = async () => {
         FirstName: managerData.FirstName,
         LastName: managerData.LastName,
         username: managerData.username,
-        email: managerData.email, // Include email
+        email: managerData.email, 
         password: hashedPassword,
         role: managerData.role,
         status: "ACTIVE",

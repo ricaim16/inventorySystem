@@ -17,6 +17,7 @@ export const authMiddleware = (req, res, next) => {
   }
 };
 
+
 export const roleMiddleware = (roles) => (req, res, next) => {
   console.log("Request User Role:", req.user?.role);
   console.log("Allowed Roles:", roles);
@@ -25,6 +26,7 @@ export const roleMiddleware = (roles) => (req, res, next) => {
   }
   next();
 };
+
 
 export const errorHandler = (err, req, res, next) => {
   console.error(err.stack);

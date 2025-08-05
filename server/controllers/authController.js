@@ -11,10 +11,14 @@ const generateOTP = () => {
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, // Updated to use environment variable
-    pass: process.env.EMAIL_PASS, // Updated to use environment variable
+    user: process.env.EMAIL_USER, 
+    pass: process.env.EMAIL_PASS, 
   },
 });
+
+
+
+
 
 // Login (Both manager and employee)
 export const login = async (req, res, next) => {
@@ -73,6 +77,12 @@ export const login = async (req, res, next) => {
   }
 };
 
+
+
+
+
+
+
 // Forgot Password
 export const forgotPassword = async (req, res, next) => {
   try {
@@ -120,6 +130,9 @@ export const forgotPassword = async (req, res, next) => {
   }
 };
 
+
+
+
 // Verify OTP
 export const verifyOtp = async (req, res, next) => {
   try {
@@ -151,6 +164,8 @@ export const verifyOtp = async (req, res, next) => {
     next(error);
   }
 };
+
+
 
 // Update Password
 export const updatePassword = async (req, res, next) => {
