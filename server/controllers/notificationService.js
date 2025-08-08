@@ -798,33 +798,73 @@ async function initializeTestData() {
       where: { quantity: { lte: 10 } },
     });
     if (!lowStock) {
-      await prisma.medicines.create({
-        data: {
-          medicine_name: "Test Medicine",
-          quantity: 5,
-          expire_date: new Date(),
-          batch_number: "BATCH001",
-          supplier: { connect: { id: supplier.id } },
-        },
+      // Ensure dependencies exist
+      const manager = await prisma.users.findFirst({
+        where: { role: "MANAGER" },
       });
-      console.log("Test low stock medicine created");
-    }
+      if (!manager) {
+        throw new Error("No manager found for creating test medicine");
+      }
 
-    // Check for expiring medicines
-    const expiring = await prisma.medicines.findFirst({
-      where: { expire_date: { lte: new Date() } },
-    });
-    if (!expiring) {
-      await prisma.medicines.create({
-        data: {
-          medicine_name: "Test Expiring Medicine",
-          quantity: 20,
-          expire_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
-          batch_number: "BATCH002",
-          supplier: { connect: { id: supplier.id } },
-        },
+      let category = await prisma.categories.findFirst();
+      if (!category) {
+        category = await prisma.categories.create({
+          data: { name: "Test Category" },
+        });
+        console.log("Test category created");
+      }
+
+      let dosageForm = await prisma.dosageForms.findFirst();
+      if (!dosageForm) {
+        dosageForm = await prisma.dosageForms.create({
+          data: { name: "Tablet" },
+        });
+        console.log("Test dosage form created");
+      }
+
+      let supplier = await prisma.suppliers.findFirst({
+        where: { id: "c4b1a160-4575-4480-9cb5-425f1e690009" },
       });
-      console.log("Test expiring medicine created");
+      if (!supplier) {
+        supplier = await prisma.suppliers.create({
+          data: {
+            id: "c4b1a160-4575-4480-9cb5-425f1e690009",
+            supplier_name: "Test Supplier",
+            contact_info: "+251912345678",
+            location: "Addis Ababa",
+          },
+        });
+        console.log("Test supplier created");
+      }
+
+      // Check if Test Medicine already exists to avoid duplicates
+      const existingMedicine = await prisma.medicines.findFirst({
+        where: { batch_number: "BATCH001" },
+      });
+      if (!existingMedicine) {
+        await prisma.medicines.create({
+          data: {
+            medicine_name: "Test Medicine",
+            quantity: 5,
+            initial_quantity: 5, // Added required field
+            expire_date: new Date("2025-08-08T07:31:00.129Z"), // Matches error date
+            batch_number: "BATCH001",
+            supplier: { connect: { id: supplier.id } },
+            category: { connect: { id: category.id } }, // Added required field
+            dosage_form: { connect: { id: dosageForm.id } }, // Added required field
+            unit_price: 10.0, // Added required field
+            sell_price: 15.0, // Added required field
+            total_price: 10.0 * 5, // Added required field
+            required_prescription: false, // Added required field
+            payment_method: "NONE",
+            createdBy: { connect: { id: manager.id } }, // Added required field
+            updatedBy: { connect: { id: manager.id } }, // Added optional field
+          },
+        });
+        console.log("Test low stock medicine created");
+      } else {
+        console.log("Test Medicine already exists, skipping creation");
+      }
     }
 
     // Check for customer
@@ -845,18 +885,25 @@ async function initializeTestData() {
     const unpaidSupplierCredit = await prisma.supplierCredits.findFirst({
       where: { payment_status: { in: ["UNPAID", "PARTIALLY_PAID"] } },
     });
+
     if (!unpaidSupplierCredit) {
       await prisma.supplierCredits.create({
         data: {
-          supplier_id: supplier.id,
+          supplier: {
+            connect: { id: "c4b1a160-4575-4480-9cb5-425f1e690009" }, // Connect to the existing supplier
+          },
           credit_amount: 1000,
           paid_amount: 0,
           unpaid_amount: 1000,
           payment_status: "UNPAID",
-          credit_date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000), // 3 weeks ago
+          credit_date: new Date("2025-07-18T08:19:49.455Z"), // Ensure this date is valid
         },
       });
       console.log("Test unpaid supplier credit created");
+    } else {
+      console.log(
+        "Test unpaid supplier credit already exists, skipping creation"
+      );
     }
 
     // Check for unpaid customer credit

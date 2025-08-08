@@ -396,11 +396,12 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": "postgresql://postgres:Aimee123%23%40@localhost:5432/inventorySystem?schema=public"
+        "value": null
       }
     }
   },
